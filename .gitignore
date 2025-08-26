@@ -33,3 +33,5 @@ outputs/
 .env
 *.env
 .env.*
+*.env
+.env*
