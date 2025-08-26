@@ -29,4 +29,7 @@ outputs/
 .backups/
 
 # Logs
-*.log
+*.log# Environment variables
+.env
+*.env
+.env.*
