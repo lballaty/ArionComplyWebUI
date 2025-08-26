@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Form Builder</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .form-builder-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .component-palette {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .form-canvas {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .properties-panel {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .component-category {
+        margin-bottom: 1.5rem;
+      }
+
+      .category-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .component-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: grab;
+        transition: all 0.15s ease;
+        background: var(--bg-white);
+      }
+
+      .component-item:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+        transform: translateY(-1px);
+      }
+
+      .component-item:active {
+        cursor: grabbing;
+      }
+
+      .component-icon {
+        margin-right: 0.75rem;
+        color: var(--primary-blue);
+        width: 20px;
+        text-align: center;
+      }
+
+      .component-info {
+        flex: 1;
+      }
+
+      .component-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .component-desc {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .canvas-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .canvas-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .canvas-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .canvas-body {
+        flex: 1;
+        padding: 2rem;
+        background: var(--bg-light);
+        border: 2px dashed var(--border-light);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+      }
+
+      .canvas-body.empty {
+        align-items: center;
+        justify-content: center;
+        color: var(--text-gray);
+      }
+
+      .canvas-body.has-items {
+        border-style: solid;
+        background: var(--bg-white);
+      }
+
+      .form-element {
+        position: relative;
+        padding: 1rem;
+        border: 2px solid transparent;
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .form-element:hover {
+        border-color: var(--primary-blue);
+      }
+
+      .form-element.selected {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .form-element .element-controls {
+        position: absolute;
+        top: -15px;
+        right: -5px;
+        display: none;
+        gap: 0.25rem;
+      }
+
+      .form-element:hover .element-controls,
+      .form-element.selected .element-controls {
+        display: flex;
+      }
+
+      .element-control-btn {
+        width: 24px;
+        height: 24px;
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+      }
+
+      .element-control-btn:hover {
+        background: #1d4ed8;
+      }
+
+      .property-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .property-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+      }
+
+      .property-field {
+        margin-bottom: 1rem;
+      }
+
+      .property-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .property-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+      }
+
+      .property-input:focus {
+        border-color: var(--primary-blue);
+      }
+
+      .property-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-preview {
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .drag-placeholder {
+        height: 60px;
+        border: 2px dashed var(--primary-blue);
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Form Builder Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Dynamic Form Builder</h1>
+              <p class="page-subtitle">Drag & Drop Compliance Form Designer</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="previewForm()">
+                <i class="fas fa-eye"></i>
+                Preview
+              </button>
+              <button class="btn btn-secondary" onclick="exportForm()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="saveForm()">
+                <i class="fas fa-save"></i>
+                Save Form
+              </button>
+            </div>
+          </div>
+
+          <div class="form-builder-container">
+            <!-- Component Palette -->
+            <div class="component-palette">
+              <h3 style="margin-bottom: 1.5rem">Form Components</h3>
+
+              <div class="component-category">
+                <div class="category-title">Basic Fields</div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="text-input"
+                >
+                  <i class="fas fa-font component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Text Input</div>
+                    <div class="component-desc">Single line text field</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="textarea"
+                >
+                  <i class="fas fa-align-left component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Text Area</div>
+                    <div class="component-desc">Multi-line text field</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="select"
+                >
+                  <i class="fas fa-chevron-down component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Dropdown</div>
+                    <div class="component-desc">Select from options</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="radio"
+                >
+                  <i class="fas fa-dot-circle component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Radio Buttons</div>
+                    <div class="component-desc">Single choice selection</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="checkbox"
+                >
+                  <i class="fas fa-check-square component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Checkboxes</div>
+                    <div class="component-desc">Multiple choice selection</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="component-category">
+                <div class="category-title">Specialized</div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="date"
+                >
+                  <i class="fas fa-calendar component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Date Picker</div>
+                    <div class="component-desc">Date selection field</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="file"
+                >
+                  <i class="fas fa-upload component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">File Upload</div>
+                    <div class="component-desc">File attachment field</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="risk-rating"
+                >
+                  <i class="fas fa-exclamation-triangle component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Risk Rating</div>
+                    <div class="component-desc">1-5 risk assessment scale</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="signature"
+                >
+                  <i class="fas fa-signature component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Digital Signature</div>
+                    <div class="component-desc">
+                      Electronic signature capture
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="component-category">
+                <div class="category-title">Layout</div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="section"
+                >
+                  <i class="fas fa-layer-group component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Section</div>
+                    <div class="component-desc">Group related fields</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="heading"
+                >
+                  <i class="fas fa-heading component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Heading</div>
+                    <div class="component-desc">Section title or label</div>
+                  </div>
+                </div>
+                <div
+                  class="component-item"
+                  draggable="true"
+                  data-component="divider"
+                >
+                  <i class="fas fa-minus component-icon"></i>
+                  <div class="component-info">
+                    <div class="component-name">Divider</div>
+                    <div class="component-desc">Visual separator line</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Canvas -->
+            <div class="form-canvas">
+              <div class="canvas-header">
+                <div class="canvas-title">
+                  <i class="fas fa-edit"></i>
+                  <span id="form-title">AI Risk Assessment Form</span>
+                </div>
+                <div class="canvas-actions">
+                  <button
+                    class="btn btn-secondary"
+                    onclick="clearCanvas()"
+                    title="Clear All"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    onclick="undoAction()"
+                    title="Undo"
+                  >
+                    <i class="fas fa-undo"></i>
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    onclick="redoAction()"
+                    title="Redo"
+                  >
+                    <i class="fas fa-redo"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="canvas-body empty"
+                id="form-canvas"
+                ondrop="handleDrop(event)"
+                ondragover="handleDragOver(event)"
+              >
+                <div>
+                  <i
+                    class="fas fa-plus-circle"
+                    style="
+                      font-size: 3rem;
+                      color: var(--text-gray);
+                      margin-bottom: 1rem;
+                    "
+                  ></i>
+                  <p style="font-size: 1.125rem; margin-bottom: 0.5rem">
+                    Start Building Your Form
+                  </p>
+                  <p style="font-size: 0.875rem">
+                    Drag components from the palette to create your compliance
+                    form
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="properties-panel">
+              <h3 style="margin-bottom: 1.5rem">Properties</h3>
+
+              <div id="no-selection" class="property-group">
+                <p style="color: var(--text-gray); font-style: italic">
+                  Select a form element to edit its properties
+                </p>
+              </div>
+
+              <div id="element-properties" style="display: none">
+                <div class="property-group">
+                  <div class="property-title">General</div>
+                  <div class="property-field">
+                    <label class="property-label">Label</label>
+                    <input
+                      type="text"
+                      class="property-input"
+                      id="prop-label"
+                      placeholder="Field label"
+                    />
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Field ID</label>
+                    <input
+                      type="text"
+                      class="property-input"
+                      id="prop-id"
+                      placeholder="field_id"
+                    />
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Help Text</label>
+                    <textarea
+                      class="property-input"
+                      id="prop-help"
+                      placeholder="Additional guidance for users"
+                      rows="2"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="property-group">
+                  <div class="property-title">Validation</div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="prop-required" />
+                    <label for="prop-required">Required field</label>
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Validation Rule</label>
+                    <select class="property-input" id="prop-validation">
+                      <option value="">No validation</option>
+                      <option value="email">Email format</option>
+                      <option value="phone">Phone number</option>
+                      <option value="number">Numbers only</option>
+                      <option value="alphanumeric">Alphanumeric</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div
+                  class="property-group"
+                  id="options-group"
+                  style="display: none"
+                >
+                  <div class="property-title">Options</div>
+                  <div class="property-field">
+                    <label class="property-label">Options (one per line)</label>
+                    <textarea
+                      class="property-input"
+                      id="prop-options"
+                      placeholder="Option 1&#10;Option 2&#10;Option 3"
+                      rows="4"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="property-group">
+                  <div class="property-title">Advanced</div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="prop-conditional" />
+                    <label for="prop-conditional">Conditional field</label>
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">CSS Classes</label>
+                    <input
+                      type="text"
+                      class="property-input"
+                      id="prop-classes"
+                      placeholder="custom-class"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Form%20Builder&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD these new scripts in this exact order -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+
+    <script>
+      let selectedElement = null;
+      let formElements = [];
+      let elementCounter = 0;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("formBuilder.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Form Builder");
+
+        // Initialize drag and drop
+        initializeDragAndDrop();
+      });
+
+      function initializeDragAndDrop() {
+        const componentItems = document.querySelectorAll(".component-item");
+
+        componentItems.forEach((item) => {
+          item.addEventListener("dragstart", function (e) {
+            e.dataTransfer.setData("text/plain", this.dataset.component);
+            this.style.opacity = "0.5";
+          });
+
+          item.addEventListener("dragend", function (e) {
+            this.style.opacity = "1";
+          });
+        });
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        const componentType = e.dataTransfer.getData("text/plain");
+
+        if (componentType) {
+          addFormElement(componentType);
+        }
+      }
+
+      function addFormElement(type) {
+        const canvas = document.getElementById("form-canvas");
+        elementCounter++;
+
+        const element = createFormElement(type, elementCounter);
+        formElements.push({
+          id: `element_${elementCounter}`,
+          type: type,
+          element: element,
+        });
+
+        if (canvas.classList.contains("empty")) {
+          canvas.classList.remove("empty");
+          canvas.classList.add("has-items");
+          canvas.innerHTML = "";
+        }
+
+        canvas.appendChild(element);
+        selectElement(element);
+
+        showNotification(`Added ${getComponentName(type)}`, "success");
+      }
+
+      function createFormElement(type, id) {
+        const element = document.createElement("div");
+        element.className = "form-element";
+        element.dataset.type = type;
+        element.dataset.id = `element_${id}`;
+        element.onclick = () => selectElement(element);
+
+        const controls = document.createElement("div");
+        controls.className = "element-controls";
+        controls.innerHTML = `
+                <button class="element-control-btn" onclick="moveElementUp(this)" title="Move Up">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                <button class="element-control-btn" onclick="moveElementDown(this)" title="Move Down">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                <button class="element-control-btn" onclick="duplicateElement(this)" title="Duplicate">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="element-control-btn" onclick="deleteElement(this)" title="Delete" style="background: var(--danger-red);">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+
+        element.appendChild(controls);
+        element.appendChild(createElementContent(type, id));
+
+        return element;
+      }
+
+      function createElementContent(type, id) {
+        const content = document.createElement("div");
+
+        switch (type) {
+          case "text-input":
+            content.innerHTML = `
+                        <label class="form-label">Text Input Label</label>
+                        <input type="text" class="form-input" placeholder="Enter text here..." disabled>
+                    `;
+            break;
+          case "textarea":
+            content.innerHTML = `
+                        <label class="form-label">Text Area Label</label>
+                        <textarea class="form-input" rows="3" placeholder="Enter detailed information..." disabled></textarea>
+                    `;
+            break;
+          case "select":
+            content.innerHTML = `
+                        <label class="form-label">Dropdown Label</label>
+                        <select class="form-input" disabled>
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                            <option>Option 3</option>
+                        </select>
+                    `;
+            break;
+          case "radio":
+            content.innerHTML = `
+                        <label class="form-label">Radio Button Group</label>
+                        <div>
+                            <label><input type="radio" name="radio_${id}" disabled> Option 1</label><br>
+                            <label><input type="radio" name="radio_${id}" disabled> Option 2</label><br>
+                            <label><input type="radio" name="radio_${id}" disabled> Option 3</label>
+                        </div>
+                    `;
+            break;
+          case "checkbox":
+            content.innerHTML = `
+                        <label class="form-label">Checkbox Group</label>
+                        <div>
+                            <label><input type="checkbox" disabled> Option 1</label><br>
+                            <label><input type="checkbox" disabled> Option 2</label><br>
+                            <label><input type="checkbox" disabled> Option 3</label>
+                        </div>
+                    `;
+            break;
+          case "date":
+            content.innerHTML = `
+                        <label class="form-label">Date Field</label>
+                        <input type="date" class="form-input" disabled>
+                    `;
+            break;
+          case "file":
+            content.innerHTML = `
+                        <label class="form-label">File Upload</label>
+                        <input type="file" class="form-input" disabled>
+                        <small style="color: var(--text-gray);">Maximum file size: 10MB</small>
+                    `;
+            break;
+          case "risk-rating":
+            content.innerHTML = `
+                        <label class="form-label">Risk Rating (1-5)</label>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span style="color: var(--success-green);">Low</span>
+                            ${[1, 2, 3, 4, 5].map((i) => `<label><input type="radio" name="risk_${id}" value="${i}" disabled> ${i}</label>`).join("")}
+                            <span style="color: var(--danger-red);">High</span>
+                        </div>
+                    `;
+            break;
+          case "signature":
+            content.innerHTML = `
+                        <label class="form-label">Digital Signature</label>
+                        <div style="border: 2px dashed var(--border-light); padding: 2rem; text-align: center; color: var(--text-gray);">
+                            <i class="fas fa-signature" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>
+                            Click to sign or draw signature
+                        </div>
+                    `;
+            break;
+          case "section":
+            content.innerHTML = `
+                        <div style="border: 1px solid var(--border-light); padding: 1rem; border-radius: var(--border-radius-sm);">
+                            <h4 style="margin-bottom: 0.5rem;">Section Title</h4>
+                            <p style="color: var(--text-gray); font-size: 0.875rem;">This is a section container for grouping related fields</p>
+                        </div>
+                    `;
+            break;
+          case "heading":
+            content.innerHTML = `<h3 style="margin: 0; color: var(--text-dark);">Form Section Heading</h3>`;
+            break;
+          case "divider":
+            content.innerHTML = `<hr style="border: none; border-top: 2px solid var(--border-light); margin: 1rem 0;">`;
+            break;
+          default:
+            content.innerHTML = `<div>Unknown component: ${type}</div>`;
+        }
+
+        return content;
+      }
+
+      function selectElement(element) {
+        // Remove selection from all elements
+        document
+          .querySelectorAll(".form-element")
+          .forEach((el) => el.classList.remove("selected"));
+
+        // Select current element
+        element.classList.add("selected");
+        selectedElement = element;
+
+        // Show properties panel
+        showElementProperties(element);
+      }
+
+      function showElementProperties(element) {
+        document.getElementById("no-selection").style.display = "none";
+        document.getElementById("element-properties").style.display = "block";
+
+        const type = element.dataset.type;
+        const label = element.querySelector(".form-label");
+
+        // Populate current values
+        document.getElementById("prop-label").value = label
+          ? label.textContent
+          : "";
+        document.getElementById("prop-id").value = element.dataset.id || "";
+
+        // Show/hide options group for select, radio, checkbox
+        const optionsGroup = document.getElementById("options-group");
+        if (["select", "radio", "checkbox"].includes(type)) {
+          optionsGroup.style.display = "block";
+        } else {
+          optionsGroup.style.display = "none";
+        }
+      }
+
+      function moveElementUp(button) {
+        const element = button.closest(".form-element");
+        const prev = element.previousElementSibling;
+        if (prev) {
+          element.parentNode.insertBefore(element, prev);
+        }
+      }
+
+      function moveElementDown(button) {
+        const element = button.closest(".form-element");
+        const next = element.nextElementSibling;
+        if (next) {
+          element.parentNode.insertBefore(next, element);
+        }
+      }
+
+      function duplicateElement(button) {
+        const element = button.closest(".form-element");
+        const clone = element.cloneNode(true);
+        elementCounter++;
+        clone.dataset.id = `element_${elementCounter}`;
+        element.parentNode.insertBefore(clone, element.nextSibling);
+        showNotification("Element duplicated", "success");
+      }
+
+      function deleteElement(button) {
+        const element = button.closest(".form-element");
+        if (confirm("Delete this form element?")) {
+          element.remove();
+
+          // If no elements left, show empty state
+          const canvas = document.getElementById("form-canvas");
+          if (canvas.children.length === 0) {
+            canvas.classList.remove("has-items");
+            canvas.classList.add("empty");
+            canvas.innerHTML = `
+                        <div>
+                            <i class="fas fa-plus-circle" style="font-size: 3rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+                            <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Start Building Your Form</p>
+                            <p style="font-size: 0.875rem;">Drag components from the palette to create your compliance form</p>
+                        </div>
+                    `;
+          }
+
+          showNotification("Element deleted", "info");
+        }
+      }
+
+      function clearCanvas() {
+        if (confirm("Clear all form elements?")) {
+          const canvas = document.getElementById("form-canvas");
+          canvas.classList.remove("has-items");
+          canvas.classList.add("empty");
+          canvas.innerHTML = `
+                    <div>
+                        <i class="fas fa-plus-circle" style="font-size: 3rem; color: var(--text-gray); margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.125rem; margin-bottom: 0.5rem;">Start Building Your Form</p>
+                        <p style="font-size: 0.875rem;">Drag components from the palette to create your compliance form</p>
+                    </div>
+                `;
+          formElements = [];
+          elementCounter = 0;
+          showNotification("Canvas cleared", "info");
+        }
+      }
+
+      function saveForm() {
+        showNotification("Form saved successfully", "success");
+      }
+
+      function previewForm() {
+        showNotification("Opening form preview...", "info");
+      }
+
+      function exportForm() {
+        showNotification("Exporting form definition...", "info");
+      }
+
+      function undoAction() {
+        showNotification("Undo action", "info");
+      }
+
+      function redoAction() {
+        showNotification("Redo action", "info");
+      }
+
+      function getComponentName(type) {
+        const names = {
+          "text-input": "Text Input",
+          textarea: "Text Area",
+          select: "Dropdown",
+          radio: "Radio Buttons",
+          checkbox: "Checkboxes",
+          date: "Date Picker",
+          file: "File Upload",
+          "risk-rating": "Risk Rating",
+          signature: "Digital Signature",
+          section: "Section",
+          heading: "Heading",
+          divider: "Divider",
+        };
+        return names[type] || type;
+      }
+
+      // Property panel event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("prop-label")
+          .addEventListener("input", function () {
+            if (selectedElement) {
+              const label = selectedElement.querySelector(".form-label");
+              if (label) {
+                label.textContent = this.value;
+              }
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

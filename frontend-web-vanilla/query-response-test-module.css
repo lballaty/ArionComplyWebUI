@@ -1,0 +1,16 @@
+.query-test-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  background: var(--bg-white);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-subtle);
+}
+
+.response-output {
+  margin-top: 1rem;
+  background: var(--bg-gray);
+  padding: 1rem;
+  border-radius: var(--border-radius-sm);
+  white-space: pre-wrap;
+}

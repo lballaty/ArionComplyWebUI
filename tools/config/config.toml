@@ -1,0 +1,9 @@
+[mining]
+min_freq = 2
+pmi_threshold = 3.0
+max_phrases_per_clause = 15
+lemmatize_default = false
+
+[embeddings]
+use = false
+cosine_accept = 0.80

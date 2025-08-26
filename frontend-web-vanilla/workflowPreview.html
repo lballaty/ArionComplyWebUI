@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Preview</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container">
+      <main class="main-content">
+        <div class="content">
+          <h1 class="page-title" id="workflow-name"></h1>
+          <div id="preview-steps" class="workflow-list"></div>
+        </div>
+      </main>
+    </div>
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="workflowModel.js"></script>
+    <script src="workflowEditor.js"></script>
+    <script>
+      function getId() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("id");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        LayoutManager.initializePage("workflowPreview.html");
+        const wf = WorkflowEditor.loadWorkflow(getId());
+        if (wf) {
+          document.getElementById("workflow-name").textContent = wf.name;
+          const container = document.getElementById("preview-steps");
+          wf.steps.forEach((s) => {
+            const item = document.createElement("div");
+            item.className = "workflow-item";
+            item.innerHTML = `<span>${s.title}</span> <span class="badge">${s.type}</span>`;
+            container.appendChild(item);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1487 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Kanban Board</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .kanban-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 200px);
+      }
+
+      .kanban-header {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .kanban-filters {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .filter-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+
+      .kanban-stats {
+        display: flex;
+        gap: 2rem;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .kanban-board {
+        flex: 1;
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .board-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      .board-title {
+        font-weight: 600;
+        font-size: 1.125rem;
+      }
+
+      .board-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .columns-container {
+        flex: 1;
+        display: flex;
+        gap: 1.5rem;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+      }
+
+      .kanban-column {
+        flex: 0 0 320px;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        min-height: 600px;
+      }
+
+      .column-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border-light);
+      }
+
+      .column-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .column-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .column-indicator.todo {
+        background: var(--text-gray);
+      }
+
+      .column-indicator.progress {
+        background: var(--warning-amber);
+      }
+
+      .column-indicator.review {
+        background: var(--primary-blue);
+      }
+
+      .column-indicator.done {
+        background: var(--success-green);
+      }
+
+      .column-count {
+        background: var(--bg-white);
+        color: var(--text-gray);
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .column-menu {
+        position: relative;
+      }
+
+      .column-menu-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-gray);
+        transition: all 0.15s ease;
+      }
+
+      .column-menu-btn:hover {
+        background: var(--bg-white);
+      }
+
+      .cards-container {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .kanban-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-subtle);
+        user-select: none;
+      }
+
+      .kanban-card:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .kanban-card.dragging {
+        opacity: 0.5;
+        transform: rotate(5deg);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+      }
+
+      .card-id {
+        background: var(--bg-light);
+        color: var(--text-gray);
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .card-priority {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+      }
+
+      .card-priority.high {
+        background: var(--danger-red);
+      }
+
+      .card-priority.medium {
+        background: var(--warning-amber);
+      }
+
+      .card-priority.low {
+        background: var(--success-green);
+      }
+
+      .card-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+      }
+
+      .card-description {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        line-height: 1.4;
+        margin-bottom: 1rem;
+      }
+
+      .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-bottom: 1rem;
+      }
+
+      .card-tag {
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .card-tag.risk {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-red);
+      }
+
+      .card-tag.compliance {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-blue);
+      }
+
+      .card-tag.ai {
+        background: rgba(124, 58, 237, 0.1);
+        color: var(--ai-purple);
+      }
+
+      .card-tag.audit {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-amber);
+      }
+
+      .card-tag.policy {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-green);
+      }
+
+      .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-light);
+      }
+
+      .card-assignee {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .assignee-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .assignee-name {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .card-due-date {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .card-due-date.overdue {
+        color: var(--danger-red);
+      }
+
+      .card-due-date.soon {
+        color: var(--warning-amber);
+      }
+
+      .add-card-btn {
+        background: var(--bg-white);
+        border: 2px dashed var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        margin-top: 0.75rem;
+      }
+
+      .add-card-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .drop-zone {
+        min-height: 120px;
+        border: 2px dashed transparent;
+        border-radius: var(--border-radius);
+        transition: all 0.15s ease;
+      }
+
+      .drop-zone.active {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .card-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      }
+
+      .card-modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 2rem;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-gray);
+      }
+
+      .modal-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-input,
+      .form-textarea,
+      .form-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+        font-size: 0.875rem;
+      }
+
+      .form-input:focus,
+      .form-textarea:focus,
+      .form-select:focus {
+        border-color: var(--primary-blue);
+      }
+
+      .form-textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+      }
+
+      .swimlane-divider {
+        height: 1px;
+        background: var(--border-light);
+        margin: 1rem 0;
+        position: relative;
+      }
+
+      .swimlane-label {
+        position: absolute;
+        left: -100px;
+        top: -0.5rem;
+        background: var(--bg-white);
+        padding: 0 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Compliance Kanban Board</h1>
+              <p class="page-subtitle">Task Management & Project Tracking</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="exportBoard()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-secondary" onclick="filterTasks()">
+                <i class="fas fa-filter"></i>
+                Filter
+              </button>
+              <button class="btn btn-primary" onclick="addTask()">
+                <i class="fas fa-plus"></i>
+                Add Task
+              </button>
+            </div>
+          </div>
+
+          <div class="kanban-container">
+            <!-- Kanban Header -->
+            <div class="kanban-header">
+              <div class="kanban-filters">
+                <select
+                  class="filter-select"
+                  onchange="filterByFramework(this.value)"
+                >
+                  <option value="">All Frameworks</option>
+                  <option value="iso27001">ISO 27001</option>
+                  <option value="gdpr">GDPR</option>
+                  <option value="soc2">SOC 2</option>
+                  <option value="ai-act">EU AI Act</option>
+                </select>
+
+                <select
+                  class="filter-select"
+                  onchange="filterByAssignee(this.value)"
+                >
+                  <option value="">All Assignees</option>
+                  <option value="john">John Smith</option>
+                  <option value="sarah">Sarah Johnson</option>
+                  <option value="mike">Mike Wilson</option>
+                  <option value="emma">Emma Davis</option>
+                </select>
+
+                <select
+                  class="filter-select"
+                  onchange="filterByPriority(this.value)"
+                >
+                  <option value="">All Priorities</option>
+                  <option value="high">High Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+              </div>
+
+              <div class="kanban-stats">
+                <div class="stat-item">
+                  <div class="stat-value">24</div>
+                  <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">6</div>
+                  <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">12</div>
+                  <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">3</div>
+                  <div class="stat-label">Overdue</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="kanban-board">
+              <div class="board-header">
+                <div class="board-title">Q4 2024 Compliance Sprint</div>
+                <div class="board-actions">
+                  <button class="btn btn-secondary" onclick="toggleSwimlanes()">
+                    <i class="fas fa-layer-group"></i>
+                    Swimlanes
+                  </button>
+                  <button class="btn btn-secondary" onclick="boardSettings()">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                  </button>
+                </div>
+              </div>
+
+              <div class="columns-container">
+                <!-- To Do Column -->
+                <div
+                  class="kanban-column"
+                  data-status="todo"
+                  ondrop="handleDrop(event)"
+                  ondragover="allowDrop(event)"
+                >
+                  <div class="column-header">
+                    <div class="column-title">
+                      <div class="column-indicator todo"></div>
+                      <span>To Do</span>
+                      <div class="column-count">6</div>
+                    </div>
+                    <div class="column-menu">
+                      <button
+                        class="column-menu-btn"
+                        onclick="columnMenu('todo')"
+                      >
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="cards-container drop-zone">
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-001')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-001</div>
+                        <div class="card-priority high"></div>
+                      </div>
+                      <div class="card-title">
+                        Update ISO 27001 Risk Assessment
+                      </div>
+                      <div class="card-description">
+                        Complete annual risk assessment update including new
+                        cloud services and AI systems.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag compliance">ISO 27001</div>
+                        <div class="card-tag risk">Risk</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">JS</div>
+                          <div class="assignee-name">John Smith</div>
+                        </div>
+                        <div class="card-due-date soon">
+                          <i class="fas fa-clock"></i>
+                          <span>Dec 28</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-002')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-002</div>
+                        <div class="card-priority medium"></div>
+                      </div>
+                      <div class="card-title">GDPR Data Mapping Review</div>
+                      <div class="card-description">
+                        Review and update data flow mapping for new customer
+                        onboarding process.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag compliance">GDPR</div>
+                        <div class="card-tag policy">Privacy</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">SJ</div>
+                          <div class="assignee-name">Sarah Johnson</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-clock"></i>
+                          <span>Jan 5</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-003')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-003</div>
+                        <div class="card-priority low"></div>
+                      </div>
+                      <div class="card-title">
+                        Security Training Material Update
+                      </div>
+                      <div class="card-description">
+                        Update security awareness training with latest phishing
+                        examples.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag policy">Training</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">MW</div>
+                          <div class="assignee-name">Mike Wilson</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-clock"></i>
+                          <span>Jan 10</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="add-card-btn" onclick="addCardToColumn('todo')">
+                    <i class="fas fa-plus"></i>
+                    <span>Add a card</span>
+                  </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div
+                  class="kanban-column"
+                  data-status="progress"
+                  ondrop="handleDrop(event)"
+                  ondragover="allowDrop(event)"
+                >
+                  <div class="column-header">
+                    <div class="column-title">
+                      <div class="column-indicator progress"></div>
+                      <span>In Progress</span>
+                      <div class="column-count">6</div>
+                    </div>
+                    <div class="column-menu">
+                      <button
+                        class="column-menu-btn"
+                        onclick="columnMenu('progress')"
+                      >
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="cards-container drop-zone">
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-004')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-004</div>
+                        <div class="card-priority high"></div>
+                      </div>
+                      <div class="card-title">
+                        AI Risk Assessment Implementation
+                      </div>
+                      <div class="card-description">
+                        Implement new AI risk assessment framework for customer
+                        analytics system.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag ai">AI Act</div>
+                        <div class="card-tag risk">Risk</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">ED</div>
+                          <div class="assignee-name">Emma Davis</div>
+                        </div>
+                        <div class="card-due-date overdue">
+                          <i class="fas fa-clock"></i>
+                          <span>Dec 20</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-005')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-005</div>
+                        <div class="card-priority medium"></div>
+                      </div>
+                      <div class="card-title">SOC 2 Control Testing</div>
+                      <div class="card-description">
+                        Execute quarterly SOC 2 control testing for access
+                        management controls.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag audit">SOC 2</div>
+                        <div class="card-tag compliance">Audit</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">JS</div>
+                          <div class="assignee-name">John Smith</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-clock"></i>
+                          <span>Dec 31</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="add-card-btn"
+                    onclick="addCardToColumn('progress')"
+                  >
+                    <i class="fas fa-plus"></i>
+                    <span>Add a card</span>
+                  </div>
+                </div>
+
+                <!-- Review Column -->
+                <div
+                  class="kanban-column"
+                  data-status="review"
+                  ondrop="handleDrop(event)"
+                  ondragover="allowDrop(event)"
+                >
+                  <div class="column-header">
+                    <div class="column-title">
+                      <div class="column-indicator review"></div>
+                      <span>Review</span>
+                      <div class="column-count">4</div>
+                    </div>
+                    <div class="column-menu">
+                      <button
+                        class="column-menu-btn"
+                        onclick="columnMenu('review')"
+                      >
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="cards-container drop-zone">
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-006')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-006</div>
+                        <div class="card-priority medium"></div>
+                      </div>
+                      <div class="card-title">Privacy Policy Update</div>
+                      <div class="card-description">
+                        Update privacy policy to reflect new data processing
+                        activities and AI systems.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag policy">Policy</div>
+                        <div class="card-tag compliance">GDPR</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">SJ</div>
+                          <div class="assignee-name">Sarah Johnson</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-clock"></i>
+                          <span>Dec 25</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-007')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-007</div>
+                        <div class="card-priority low"></div>
+                      </div>
+                      <div class="card-title">
+                        Incident Response Plan Review
+                      </div>
+                      <div class="card-description">
+                        Annual review of incident response procedures and
+                        contact lists.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag policy">Incident</div>
+                        <div class="card-tag compliance">ISO 27001</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">MW</div>
+                          <div class="assignee-name">Mike Wilson</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-clock"></i>
+                          <span>Jan 8</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="add-card-btn" onclick="addCardToColumn('review')">
+                    <i class="fas fa-plus"></i>
+                    <span>Add a card</span>
+                  </div>
+                </div>
+
+                <!-- Done Column -->
+                <div
+                  class="kanban-column"
+                  data-status="done"
+                  ondrop="handleDrop(event)"
+                  ondragover="allowDrop(event)"
+                >
+                  <div class="column-header">
+                    <div class="column-title">
+                      <div class="column-indicator done"></div>
+                      <span>Done</span>
+                      <div class="column-count">8</div>
+                    </div>
+                    <div class="column-menu">
+                      <button
+                        class="column-menu-btn"
+                        onclick="columnMenu('done')"
+                      >
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="cards-container drop-zone">
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-008')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-008</div>
+                        <div class="card-priority high"></div>
+                      </div>
+                      <div class="card-title">Quarterly Audit Preparation</div>
+                      <div class="card-description">
+                        Prepare documentation and evidence for Q4 external
+                        audit.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag audit">Audit</div>
+                        <div class="card-tag compliance">ISO 27001</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">ED</div>
+                          <div class="assignee-name">Emma Davis</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-check"></i>
+                          <span>Completed</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      class="kanban-card"
+                      draggable="true"
+                      onclick="openCard('TASK-009')"
+                      ondragstart="handleDragStart(event)"
+                    >
+                      <div class="card-header">
+                        <div class="card-id">TASK-009</div>
+                        <div class="card-priority medium"></div>
+                      </div>
+                      <div class="card-title">Access Review Automation</div>
+                      <div class="card-description">
+                        Implement automated quarterly access review process.
+                      </div>
+                      <div class="card-tags">
+                        <div class="card-tag compliance">Access</div>
+                        <div class="card-tag audit">Automation</div>
+                      </div>
+                      <div class="card-footer">
+                        <div class="card-assignee">
+                          <div class="assignee-avatar">JS</div>
+                          <div class="assignee-name">John Smith</div>
+                        </div>
+                        <div class="card-due-date">
+                          <i class="fas fa-check"></i>
+                          <span>Completed</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="add-card-btn" onclick="addCardToColumn('done')">
+                    <i class="fas fa-plus"></i>
+                    <span>Add a card</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Card Modal -->
+      <div class="card-modal" id="cardModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Task Details</div>
+            <button class="modal-close" onclick="closeCardModal()">×</button>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Basic Information</div>
+            <div class="form-group">
+              <label class="form-label">Task Title</label>
+              <input
+                type="text"
+                class="form-input"
+                id="modalTaskTitle"
+                placeholder="Enter task title"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea
+                class="form-textarea"
+                id="modalTaskDescription"
+                placeholder="Enter task description"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Assignment & Priority</div>
+            <div class="form-group">
+              <label class="form-label">Assignee</label>
+              <select class="form-select" id="modalAssignee">
+                <option value="">Select assignee</option>
+                <option value="john">John Smith</option>
+                <option value="sarah">Sarah Johnson</option>
+                <option value="mike">Mike Wilson</option>
+                <option value="emma">Emma Davis</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-select" id="modalPriority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Due Date</label>
+              <input type="date" class="form-input" id="modalDueDate" />
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Classification</div>
+            <div class="form-group">
+              <label class="form-label">Framework</label>
+              <select class="form-select" id="modalFramework">
+                <option value="">Select framework</option>
+                <option value="iso27001">ISO 27001</option>
+                <option value="gdpr">GDPR</option>
+                <option value="soc2">SOC 2</option>
+                <option value="ai-act">EU AI Act</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="modalStatus">
+                <option value="todo">To Do</option>
+                <option value="progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeCardModal()">
+              Cancel
+            </button>
+            <button class="btn btn-primary" onclick="saveCard()">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Task%20Management&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- NEW: Add navigation scripts BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      
+// =============================================================================
+// kanbanBoard.html - Seed Data Integration Script
+// =============================================================================
+// FIND the <script> section in kanbanBoard.html and REPLACE it with this code
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout system
+  LayoutManager.initializePage("kanbanBoard.html");
+  
+  // Initialize kanban board with seed data
+  loadKanbanTasks();
+  
+  // Page-specific initialization
+  updateChatContext("Task Management");
+  
+  console.log("✅ Kanban board initialized with seed data");
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadKanbanTasks() {
+  console.log("Loading kanban tasks from seed data...");
+  
+  const tasks = getKanbanTasks();
+  
+  if (tasks.length === 0) {
+    console.warn("No kanban tasks found in seed data");
+    return;
+  }
+  
+  // Clear existing tasks
+  clearAllColumns();
+  
+  // Render tasks by status
+  renderKanbanBoard(tasks);
+  
+  // Update statistics
+  updateKanbanStats(tasks);
+  
+  console.log(`✅ Loaded ${tasks.length} kanban tasks from seed data`);
+}
+
+function renderKanbanBoard(tasks) {
+  const columns = ['todo', 'progress', 'review', 'done'];
+  
+  columns.forEach(status => {
+    const column = document.querySelector(`.cards-container[data-status="${status}"]`) || 
+                   document.getElementById(`${status}-column`);
+    
+    if (!column) {
+      console.warn(`Column for status ${status} not found`);
+      return;
+    }
+    
+    const columnTasks = tasks.filter(task => task.status === status);
+    
+    columnTasks.forEach(task => {
+      const taskCard = createTaskCard(task);
+      column.appendChild(taskCard);
+    });
+  });
+}
+
+function createTaskCard(task) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.draggable = true;
+  card.dataset.taskId = task.id;
+  
+  // Priority color mapping
+  const priorityColors = {
+    high: 'var(--danger-red)',
+    medium: 'var(--warning-amber)', 
+    low: 'var(--success-green)'
+  };
+  
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-id">${task.id}</div>
+      <div class="card-priority ${task.priority}" style="background: ${priorityColors[task.priority]}"></div>
+    </div>
+    <div class="card-title">${task.title}</div>
+    <div class="card-description">${task.description}</div>
+    <div class="card-tags">
+      ${task.tags.map(tag => `<span class="card-tag ${tag}">${tag}</span>`).join('')}
+    </div>
+    <div class="card-footer">
+      <div class="card-assignee">
+        <div class="assignee-avatar" style="background: var(--primary-blue)">
+          ${task.assignee.charAt(0).toUpperCase()}
+        </div>
+        <span class="assignee-name">${task.assignee}</span>
+      </div>
+      <div class="card-due-date">${formatDate(task.dueDate)}</div>
+    </div>
+  `;
+  
+  // Add event listeners
+  card.addEventListener('dragstart', handleDragStart);
+  card.addEventListener('click', () => editTask(task.id));
+  
+  return card;
+}
+
+function clearAllColumns() {
+  const columns = document.querySelectorAll('.cards-container');
+  columns.forEach(column => {
+    column.innerHTML = '';
+  });
+}
+
+function updateKanbanStats(tasks) {
+  const stats = {
+    total: tasks.length,
+    todo: tasks.filter(t => t.status === 'todo').length,
+    progress: tasks.filter(t => t.status === 'progress').length,
+    review: tasks.filter(t => t.status === 'review').length,
+    done: tasks.filter(t => t.status === 'done').length,
+    overdue: tasks.filter(t => new Date(t.dueDate) < new Date()).length
+  };
+  
+  // Update stat displays
+  updateStatDisplay('total-tasks', stats.total);
+  updateStatDisplay('in-progress', stats.progress);
+  updateStatDisplay('completed', stats.done);
+  updateStatDisplay('overdue', stats.overdue);
+  
+  // Update column counts
+  updateColumnCount('todo', stats.todo);
+  updateColumnCount('progress', stats.progress);
+  updateColumnCount('review', stats.review);
+  updateColumnCount('done', stats.done);
+}
+
+function updateStatDisplay(id, value) {
+  const element = document.getElementById(id) || document.querySelector(`[data-stat="${id}"]`);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function updateColumnCount(status, count) {
+  const countElement = document.querySelector(`[data-column="${status}"] .column-count`);
+  if (countElement) {
+    countElement.textContent = count;
+  }
+}
+
+// =============================================================================
+// TASK MANAGEMENT FUNCTIONS
+// =============================================================================
+
+function addTask() {
+  const title = prompt("Enter task title:");
+  if (!title) return;
+  
+  const description = prompt("Enter task description:");
+  const priority = prompt("Enter priority (high/medium/low):") || "medium";
+  const assignee = prompt("Enter assignee email:") || "user@example.com";
+  const dueDate = prompt("Enter due date (YYYY-MM-DD):") || new Date().toISOString().split('T')[0];
+  
+  const newTask = {
+    title: title,
+    description: description || "",
+    status: "todo",
+    assignee: assignee,
+    priority: priority.toLowerCase(),
+    dueDate: dueDate,
+    tags: ["compliance"]
+  };
+  
+  addKanbanTask(newTask);
+  loadKanbanTasks();
+  showNotification(`Task "${title}" added successfully!`, "success");
+}
+
+function editTask(taskId) {
+  const tasks = getKanbanTasks();
+  const task = tasks.find(t => t.id === taskId);
+  
+  if (!task) {
+    showNotification("Task not found", "error");
+    return;
+  }
+  
+  const newTitle = prompt("Edit task title:", task.title);
+  if (newTitle && newTitle !== task.title) {
+    updateKanbanTask(taskId, { title: newTitle });
+    loadKanbanTasks();
+    showNotification("Task updated successfully", "success");
+  }
+}
+
+function deleteTask(taskId) {
+  const tasks = getKanbanTasks();
+  const task = tasks.find(t => t.id === taskId);
+  
+  if (!task) {
+    showNotification("Task not found", "error");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete "${task.title}"?`)) {
+    deleteKanbanTask(taskId);
+    loadKanbanTasks();
+    showNotification("Task deleted successfully", "success");
+  }
+}
+
+// =============================================================================
+// DRAG AND DROP FUNCTIONALITY
+// =============================================================================
+
+let draggedTask = null;
+
+function handleDragStart(e) {
+  draggedTask = e.target;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.target.outerHTML);
+  e.target.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  
+  if (!draggedTask) return;
+  
+  const dropZone = e.target.closest('.cards-container');
+  if (!dropZone) return;
+  
+  const newStatus = dropZone.dataset.status;
+  const taskId = draggedTask.dataset.taskId;
+  
+  if (newStatus && taskId) {
+    updateKanbanTask(taskId, { status: newStatus });
+    loadKanbanTasks();
+    showNotification(`Task moved to ${newStatus}`, "success");
+  }
+  
+  draggedTask.classList.remove('dragging');
+  draggedTask = null;
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove('dragging');
+  draggedTask = null;
+}
+
+// =============================================================================
+// FILTER FUNCTIONS
+// =============================================================================
+
+function filterByFramework(framework) {
+  console.log(`Filtering by framework: ${framework}`);
+  // Implementation depends on your specific UI structure
+  loadKanbanTasks(); // Reload and apply filter
+}
+
+function filterByAssignee(assignee) {
+  console.log(`Filtering by assignee: ${assignee}`);
+  loadKanbanTasks(); // Reload and apply filter
+}
+
+function filterByPriority(priority) {
+  console.log(`Filtering by priority: ${priority}`);
+  loadKanbanTasks(); // Reload and apply filter
+}
+
+function filterTasks() {
+  // Toggle filter panel or open filter modal
+  showNotification("Filter options coming soon", "info");
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  });
+}
+
+function exportBoard() {
+  const tasks = getKanbanTasks();
+  
+  if (tasks.length === 0) {
+    showNotification("No tasks to export", "warning");
+    return;
+  }
+  
+  const csvContent = "data:text/csv;charset=utf-8," + 
+    "ID,Title,Description,Status,Priority,Assignee,Due Date,Tags\n" +
+    tasks.map(task => 
+      `${task.id},"${task.title}","${task.description}",${task.status},${task.priority},${task.assignee},${task.dueDate},"${task.tags.join(';')}"`
+    ).join("\n");
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "kanban_tasks_export.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showNotification(`Exported ${tasks.length} tasks to CSV`, "success");
+}
+
+// =============================================================================
+// DRAG AND DROP SETUP
+// =============================================================================
+
+// Set up drag and drop zones
+document.addEventListener('DOMContentLoaded', function() {
+  const dropZones = document.querySelectorAll('.cards-container');
+  
+  dropZones.forEach(zone => {
+    zone.addEventListener('dragover', handleDragOver);
+    zone.addEventListener('drop', handleDrop);
+  });
+});
+
+// =============================================================================
+// USAGE INSTRUCTIONS
+// =============================================================================
+/*
+1. FIND the <script> section in kanbanBoard.html
+2. REPLACE the entire script content with this code
+3. ENSURE seedData.js is loaded before this script
+4. The board will automatically load tasks from localStorage
+5. Drag and drop will update task status and persist changes
+6. All CRUD operations persist to localStorage
+
+Required HTML structure:
+- .cards-container elements with data-status attributes
+- .kanban-card elements for individual tasks
+- Stat display elements for counters
+- Column count elements for task counts
+*/
+    </script>
+  </body>
+</html>

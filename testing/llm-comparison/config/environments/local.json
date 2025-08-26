@@ -1,0 +1,17 @@
+{
+  "_description": "Local development environment configuration",
+  "_file_path": "testing/llm-comparison/config/environments/local.json",
+  "name": "Local Development",
+  "version": "1.0",
+  "endpoints": {
+    "supabase_url": "http://localhost:54321",
+    "edge_function_url": "http://localhost:54321/functions/v1/compliance-proxy"
+  },
+  "database": {
+    "connection_string": "postgresql://postgres:postgres@localhost:54322/postgres"
+  },
+  "api_keys": {
+    "use_environment_variables": true,
+    "required_variables": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SUPABASE_ANON_KEY"]
+  }
+}

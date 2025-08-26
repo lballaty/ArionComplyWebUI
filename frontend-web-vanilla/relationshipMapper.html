@@ -1,0 +1,1872 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Relationship Mapper</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .mapper-container {
+        display: grid;
+        grid-template-columns: 280px 1fr 320px;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .mapper-sidebar {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .mapper-canvas {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .mapper-properties {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .entity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .entity-item {
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: grab;
+        transition: all 0.15s ease;
+        background: var(--bg-white);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .entity-item:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+        transform: translateY(-1px);
+      }
+
+      .entity-item:active {
+        cursor: grabbing;
+      }
+
+      .entity-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+      }
+
+      .entity-icon.risk {
+        background: var(--danger-red);
+      }
+
+      .entity-icon.asset {
+        background: var(--primary-blue);
+      }
+
+      .entity-icon.policy {
+        background: var(--success-green);
+      }
+
+      .entity-icon.control {
+        background: var(--warning-amber);
+      }
+
+      .entity-icon.ai {
+        background: var(--ai-purple);
+      }
+
+      .entity-icon.process {
+        background: var(--text-gray);
+      }
+
+      .entity-info {
+        flex: 1;
+      }
+
+      .entity-name {
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-bottom: 0.125rem;
+      }
+
+      .entity-type {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .filter-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+
+      .filter-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .filter-checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .canvas-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .canvas-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .canvas-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .canvas-body {
+        flex: 1;
+        position: relative;
+        background: radial-gradient(
+          circle,
+          var(--border-light) 1px,
+          transparent 1px
+        );
+        background-size: 30px 30px;
+        overflow: hidden;
+      }
+
+      .mapper-viewport {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: auto;
+        cursor: grab;
+      }
+
+      .mapper-viewport:active {
+        cursor: grabbing;
+      }
+
+      .relationship-node {
+        position: absolute;
+        background: var(--bg-white);
+        border: 2px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        min-width: 150px;
+        user-select: none;
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .relationship-node:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+      }
+
+      .relationship-node.selected {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .relationship-node.risk {
+        border-color: var(--danger-red);
+      }
+
+      .relationship-node.asset {
+        border-color: var(--primary-blue);
+      }
+
+      .relationship-node.policy {
+        border-color: var(--success-green);
+      }
+
+      .relationship-node.control {
+        border-color: var(--warning-amber);
+      }
+
+      .relationship-node.ai {
+        border-color: var(--ai-purple);
+      }
+
+      .node-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+      }
+
+      .node-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: white;
+      }
+
+      .node-content {
+        flex: 1;
+      }
+
+      .node-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .node-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .node-metrics {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
+      .node-metric {
+        text-align: center;
+      }
+
+      .metric-value {
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+
+      .metric-label {
+        font-size: 0.625rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .connection-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .connection-line {
+        stroke: var(--primary-blue);
+        stroke-width: 2;
+        fill: none;
+      }
+
+      .connection-line.risk {
+        stroke: var(--danger-red);
+      }
+
+      .connection-line.mitigates {
+        stroke: var(--success-green);
+      }
+
+      .connection-line.governs {
+        stroke: var(--ai-purple);
+      }
+
+      .connection-line.implements {
+        stroke: var(--warning-amber);
+      }
+
+      .connection-arrow {
+        fill: var(--primary-blue);
+      }
+
+      .connection-label {
+        font-size: 0.75rem;
+        fill: var(--text-gray);
+        text-anchor: middle;
+      }
+
+      .mapper-toolbar {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 100;
+      }
+
+      .toolbar-btn {
+        width: 36px;
+        height: 36px;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .toolbar-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .toolbar-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .layout-controls {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 100;
+      }
+
+      .layout-btn {
+        padding: 0.5rem 1rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .layout-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .properties-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .properties-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .properties-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .property-section {
+        margin-bottom: 2rem;
+      }
+
+      .property-section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+      }
+
+      .property-field {
+        margin-bottom: 1rem;
+      }
+
+      .property-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .property-value {
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+      }
+
+      .relationship-list {
+        list-style: none;
+      }
+
+      .relationship-item {
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .relationship-type {
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: white;
+      }
+
+      .relationship-type.mitigates {
+        background: var(--success-green);
+      }
+
+      .relationship-type.governs {
+        background: var(--ai-purple);
+      }
+
+      .relationship-type.implements {
+        background: var(--warning-amber);
+      }
+
+      .relationship-type.affects {
+        background: var(--danger-red);
+      }
+
+      .relationship-details {
+        flex: 1;
+      }
+
+      .relationship-target {
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+
+      .relationship-description {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .legend {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+      }
+
+      .legend-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Relationship Mapper</h1>
+              <p class="page-subtitle">
+                Visualize Entity Relationships & Dependencies
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="autoLayout()">
+                <i class="fas fa-magic"></i>
+                Auto Layout
+              </button>
+              <button class="btn btn-secondary" onclick="exportMap()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="saveMap()">
+                <i class="fas fa-save"></i>
+                Save Map
+              </button>
+            </div>
+          </div>
+
+          <div class="mapper-container">
+            <!-- Mapper Sidebar -->
+            <div class="mapper-sidebar">
+              <div class="sidebar-section">
+                <div class="section-title">Entity Palette</div>
+                <div class="entity-list">
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="risk"
+                  >
+                    <div class="entity-icon risk">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">Data Breach Risk</div>
+                      <div class="entity-type">High Risk</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="asset"
+                  >
+                    <div class="entity-icon asset">
+                      <i class="fas fa-database"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">Customer Database</div>
+                      <div class="entity-type">Critical Asset</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="control"
+                  >
+                    <div class="entity-icon control">
+                      <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">Access Controls</div>
+                      <div class="entity-type">Security Control</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="policy"
+                  >
+                    <div class="entity-icon policy">
+                      <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">Data Protection Policy</div>
+                      <div class="entity-type">Policy Document</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="ai"
+                  >
+                    <div class="entity-icon ai">
+                      <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">AI Analytics System</div>
+                      <div class="entity-type">AI System</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="entity-item"
+                    draggable="true"
+                    data-entity-type="process"
+                  >
+                    <div class="entity-icon process">
+                      <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="entity-info">
+                      <div class="entity-name">Incident Response</div>
+                      <div class="entity-type">Business Process</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="section-title">Filters</div>
+                <div class="filter-group">
+                  <label class="filter-label">Entity Types</label>
+                  <div class="filter-checkbox-group">
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Risks</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Assets</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Controls</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Policies</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>AI Systems</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" />
+                      <span>Processes</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Relationship Types</label>
+                  <div class="filter-checkbox-group">
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Mitigates</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Governs</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Implements</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" />
+                      <span>Affects</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="legend">
+                  <div class="legend-title">Legend</div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-color"
+                      style="background: var(--danger-red)"
+                    ></div>
+                    <span>Risks</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-color"
+                      style="background: var(--primary-blue)"
+                    ></div>
+                    <span>Assets</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-color"
+                      style="background: var(--warning-amber)"
+                    ></div>
+                    <span>Controls</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-color"
+                      style="background: var(--success-green)"
+                    ></div>
+                    <span>Policies</span>
+                  </div>
+                  <div class="legend-item">
+                    <div
+                      class="legend-color"
+                      style="background: var(--ai-purple)"
+                    ></div>
+                    <span>AI Systems</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapper Canvas -->
+            <div class="mapper-canvas">
+              <div class="canvas-header">
+                <div class="canvas-title">
+                  <i class="fas fa-project-diagram"></i>
+                  <span>Risk & Compliance Relationship Map</span>
+                </div>
+                <div class="canvas-actions">
+                  <button
+                    class="btn btn-secondary"
+                    onclick="centerView()"
+                    title="Center View"
+                  >
+                    <i class="fas fa-crosshairs"></i>
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    onclick="resetZoom()"
+                    title="Reset Zoom"
+                  >
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="canvas-body">
+                <div class="mapper-toolbar">
+                  <button
+                    class="toolbar-btn active"
+                    onclick="selectTool('select')"
+                    title="Select"
+                  >
+                    <i class="fas fa-mouse-pointer"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="selectTool('connect')"
+                    title="Connect"
+                  >
+                    <i class="fas fa-link"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="selectTool('pan')"
+                    title="Pan"
+                  >
+                    <i class="fas fa-hand-paper"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="zoomIn()"
+                    title="Zoom In"
+                  >
+                    <i class="fas fa-search-plus"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="zoomOut()"
+                    title="Zoom Out"
+                  >
+                    <i class="fas fa-search-minus"></i>
+                  </button>
+                </div>
+
+                <div class="layout-controls">
+                  <button
+                    class="layout-btn"
+                    onclick="applyLayout('hierarchical')"
+                  >
+                    Hierarchical
+                  </button>
+                  <button class="layout-btn" onclick="applyLayout('circular')">
+                    Circular
+                  </button>
+                  <button class="layout-btn" onclick="applyLayout('force')">
+                    Force-Directed
+                  </button>
+                  <button class="layout-btn" onclick="applyLayout('grid')">
+                    Grid
+                  </button>
+                </div>
+
+                <div
+                  class="mapper-viewport"
+                  id="mapper-viewport"
+                  ondrop="handleDrop(event)"
+                  ondragover="handleDragOver(event)"
+                >
+                  <!-- SVG for connections -->
+                  <svg class="connection-svg">
+                    <defs>
+                      <marker
+                        id="arrowhead"
+                        markerWidth="10"
+                        markerHeight="7"
+                        refX="9"
+                        refY="3.5"
+                        orient="auto"
+                      >
+                        <polygon
+                          points="0 0, 10 3.5, 0 7"
+                          class="connection-arrow"
+                        />
+                      </marker>
+                    </defs>
+
+                    <!-- Sample connections -->
+                    <path
+                      class="connection-line mitigates"
+                      d="M 320 180 Q 400 120 480 160"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <text class="connection-label" x="400" y="135">
+                      mitigates
+                    </text>
+
+                    <path
+                      class="connection-line governs"
+                      d="M 320 280 Q 400 320 480 280"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <text class="connection-label" x="400" y="305">
+                      governs
+                    </text>
+
+                    <path
+                      class="connection-line implements"
+                      d="M 640 180 Q 720 120 800 160"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <text class="connection-label" x="720" y="135">
+                      implements
+                    </text>
+
+                    <path
+                      class="connection-line risk"
+                      d="M 180 180 Q 250 120 320 160"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <text class="connection-label" x="250" y="135">
+                      affects
+                    </text>
+                  </svg>
+
+                  <!-- Relationship Nodes -->
+                  <div
+                    class="relationship-node risk"
+                    style="left: 80px; top: 140px"
+                    onclick="selectNode(this)"
+                    data-node-id="risk-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-icon risk">
+                        <i class="fas fa-exclamation-triangle"></i>
+                      </div>
+                      <div class="node-content">
+                        <div class="node-title">Data Breach Risk</div>
+                        <div class="node-subtitle">High Risk • R-001</div>
+                      </div>
+                    </div>
+                    <div class="node-metrics">
+                      <div class="node-metric">
+                        <div class="metric-value">9.2</div>
+                        <div class="metric-label">Risk Score</div>
+                      </div>
+                      <div class="node-metric">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">Controls</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="relationship-node asset selected"
+                    style="left: 240px; top: 140px"
+                    onclick="selectNode(this)"
+                    data-node-id="asset-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-icon asset">
+                        <i class="fas fa-database"></i>
+                      </div>
+                      <div class="node-content">
+                        <div class="node-title">Customer Database</div>
+                        <div class="node-subtitle">Critical Asset • A-001</div>
+                      </div>
+                    </div>
+                    <div class="node-metrics">
+                      <div class="node-metric">
+                        <div class="metric-value">High</div>
+                        <div class="metric-label">Sensitivity</div>
+                      </div>
+                      <div class="node-metric">
+                        <div class="metric-value">5</div>
+                        <div class="metric-label">Risks</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="relationship-node control"
+                    style="left: 400px; top: 140px"
+                    onclick="selectNode(this)"
+                    data-node-id="control-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-icon control">
+                        <i class="fas fa-shield-alt"></i>
+                      </div>
+                      <div class="node-content">
+                        <div class="node-title">Access Controls</div>
+                        <div class="node-subtitle">
+                          Security Control • C-001
+                        </div>
+                      </div>
+                    </div>
+                    <div class="node-metrics">
+                      <div class="node-metric">
+                        <div class="metric-value">85%</div>
+                        <div class="metric-label">Effective</div>
+                      </div>
+                      <div class="node-metric">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Tests</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="relationship-node policy"
+                    style="left: 240px; top: 260px"
+                    onclick="selectNode(this)"
+                    data-node-id="policy-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-icon policy">
+                        <i class="fas fa-file-contract"></i>
+                      </div>
+                      <div class="node-content">
+                        <div class="node-title">Data Protection Policy</div>
+                        <div class="node-subtitle">Active Policy • P-001</div>
+                      </div>
+                    </div>
+                    <div class="node-metrics">
+                      <div class="node-metric">
+                        <div class="metric-value">v3.2</div>
+                        <div class="metric-label">Version</div>
+                      </div>
+                      <div class="node-metric">
+                        <div class="metric-value">94%</div>
+                        <div class="metric-label">Compliance</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="relationship-node ai"
+                    style="left: 560px; top: 140px"
+                    onclick="selectNode(this)"
+                    data-node-id="ai-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-icon ai">
+                        <i class="fas fa-robot"></i>
+                      </div>
+                      <div class="node-content">
+                        <div class="node-title">AI Analytics System</div>
+                        <div class="node-subtitle">High-Risk AI • AI-001</div>
+                      </div>
+                    </div>
+                    <div class="node-metrics">
+                      <div class="node-metric">
+                        <div class="metric-value">Med</div>
+                        <div class="metric-label">Risk Level</div>
+                      </div>
+                      <div class="node-metric">
+                        <div class="metric-value">78%</div>
+                        <div class="metric-label">Accuracy</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapper Properties -->
+            <div class="mapper-properties">
+              <div class="properties-header">
+                <div class="properties-title">Entity Details</div>
+                <div class="properties-subtitle">Customer Database (A-001)</div>
+              </div>
+
+              <div class="property-section">
+                <div class="property-section-title">Basic Information</div>
+                <div class="property-field">
+                  <label class="property-label">Name</label>
+                  <div class="property-value">Customer Database</div>
+                </div>
+                <div class="property-field">
+                  <label class="property-label">Type</label>
+                  <div class="property-value">Information Asset</div>
+                </div>
+                <div class="property-field">
+                  <label class="property-label">Classification</label>
+                  <div class="property-value">Confidential</div>
+                </div>
+                <div class="property-field">
+                  <label class="property-label">Owner</label>
+                  <div class="property-value">Data Team Lead</div>
+                </div>
+              </div>
+
+              <div class="property-section">
+                <div class="property-section-title">Risk Metrics</div>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Associated Risks</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Applied Controls</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Governing Policies</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">7.8</div>
+                    <div class="stat-label">Risk Score</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="property-section">
+                <div class="property-section-title">Relationships</div>
+                <ul class="relationship-list">
+                  <li class="relationship-item">
+                    <div class="relationship-type affects">affects</div>
+                    <div class="relationship-details">
+                      <div class="relationship-target">Data Breach Risk</div>
+                      <div class="relationship-description">
+                        Asset is target of potential breach
+                      </div>
+                    </div>
+                  </li>
+                  <li class="relationship-item">
+                    <div class="relationship-type mitigates">protected by</div>
+                    <div class="relationship-details">
+                      <div class="relationship-target">Access Controls</div>
+                      <div class="relationship-description">
+                        Controlled access to database
+                      </div>
+                    </div>
+                  </li>
+                  <li class="relationship-item">
+                    <div class="relationship-type governs">governed by</div>
+                    <div class="relationship-details">
+                      <div class="relationship-target">
+                        Data Protection Policy
+                      </div>
+                      <div class="relationship-description">
+                        Policy defines data handling rules
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="property-section">
+                <div class="property-section-title">Compliance</div>
+                <div class="property-field">
+                  <label class="property-label">Frameworks</label>
+                  <div class="property-value">GDPR, ISO 27001, SOC 2</div>
+                </div>
+                <div class="property-field">
+                  <label class="property-label">Last Assessment</label>
+                  <div class="property-value">December 15, 2024</div>
+                </div>
+                <div class="property-field">
+                  <label class="property-label">Next Review</label>
+                  <div class="property-value">March 15, 2025</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Relationship%20Mapping&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- NEW: Add navigation scripts BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+    // =============================================================================
+// relationshipMapper.html - Seed Data Integration Script
+// =============================================================================
+// FIND the <script> section in relationshipMapper.html and REPLACE it with this code
+
+let selectedNode = null;
+let selectedEdge = null;
+let isDrawingEdge = false;
+let tempEdge = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout system
+  LayoutManager.initializePage("relationshipMapper.html");
+  
+  // Initialize relationship mapper with seed data
+  loadRelationshipMap();
+  
+  // Set up canvas interactions
+  setupCanvasInteractions();
+  
+  // Page-specific initialization
+  updateChatContext("System Architecture");
+  
+  console.log("✅ Relationship mapper initialized with seed data");
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadRelationshipMap() {
+  console.log("Loading relationship map from seed data...");
+  
+  const mapData = getRelationshipMap();
+  
+  if (!mapData.nodes || mapData.nodes.length === 0) {
+    console.warn("No relationship map data found in seed data");
+    createDefaultMap();
+    return;
+  }
+  
+  // Clear existing map
+  clearCanvas();
+  
+  // Render nodes and edges
+  renderRelationshipMap(mapData);
+  
+  // Update node palette
+  updateNodePalette();
+  
+  console.log(`✅ Loaded relationship map with ${mapData.nodes.length} nodes and ${mapData.edges.length} edges`);
+}
+
+function renderRelationshipMap(mapData) {
+  const canvas = document.getElementById('relationship-canvas') || 
+                 document.querySelector('.relationship-canvas');
+  
+  if (!canvas) {
+    console.warn("Relationship canvas not found");
+    return;
+  }
+  
+  // Render nodes
+  mapData.nodes.forEach((node, index) => {
+    const nodeElement = createNodeElement(node, index);
+    canvas.appendChild(nodeElement);
+  });
+  
+  // Render edges
+  setTimeout(() => {
+    mapData.edges.forEach(edge => {
+      const edgeElement = createEdgeElement(edge);
+      if (edgeElement) {
+        canvas.appendChild(edgeElement);
+      }
+    });
+  }, 100); // Small delay to ensure nodes are rendered first
+}
+
+function createNodeElement(node, index) {
+  const nodeDiv = document.createElement('div');
+  nodeDiv.className = `relationship-node ${node.type}`;
+  nodeDiv.id = node.id;
+  nodeDiv.dataset.nodeId = node.id;
+  nodeDiv.dataset.nodeType = node.type;
+  
+  // Position nodes in a grid if no position specified
+  const x = (index % 4) * 200 + 100;
+  const y = Math.floor(index / 4) * 150 + 100;
+  
+  nodeDiv.style.left = `${x}px`;
+  nodeDiv.style.top = `${y}px`;
+  nodeDiv.style.position = 'absolute';
+  
+  const icon = getNodeIcon(node.type);
+  const color = getNodeColor(node.type);
+  
+  nodeDiv.innerHTML = `
+    <div class="node-icon" style="background: ${color}">
+      <i class="${icon}"></i>
+    </div>
+    <div class="node-label">${node.label}</div>
+    <div class="node-category">${node.category}</div>
+    <div class="node-actions">
+      <button onclick="editNode('${node.id}')" class="btn btn-sm btn-secondary">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button onclick="deleteNode('${node.id}')" class="btn btn-sm btn-danger">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `;
+  
+  // Add drag functionality
+  nodeDiv.draggable = true;
+  nodeDiv.addEventListener('dragstart', handleNodeDragStart);
+  nodeDiv.addEventListener('click', () => selectNode(node.id));
+  
+  return nodeDiv;
+}
+
+function createEdgeElement(edge) {
+  const fromNode = document.getElementById(edge.from);
+  const toNode = document.getElementById(edge.to);
+  
+  if (!fromNode || !toNode) {
+    console.warn(`Cannot create edge: nodes ${edge.from} or ${edge.to} not found`);
+    return null;
+  }
+  
+  const edgeDiv = document.createElement('div');
+  edgeDiv.className = 'relationship-edge';
+  edgeDiv.dataset.edgeId = edge.id || `${edge.from}-${edge.to}`;
+  edgeDiv.dataset.edgeType = edge.type;
+  
+  // Calculate position and angle
+  const fromRect = fromNode.getBoundingClientRect();
+  const toRect = toNode.getBoundingClientRect();
+  const canvas = document.getElementById('relationship-canvas');
+  const canvasRect = canvas.getBoundingClientRect();
+  
+  const x1 = fromRect.left - canvasRect.left + fromRect.width / 2;
+  const y1 = fromRect.top - canvasRect.top + fromRect.height / 2;
+  const x2 = toRect.left - canvasRect.left + toRect.width / 2;
+  const y2 = toRect.top - canvasRect.top + toRect.height / 2;
+  
+  const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+  
+  edgeDiv.style.left = `${x1}px`;
+  edgeDiv.style.top = `${y1}px`;
+  edgeDiv.style.width = `${length}px`;
+  edgeDiv.style.transform = `rotate(${angle}deg)`;
+  edgeDiv.style.transformOrigin = '0 50%';
+  
+  const edgeColor = getEdgeColor(edge.type);
+  
+  edgeDiv.innerHTML = `
+    <div class="edge-line" style="background: ${edgeColor}"></div>
+    <div class="edge-label">${edge.label}</div>
+    <div class="edge-arrow" style="border-left-color: ${edgeColor}"></div>
+  `;
+  
+  edgeDiv.addEventListener('click', () => selectEdge(edge.id || `${edge.from}-${edge.to}`));
+  
+  return edgeDiv;
+}
+
+function getNodeIcon(nodeType) {
+  const icons = {
+    'system': 'fas fa-server',
+    'database': 'fas fa-database',
+    'ai_system': 'fas fa-robot',
+    'data': 'fas fa-file-alt',
+    'service': 'fas fa-cog',
+    'user': 'fas fa-user',
+    'external': 'fas fa-cloud'
+  };
+  return icons[nodeType] || 'fas fa-circle';
+}
+
+function getNodeColor(nodeType) {
+  const colors = {
+    'system': 'var(--primary-blue)',
+    'database': 'var(--success-green)',
+    'ai_system': 'var(--ai-purple)',
+    'data': 'var(--warning-amber)',
+    'service': 'var(--text-gray)',
+    'user': 'var(--danger-red)',
+    'external': 'var(--info-cyan)'
+  };
+  return colors[nodeType] || 'var(--text-gray)';
+}
+
+function getEdgeColor(edgeType) {
+  const colors = {
+    'data_flow': 'var(--primary-blue)',
+    'service_call': 'var(--success-green)',
+    'storage': 'var(--warning-amber)',
+    'processing': 'var(--ai-purple)',
+    'analytics': 'var(--info-cyan)',
+    'connection': 'var(--text-gray)'
+  };
+  return colors[edgeType] || 'var(--text-gray)';
+}
+
+// =============================================================================
+// NODE MANAGEMENT FUNCTIONS
+// =============================================================================
+
+function addNewNode(nodeType) {
+  console.log(`Adding new ${nodeType} node`);
+  
+  const label = prompt(`Enter ${nodeType} name:`);
+  if (!label) return;
+  
+  const category = prompt("Enter category:") || "general";
+  
+  const newNode = {
+    label: label,
+    type: nodeType,
+    category: category
+  };
+  
+  const addedNode = addRelationshipNode(newNode);
+  
+  if (addedNode) {
+    loadRelationshipMap();
+    showNotification(`${nodeType} node "${label}" added successfully!`, "success");
+  }
+}
+
+function editNode(nodeId) {
+  console.log(`Editing node: ${nodeId}`);
+  
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (!node) {
+    showNotification("Node not found", "error");
+    return;
+  }
+  
+  const newLabel = prompt("Edit node label:", node.label);
+  if (newLabel && newLabel !== node.label) {
+    // Update node in map data
+    node.label = newLabel;
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Node updated successfully", "success");
+  }
+}
+
+function deleteNode(nodeId) {
+  console.log(`Deleting node: ${nodeId}`);
+  
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (!node) {
+    showNotification("Node not found", "error");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete "${node.label}"? This will also delete all connected edges.`)) {
+    // Remove node
+    mapData.nodes = mapData.nodes.filter(n => n.id !== nodeId);
+    
+    // Remove all edges connected to this node
+    mapData.edges = mapData.edges.filter(e => e.from !== nodeId && e.to !== nodeId);
+    
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Node and connected edges deleted successfully", "success");
+  }
+}
+
+function selectNode(nodeId) {
+  console.log(`Selecting node: ${nodeId}`);
+  
+  // Clear previous selections
+  document.querySelectorAll('.relationship-node').forEach(node => {
+    node.classList.remove('selected');
+  });
+  
+  const nodeElement = document.getElementById(nodeId);
+  if (nodeElement) {
+    nodeElement.classList.add('selected');
+    selectedNode = nodeId;
+    
+    // Update properties panel
+    updateNodeProperties(nodeId);
+  }
+}
+
+function updateNodeProperties(nodeId) {
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (!node) return;
+  
+  const propertiesPanel = document.getElementById('properties-panel') || 
+                          document.querySelector('.properties-panel');
+  
+  if (propertiesPanel) {
+    propertiesPanel.innerHTML = `
+      <h3>Node Properties</h3>
+      <div class="property-group">
+        <label>Label:</label>
+        <input type="text" value="${node.label}" onchange="updateNodeLabel('${node.id}', this.value)">
+      </div>
+      <div class="property-group">
+        <label>Type:</label>
+        <select onchange="updateNodeType('${node.id}', this.value)">
+          <option value="system" ${node.type === 'system' ? 'selected' : ''}>System</option>
+          <option value="database" ${node.type === 'database' ? 'selected' : ''}>Database</option>
+          <option value="ai_system" ${node.type === 'ai_system' ? 'selected' : ''}>AI System</option>
+          <option value="data" ${node.type === 'data' ? 'selected' : ''}>Data</option>
+          <option value="service" ${node.type === 'service' ? 'selected' : ''}>Service</option>
+          <option value="user" ${node.type === 'user' ? 'selected' : ''}>User</option>
+          <option value="external" ${node.type === 'external' ? 'selected' : ''}>External</option>
+        </select>
+      </div>
+      <div class="property-group">
+        <label>Category:</label>
+        <input type="text" value="${node.category}" onchange="updateNodeCategory('${node.id}', this.value)">
+      </div>
+    `;
+  }
+}
+
+function updateNodeLabel(nodeId, newLabel) {
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (node) {
+    node.label = newLabel;
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Node label updated", "success");
+  }
+}
+
+function updateNodeType(nodeId, newType) {
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (node) {
+    node.type = newType;
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Node type updated", "success");
+  }
+}
+
+function updateNodeCategory(nodeId, newCategory) {
+  const mapData = getRelationshipMap();
+  const node = mapData.nodes.find(n => n.id === nodeId);
+  
+  if (node) {
+    node.category = newCategory;
+    updateRelationshipMap(mapData);
+    showNotification("Node category updated", "success");
+  }
+}
+
+// =============================================================================
+// EDGE MANAGEMENT FUNCTIONS
+// =============================================================================
+
+function addNewEdge() {
+  console.log("Adding new edge - select two nodes");
+  
+  if (!selectedNode) {
+    showNotification("Please select a source node first", "info");
+    return;
+  }
+  
+  // Enable edge drawing mode
+  isDrawingEdge = true;
+  showNotification("Click on a target node to create connection", "info");
+  
+  // Add temporary visual feedback
+  document.querySelectorAll('.relationship-node').forEach(node => {
+    if (node.id !== selectedNode) {
+      node.classList.add('potential-target');
+      node.addEventListener('click', handleEdgeTarget);
+    }
+  });
+}
+
+function handleEdgeTarget(event) {
+  event.stopPropagation();
+  
+  const targetNodeId = event.currentTarget.id;
+  
+  if (targetNodeId === selectedNode) {
+    showNotification("Cannot connect node to itself", "error");
+    return;
+  }
+  
+  const label = prompt("Enter connection label:") || "connects to";
+  const type = prompt("Enter connection type (data_flow/service_call/storage/processing/analytics/connection):") || "connection";
+  
+  const newEdge = {
+    from: selectedNode,
+    to: targetNodeId,
+    label: label,
+    type: type
+  };
+  
+  const addedEdge = addRelationshipEdge(newEdge);
+  
+  if (addedEdge) {
+    loadRelationshipMap();
+    showNotification(`Edge "${label}" added successfully!`, "success");
+  }
+  
+  // Clean up
+  isDrawingEdge = false;
+  document.querySelectorAll('.relationship-node').forEach(node => {
+    node.classList.remove('potential-target');
+    node.removeEventListener('click', handleEdgeTarget);
+  });
+}
+
+function selectEdge(edgeId) {
+  console.log(`Selecting edge: ${edgeId}`);
+  
+  // Clear previous selections
+  document.querySelectorAll('.relationship-edge').forEach(edge => {
+    edge.classList.remove('selected');
+  });
+  
+  const edgeElement = document.querySelector(`[data-edge-id="${edgeId}"]`);
+  if (edgeElement) {
+    edgeElement.classList.add('selected');
+    selectedEdge = edgeId;
+    
+    // Update properties panel for edge
+    updateEdgeProperties(edgeId);
+  }
+}
+
+function updateEdgeProperties(edgeId) {
+  const mapData = getRelationshipMap();
+  const edge = mapData.edges.find(e => (e.id || `${e.from}-${e.to}`) === edgeId);
+  
+  if (!edge) return;
+  
+  const propertiesPanel = document.getElementById('properties-panel') || 
+                          document.querySelector('.properties-panel');
+  
+  if (propertiesPanel) {
+    propertiesPanel.innerHTML = `
+      <h3>Edge Properties</h3>
+      <div class="property-group">
+        <label>Label:</label>
+        <input type="text" value="${edge.label}" onchange="updateEdgeLabel('${edgeId}', this.value)">
+      </div>
+      <div class="property-group">
+        <label>Type:</label>
+        <select onchange="updateEdgeType('${edgeId}', this.value)">
+          <option value="data_flow" ${edge.type === 'data_flow' ? 'selected' : ''}>Data Flow</option>
+          <option value="service_call" ${edge.type === 'service_call' ? 'selected' : ''}>Service Call</option>
+          <option value="storage" ${edge.type === 'storage' ? 'selected' : ''}>Storage</option>
+          <option value="processing" ${edge.type === 'processing' ? 'selected' : ''}>Processing</option>
+          <option value="analytics" ${edge.type === 'analytics' ? 'selected' : ''}>Analytics</option>
+          <option value="connection" ${edge.type === 'connection' ? 'selected' : ''}>Connection</option>
+        </select>
+      </div>
+      <div class="property-group">
+        <label>From:</label>
+        <span>${edge.from}</span>
+      </div>
+      <div class="property-group">
+        <label>To:</label>
+        <span>${edge.to}</span>
+      </div>
+      <div class="property-group">
+        <button onclick="deleteEdge('${edgeId}')" class="btn btn-danger">Delete Edge</button>
+      </div>
+    `;
+  }
+}
+
+function updateEdgeLabel(edgeId, newLabel) {
+  const mapData = getRelationshipMap();
+  const edge = mapData.edges.find(e => (e.id || `${e.from}-${e.to}`) === edgeId);
+  
+  if (edge) {
+    edge.label = newLabel;
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Edge label updated", "success");
+  }
+}
+
+function updateEdgeType(edgeId, newType) {
+  const mapData = getRelationshipMap();
+  const edge = mapData.edges.find(e => (e.id || `${e.from}-${e.to}`) === edgeId);
+  
+  if (edge) {
+    edge.type = newType;
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Edge type updated", "success");
+  }
+}
+
+function deleteEdge(edgeId) {
+  const mapData = getRelationshipMap();
+  const edge = mapData.edges.find(e => (e.id || `${e.from}-${e.to}`) === edgeId);
+  
+  if (!edge) {
+    showNotification("Edge not found", "error");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete this connection?`)) {
+    mapData.edges = mapData.edges.filter(e => (e.id || `${e.from}-${e.to}`) !== edgeId);
+    updateRelationshipMap(mapData);
+    loadRelationshipMap();
+    showNotification("Edge deleted successfully", "success");
+  }
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+function clearCanvas() {
+  const canvas = document.getElementById('relationship-canvas') || 
+                 document.querySelector('.relationship-canvas');
+  
+  if (canvas) {
+    canvas.innerHTML = '';
+  }
+}
+
+function updateNodePalette() {
+  const palette = document.getElementById('node-palette') || 
+                  document.querySelector('.node-palette');
+  
+  if (!palette) return;
+  
+  const nodeTypes = [
+    { type: 'system', label: 'System' },
+    { type: 'database', label: 'Database' },
+    { type: 'ai_system', label: 'AI System' },
+    { type: 'data', label: 'Data' },
+    { type: 'service', label: 'Service' },
+    { type: 'user', label: 'User' },
+    { type: 'external', label: 'External' }
+  ];
+  
+  palette.innerHTML = '';
+  
+  nodeTypes.forEach(nodeType => {
+    const button = document.createElement('button');
+    button.className = 'palette-item';
+    button.onclick = () => addNewNode(nodeType.type);
+    
+    const icon = getNodeIcon(nodeType.type);
+    const color = getNodeColor(nodeType.type);
+    
+    button.innerHTML = `
+      <div class="palette-icon" style="background: ${color}">
+        <i class="${icon}"></i>
+      </div>
+      <span>${nodeType.label}</span>
+    `;
+    
+    palette.appendChild(button);
+  });
+}
+
+function setupCanvasInteractions() {
+  const canvas = document.getElementById('relationship-canvas') || 
+                 document.querySelector('.relationship-canvas');
+  
+  if (!canvas) return;
+  
+  // Click on empty space to deselect
+  canvas.addEventListener('click', function(e) {
+    if (e.target === canvas) {
+      selectedNode = null;
+      selectedEdge = null;
+      document.querySelectorAll('.relationship-node, .relationship-edge').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      // Clear properties panel
+      const propertiesPanel = document.getElementById('properties-panel') || 
+                              document.querySelector('.properties-panel');
+      if (propertiesPanel) {
+        propertiesPanel.innerHTML = '<h3>Select a node or edge to edit properties</h3>';
+      }
+    }
+  });
+}
+
+function handleNodeDragStart(e) {
+  e.dataTransfer.setData('text/plain', e.target.id);
+}
+
+function createDefaultMap() {
+  console.log("Creating default relationship map...");
+  
+  const defaultMap = {
+    nodes: [
+      { id: 'sys-1', label: 'Web Application', type: 'system', category: 'frontend' },
+      { id: 'db-1', label: 'User Database', type: 'database', category: 'storage' },
+      { id: 'ai-1', label: 'AI Service', type: 'ai_system', category: 'ml' }
+    ],
+    edges: [
+      { from: 'sys-1', to: 'db-1', label: 'queries', type: 'data_flow' },
+      { from: 'sys-1', to: 'ai-1', label: 'requests', type: 'service_call' }
+    ]
+  };
+  
+  updateRelationshipMap(defaultMap);
+  renderRelationshipMap(defaultMap);
+  
+  showNotification("Default relationship map created", "info");
+}
+
+function saveRelationshipMap() {
+  console.log("Saving relationship map...");
+  
+  const mapData = getRelationshipMap();
+  
+  if (mapData.nodes.length === 0) {
+    showNotification("No nodes to save", "warning");
+    return;
+  }
+  
+  // Map is automatically saved via updateRelationshipMap calls
+  showNotification("Relationship map saved successfully", "success");
+}
+
+function exportRelationshipMap() {
+  console.log("Exporting relationship map...");
+  
+  const mapData = getRelationshipMap();
+  
+  const dataStr = JSON.stringify(mapData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'relationship_map.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showNotification("Relationship map exported successfully", "success");
+}
+
+// =============================================================================
+// USAGE INSTRUCTIONS
+// =============================================================================
+/*
+1. FIND the <script> section in relationshipMapper.html
+2. REPLACE the entire script content with this code
+3. ENSURE seedData.js is loaded before this script
+4. The mapper will automatically load relationship data from localStorage
+5. Drag and drop, node editing, and edge creation all persist to localStorage
+6. All changes are automatically saved to localStorage
+
+Required HTML elements:
+- #relationship-canvas or .relationship-canvas for the main canvas
+- #properties-panel or .properties-panel for property editing
+- #node-palette or .node-palette for node creation buttons
+- Standard ArionComply layout structure
+*/
+    </script>
+  </body>
+</html>

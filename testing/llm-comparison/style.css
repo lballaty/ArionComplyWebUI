@@ -1,0 +1,522 @@
+/* ArionComply LLM Testing Interface Styles */
+/* Phase 1 Implementation */
+
+:root {
+    --primary-color: #007acc;
+    --secondary-color: #f5f5f5;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --error-color: #dc3545;
+    --border-color: #ddd;
+    --text-color: #333;
+    --bg-color: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--bg-color);
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+header {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+.status-indicator {
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.panel {
+    margin: 0;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-color);
+}
+
+.panel h2 {
+    margin: 0 0 15px 0;
+    color: var(--primary-color);
+    font-size: 1.3em;
+    font-weight: 600;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+}
+
+/* Configuration Styles */
+.config-section {
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 10px;
+    vertical-align: top;
+}
+
+.config-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.config-section select {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 180px;
+}
+
+.config-section button {
+    margin-left: 10px;
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.config-section button:hover {
+    background: #005fa3;
+}
+
+/* Model Selection */
+#model-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.model-provider {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    background: #fafafa;
+}
+
+.model-provider h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 1.1em;
+}
+
+.model-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.model-option:hover {
+    background: #f0f0f0;
+}
+
+.model-option input[type="checkbox"] {
+    margin-right: 10px;
+    scale: 1.2;
+}
+
+.model-option label {
+    flex: 1;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* Parameter Controls */
+#parameter-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.parameter-tab {
+    padding: 10px 20px;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+
+.parameter-tab:first-child {
+    border-radius: 4px 0 0 0;
+}
+
+.parameter-tab:last-child {
+    border-radius: 0 4px 0 0;
+}
+
+.parameter-tab.active {
+    background: var(--bg-color);
+    border-bottom: 2px solid var(--bg-color);
+    margin-bottom: -2px;
+}
+
+.parameter-tab:hover:not(.active) {
+    background: #e9ecef;
+}
+
+.parameter-group {
+    display: none;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    background: var(--bg-color);
+}
+
+.parameter-group.active {
+    display: block;
+}
+
+.parameter-control {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+.parameter-control label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.parameter-control input[type="range"] {
+    width: 100%;
+    margin: 5px 0;
+}
+
+.parameter-control input[type="number"] {
+    width: 100px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+}
+
+.parameter-value {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-width: 60px;
+}
+
+.parameter-help {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85em;
+    color: #666;
+    font-style: italic;
+}
+
+.parameter-actions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.parameter-actions button {
+    margin-right: 10px;
+    padding: 8px 16px;
+    border: 1px solid var(--primary-color);
+    background: var(--bg-color);
+    color: var(--primary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.parameter-actions button:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Test Interface */
+.test-config {
+    margin-bottom: 15px;
+}
+
+.prompt-section,
+.query-section {
+    margin-bottom: 20px;
+}
+
+.prompt-section label,
+.query-section label,
+.test-config label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.prompt-section textarea,
+.query-section textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.prompt-section textarea:focus,
+.query-section textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.test-config select {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.test-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.test-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#run-test {
+    background: var(--success-color);
+    color: white;
+}
+
+#run-test:hover:not(:disabled) {
+    background: #218838;
+}
+
+#run-test:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+#save-results {
+    background: var(--primary-color);
+    color: white;
+}
+
+#save-results:hover:not(:disabled) {
+    background: #005fa3;
+}
+
+#save-results:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+#view-history {
+    background: var(--bg-color);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+#view-history:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Results Display */
+#results-content {
+    margin-top: 20px;
+}
+
+.result-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.result-model {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.result-timing {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.result-content {
+    padding: 10px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.result-parameters {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: #666;
+}
+
+/* History Panel */
+#history-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#history-filter {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+#close-history {
+    padding: 6px 12px;
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: auto;
+}
+
+#close-history:hover {
+    background: #c82333;
+}
+
+/* Status and Feedback */
+.validation-alert {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.validation-alert.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.validation-alert.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.validation-alert.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ccc;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    #model-checkboxes {
+        grid-template-columns: 1fr;
+    }
+    
+    .config-section {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .test-actions {
+        flex-direction: column;
+    }
+    
+    .test-actions button {
+        margin-bottom: 10px;
+    }
+}

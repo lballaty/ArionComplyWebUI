@@ -1,0 +1,2023 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - AI Assistant</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      /* Enhanced Chat Interface Styles */
+      .chat-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: var(--bg-light);
+      }
+
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        overflow: hidden;
+        margin: 1rem;
+      }
+
+      /* Embedded mode styling */
+      .layout-embedded .chat-wrapper {
+        margin: 0;
+        height: 100vh;
+      }
+
+      .layout-embedded .chat-container {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        height: 100vh;
+      }
+
+      .layout-embedded .avatar-toggle {
+        display: none;
+      }
+
+      /* Full app mode styling */
+      .layout-full-app .chat-wrapper {
+        height: calc(100vh - 200px);
+      }
+
+      .chat-header-bar {
+        background: linear-gradient(
+          135deg,
+          var(--ai-purple),
+          var(--primary-blue)
+        );
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .layout-embedded .chat-header-bar {
+        display: none;
+      }
+
+      .popout-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-size: 0.875rem;
+      }
+
+      .popout-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      /* Hide popout text in compact mode */
+      .window-mode.compact .popout-text,
+      @media (max-width: 480px) {
+        .popout-text {
+          display: none;
+        }
+      }
+
+      .avatar-toggle {
+        padding: 1rem;
+        background: var(--bg-light);
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .avatar-controls-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .avatar-container {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        position: relative;
+      }
+
+      .avatar-mode .avatar-container {
+        display: flex;
+      }
+
+      .avatar-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid var(--ai-purple);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--ai-purple);
+      }
+
+      .avatar-video {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid var(--ai-purple);
+        transition: all 0.3s ease;
+        object-fit: cover;
+        position: relative;
+      }
+
+      .avatar-speaking .avatar-image,
+      .avatar-speaking .avatar-video {
+        border-color: var(--success-green);
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      }
+
+      .avatar-listening .avatar-image,
+      .avatar-listening .avatar-video {
+        border-color: var(--warning-amber);
+        animation: pulse 1.5s infinite;
+      }
+
+      .avatar-thinking .avatar-image,
+      .avatar-thinking .avatar-video {
+        border-color: var(--primary-blue);
+        animation: rotate 2s linear infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.02);
+        }
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .avatar-status {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        text-align: center;
+        font-weight: 500;
+      }
+
+      .avatar-controls {
+        display: none;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .avatar-mode .avatar-controls {
+        display: flex;
+      }
+
+      .avatar-control-btn {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        color: var(--text-gray);
+      }
+
+      .avatar-control-btn:hover {
+        border-color: var(--ai-purple);
+        color: var(--ai-purple);
+      }
+
+      .avatar-control-btn.active {
+        background: var(--ai-purple);
+        color: white;
+        border-color: var(--ai-purple);
+      }
+
+      .chat-context {
+        padding: 0.75rem 1rem;
+        background: var(--bg-gray);
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .audio-status {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .audio-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-gray);
+      }
+
+      .status-dot.active {
+        background: var(--success-green);
+        animation: blink 1s infinite;
+      }
+
+      .status-dot.listening {
+        background: var(--warning-amber);
+        animation: blink 1s infinite;
+      }
+
+      .status-dot.speaking {
+        background: var(--primary-blue);
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0.3;
+        }
+      }
+
+      .voice-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .voice-btn {
+        background: none;
+        border: none;
+        color: var(--text-gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        transition: all 0.15s ease;
+      }
+
+      .voice-btn:hover {
+        background: var(--bg-light);
+        color: var(--ai-purple);
+      }
+
+      .voice-btn.active {
+        color: var(--ai-purple);
+      }
+
+      .chat-search {
+        margin: 1rem;
+        margin-bottom: 0;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background: var(--bg-light);
+      }
+
+      .chat-message {
+        margin-bottom: 1rem;
+        display: flex;
+      }
+
+      .chat-message.ai {
+        justify-content: flex-start;
+      }
+
+      .chat-message.user {
+        justify-content: flex-end;
+      }
+
+      .message-bubble {
+        max-width: 80%;
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        position: relative;
+      }
+
+      .chat-message.ai .message-bubble {
+        background: var(--bg-white);
+        color: var(--text-dark);
+        border: 1px solid var(--border-light);
+        border-bottom-left-radius: 4px;
+      }
+
+      .chat-message.user .message-bubble {
+        background: var(--ai-purple);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message-audio-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      .audio-play-btn {
+        background: none;
+        border: none;
+        color: var(--ai-purple);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        transition: background 0.15s ease;
+      }
+
+      .audio-play-btn:hover {
+        background: rgba(124, 58, 237, 0.1);
+      }
+
+      .chat-input-area {
+        padding: 1rem;
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-white);
+      }
+
+      .input-container {
+        position: relative;
+      }
+
+      .chat-input {
+        width: 100%;
+        padding: 0.75rem;
+        padding-right: 3rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        resize: none;
+        outline: none;
+        font-family: inherit;
+      }
+
+      .chat-input:focus {
+        border-color: var(--ai-purple);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+      }
+
+      .voice-input-btn {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-gray);
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: var(--border-radius-sm);
+        transition: all 0.15s ease;
+      }
+
+      .voice-input-btn:hover {
+        background: var(--bg-light);
+        color: var(--ai-purple);
+      }
+
+      .voice-input-btn.recording {
+        color: var(--danger-red);
+        animation: pulse 1s infinite;
+      }
+
+      .chat-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .suggestion {
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .suggestion:hover {
+        border-color: var(--ai-purple);
+        background: var(--ai-purple);
+        color: white;
+      }
+
+      .audio-settings {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .audio-setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+
+      .audio-setting-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .setting-label {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .setting-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* Enhanced Modal Styles */
+      .modal-body .avatar-preview {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .avatar-preview-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid var(--ai-purple);
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--ai-purple);
+      }
+
+      /* Popup window optimizations */
+      .window-mode {
+        background: var(--bg-white);
+      }
+
+      .window-mode .chat-container {
+        margin: 0;
+        height: 100vh;
+        border-radius: 0;
+      }
+
+      .window-mode .chat-header-bar {
+        border-radius: 0;
+      }
+
+      /* Compact mode for small popup windows */
+      .window-mode.compact {
+        font-size: 0.875rem;
+      }
+
+      .window-mode.compact .avatar-container {
+        padding: 0.75rem;
+      }
+
+      .window-mode.compact .avatar-image,
+      .window-mode.compact .avatar-video {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+      }
+
+      .window-mode.compact .avatar-toggle {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .window-mode.compact .suggestions {
+        display: none; /* Hide suggestions in compact mode */
+      }
+
+      .window-mode.compact .chat-search {
+        margin: 0.5rem;
+        margin-bottom: 0;
+      }
+
+      .window-mode.compact .chat-input-area {
+        padding: 0.75rem;
+      }
+
+      /* Desktop full-screen optimizations */
+      @media (min-width: 1200px) {
+        .layout-full-app .chat-container {
+          margin: 2rem;
+          max-width: 1000px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .layout-full-app .avatar-image,
+        .layout-full-app .avatar-video {
+          width: 150px;
+          height: 150px;
+          font-size: 4rem;
+        }
+
+        .layout-full-app .suggestions {
+          max-width: 600px;
+        }
+      }
+
+      /* Mobile-specific adjustments */
+      @media (max-width: 768px) {
+        .avatar-container {
+          padding: 1rem;
+        }
+
+        .avatar-image,
+        .avatar-video {
+          width: 80px;
+          height: 80px;
+          font-size: 2rem;
+        }
+
+        .avatar-controls-section {
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: stretch;
+        }
+
+        .popout-btn {
+          display: none; /* Hide popup button on mobile */
+        }
+
+        .audio-status {
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-start;
+        }
+
+        .voice-controls {
+          margin-top: 0.25rem;
+        }
+
+        .chat-actions {
+          flex-direction: column;
+        }
+
+        .suggestions {
+          grid-template-columns: 1fr 1fr;
+          gap: 0.25rem;
+        }
+
+        .suggestion {
+          font-size: 0.7rem;
+          padding: 0.4rem 0.6rem;
+        }
+      }
+
+      /* Very small screens (popup-like) */
+      @media (max-width: 480px) {
+        .avatar-toggle {
+          flex-direction: column;
+          gap: 0.75rem;
+          align-items: stretch;
+          text-align: center;
+        }
+
+        .avatar-controls-section {
+          justify-content: center;
+        }
+
+        .audio-status {
+          flex-direction: row;
+          justify-content: center;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Chat Interface -->
+        <div class="content">
+          <!-- Chat header for standalone mode -->
+          <div class="chat-header-bar">
+            <div class="header-left">
+              <i class="fas fa-robot"></i>
+              <span>ArionComply AI Assistant</span>
+            </div>
+            <div class="header-right">
+              <button
+                class="popout-btn"
+                onclick="openChatInNewWindow()"
+                title="Open in new window"
+              >
+                <i class="fas fa-external-link-alt"></i>
+                Pop Out
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-wrapper">
+            <div class="avatar-toggle">
+              <div>
+                <strong>AI Assistant Configuration</strong>
+                <div style="font-size: 0.875rem; color: var(--text-gray)">
+                  Customize your AI experience
+                </div>
+              </div>
+              <div class="avatar-controls-section">
+                <label
+                  class="form-group"
+                  style="
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-bottom: 0;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    id="avatarModeToggle"
+                    onchange="toggleAvatarMode()"
+                  />
+                  <span class="setting-label">Enable Audio Avatar</span>
+                </label>
+                <button class="btn btn-secondary" id="openAvatarModal">
+                  <i class="fas fa-user-circle"></i>
+                  Avatar Settings
+                </button>
+              </div>
+            </div>
+
+            <div class="chat-container">
+              <div class="avatar-container">
+                <div class="avatar-image" id="avatarImage">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <video
+                  class="avatar-video"
+                  id="avatarVideo"
+                  muted
+                  loop
+                  style="display: none"
+                >
+                  <source src="" type="video/mp4" />
+                  <source src="" type="video/webm" />
+                  Your browser does not support the video tag.
+                </video>
+                <div class="avatar-status" id="avatarStatus">
+                  Ready to assist
+                </div>
+                <div class="avatar-controls">
+                  <button
+                    class="avatar-control-btn"
+                    id="ttsToggle"
+                    onclick="toggleTTS()"
+                    title="Text-to-Speech"
+                  >
+                    <i class="fas fa-volume-up"></i>
+                  </button>
+                  <button
+                    class="avatar-control-btn"
+                    id="sttToggle"
+                    onclick="toggleSTT()"
+                    title="Speech-to-Text"
+                  >
+                    <i class="fas fa-microphone"></i>
+                  </button>
+                  <button
+                    class="avatar-control-btn"
+                    id="lipSyncToggle"
+                    onclick="toggleLipSync()"
+                    title="Lip Sync"
+                  >
+                    <i class="fas fa-lips"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="chat-context">
+                <div>
+                  You are on <span id="currentContext">AI Assistant</span>
+                </div>
+                <div class="audio-status">
+                  <div class="audio-indicator">
+                    <div class="status-dot" id="ttsStatus"></div>
+                    <span>TTS</span>
+                  </div>
+                  <div class="audio-indicator">
+                    <div class="status-dot" id="sttStatus"></div>
+                    <span>STT</span>
+                  </div>
+                  <div class="audio-indicator">
+                    <div class="status-dot" id="lipSyncStatus"></div>
+                    <span>Sync</span>
+                  </div>
+                  <div class="voice-controls">
+                    <button
+                      class="voice-btn"
+                      id="muteBtn"
+                      onclick="toggleMute()"
+                      title="Mute/Unmute"
+                    >
+                      <i class="fas fa-volume-up"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <input
+                type="text"
+                id="chatSearch"
+                class="form-input chat-search"
+                placeholder="Search conversation history..."
+              />
+
+              <div class="chat-messages">
+                <!-- Chat messages will be populated here -->
+              </div>
+
+              <div class="chat-input-area">
+                <div class="suggestions">
+                  <div
+                    class="suggestion"
+                    onclick="insertSuggestion('How do I classify an AI system?')"
+                  >
+                    How do I classify an AI system?
+                  </div>
+                  <div
+                    class="suggestion"
+                    onclick="insertSuggestion('Show me compliance risks')"
+                  >
+                    Show me compliance risks
+                  </div>
+                  <div
+                    class="suggestion"
+                    onclick="insertSuggestion('What audits are due?')"
+                  >
+                    What audits are due?
+                  </div>
+                  <div
+                    class="suggestion"
+                    onclick="insertSuggestion('Help with GDPR')"
+                  >
+                    Help with GDPR
+                  </div>
+                </div>
+
+                <div class="input-container">
+                  <textarea
+                    class="chat-input"
+                    id="chatInput"
+                    placeholder="Ask the AI assistant about compliance, risks, AI governance, or any other topic..."
+                    rows="3"
+                  ></textarea>
+                  <button
+                    class="voice-input-btn"
+                    id="voiceInputBtn"
+                    onclick="toggleVoiceInput()"
+                    title="Voice input"
+                  >
+                    <i class="fas fa-microphone"></i>
+                  </button>
+                </div>
+
+                <div class="chat-actions">
+                  <button
+                    class="btn btn-ai"
+                    style="flex: 1"
+                    onclick="sendMessage()"
+                  >
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                  </button>
+                  <button class="btn btn-secondary" onclick="clearChat()">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Enhanced Avatar Settings Modal -->
+    <div id="avatarModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Avatar & Audio Settings</h2>
+          <button class="modal-close" onclick="closeAvatarModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="avatar-preview">
+            <div class="avatar-preview-image" id="previewAvatar">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-gray)">
+              Preview
+            </div>
+          </div>
+
+          <div class="avatar-options">
+            <label class="avatar-option">
+              <input
+                type="radio"
+                name="avatar"
+                value="arion"
+                checked
+                onchange="updateAvatarPreview()"
+              />
+              <div
+                style="
+                  width: 60px;
+                  height: 60px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--ai-purple);
+                "
+              >
+                <i class="fas fa-robot"></i>
+              </div>
+              <span>Arion</span>
+            </label>
+            <label class="avatar-option">
+              <input
+                type="radio"
+                name="avatar"
+                value="nova"
+                onchange="updateAvatarPreview()"
+              />
+              <div
+                style="
+                  width: 60px;
+                  height: 60px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, #fef3c7, #fde68a);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--warning-amber);
+                "
+              >
+                <i class="fas fa-star"></i>
+              </div>
+              <span>Nova</span>
+            </label>
+            <label class="avatar-option">
+              <input
+                type="radio"
+                name="avatar"
+                value="echo"
+                onchange="updateAvatarPreview()"
+              />
+              <div
+                style="
+                  width: 60px;
+                  height: 60px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--success-green);
+                "
+              >
+                <i class="fas fa-microphone-alt"></i>
+              </div>
+              <span>Echo</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Voice Tone</label>
+            <select id="avatarTone" class="form-select">
+              <option value="friendly">Friendly & Conversational</option>
+              <option value="professional">Professional & Direct</option>
+              <option value="enthusiastic">Enthusiastic & Energetic</option>
+              <option value="calm">Calm & Reassuring</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Speaking Speed</label>
+            <input
+              type="range"
+              id="avatarSpeed"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="1"
+              class="form-input"
+            />
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.75rem;
+                color: var(--text-gray);
+                margin-top: 0.25rem;
+              "
+            >
+              <span>Slow</span>
+              <span>Normal</span>
+              <span>Fast</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Video Avatar (Demo)</label>
+            <input
+              type="text"
+              id="avatarVideoSource"
+              class="form-input"
+              placeholder="./videos/avatar-speaking.mp4 or https://example.com/avatar.mp4"
+            />
+            <div
+              style="
+                font-size: 0.75rem;
+                color: var(--text-gray);
+                margin-top: 0.25rem;
+              "
+            >
+              Leave empty to use static avatar. Supports MP4, WebM formats.
+              Video should be looped and show speaking animation.
+            </div>
+          </div>
+
+          <div class="audio-settings">
+            <h4
+              style="
+                margin-bottom: 0.75rem;
+                font-size: 0.875rem;
+                color: var(--text-dark);
+              "
+            >
+              Audio Features
+            </h4>
+
+            <div class="audio-setting-row">
+              <span class="setting-label">Text-to-Speech (TTS)</span>
+              <div class="setting-control">
+                <input type="checkbox" id="ttsEnabled" checked />
+                <span style="font-size: 0.75rem; color: var(--text-gray)"
+                  >AI voice responses</span
+                >
+              </div>
+            </div>
+
+            <div class="audio-setting-row">
+              <span class="setting-label">Speech-to-Text (STT)</span>
+              <div class="setting-control">
+                <input type="checkbox" id="sttEnabled" />
+                <span style="font-size: 0.75rem; color: var(--text-gray)"
+                  >Voice input</span
+                >
+              </div>
+            </div>
+
+            <div class="audio-setting-row">
+              <span class="setting-label">Lip Synchronization</span>
+              <div class="setting-control">
+                <input type="checkbox" id="lipSyncEnabled" />
+                <span style="font-size: 0.75rem; color: var(--text-gray)"
+                  >Visual speech sync</span
+                >
+              </div>
+            </div>
+
+            <div class="audio-setting-row">
+              <span class="setting-label">Auto-play responses</span>
+              <div class="setting-control">
+                <input type="checkbox" id="autoPlayEnabled" checked />
+                <span style="font-size: 0.75rem; color: var(--text-gray)"
+                  >Speak immediately</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="testAudioSettings()">
+            <i class="fas fa-play"></i>
+            Test Audio
+          </button>
+          <button class="btn btn-secondary" onclick="previewVideoAvatar()">
+            <i class="fas fa-video"></i>
+            Preview Video
+          </button>
+          <button class="btn btn-ai" onclick="saveAvatarSettings()">
+            <i class="fas fa-save"></i>
+            Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load the new modular system -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script src="chatLogic.js"></script>
+
+    <script>
+      // Enhanced chat functionality with audio features
+      let audioContext = {
+        ttsEnabled: true,
+        sttEnabled: false,
+        lipSyncEnabled: false,
+        autoPlayEnabled: true,
+        isMuted: false,
+        isRecording: false,
+        currentAudio: null,
+        recognition: null,
+        videoAvatarEnabled: false,
+        videoSource: "",
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("🚀 Initializing Chat Interface...");
+
+        // FIXED: Use dependency-aware initialization instead of immediate calls
+        initializeChatWithDependencyChecking();
+      });
+
+      /**
+       * FIXED: Initialize chat interface with proper dependency checking
+       * Waits for required dependencies before proceeding
+       */
+      function initializeChatWithDependencyChecking() {
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds maximum wait
+
+        function checkDependencies() {
+          attempts++;
+
+          // Check for critical dependencies
+          const hasLayoutManager = typeof LayoutManager !== "undefined";
+          const hasScripts = typeof toggleChat !== "undefined";
+          const hasChatLogic =
+            typeof setupChat !== "undefined" ||
+            typeof addChatMessage !== "undefined";
+
+          console.log(
+            `🔍 Dependency check ${attempts}: LayoutManager=${hasLayoutManager}, Scripts=${hasScripts}, ChatLogic=${hasChatLogic}`,
+          );
+
+          if (hasLayoutManager && hasScripts) {
+            console.log(
+              "✅ Critical dependencies loaded, initializing chat interface",
+            );
+            initializeChatInterface();
+          } else if (attempts < maxAttempts) {
+            // Wait 100ms and try again
+            console.log(
+              `⏳ Waiting for dependencies... (${attempts}/${maxAttempts})`,
+            );
+            setTimeout(checkDependencies, 100);
+          } else {
+            console.warn(
+              "⚠️ Some dependencies not loaded, proceeding with fallbacks",
+            );
+            initializeChatInterfaceWithFallbacks();
+          }
+        }
+
+        // Start dependency checking
+        checkDependencies();
+      }
+
+      // REPLACE the broken initializeChatInterface function and everything after it with this:
+
+      function initializeChatInterface() {
+        try {
+          console.log("🚀 Initializing Chat Interface...");
+
+          // Get URL parameters
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get("embed") === "1";
+          const standalone = params.get("standalone") === "1";
+          const context = params.get("context") || "AI Assistant";
+
+          // Set context
+          const contextElement = document.getElementById("currentContext");
+          if (contextElement) {
+            contextElement.textContent = context;
+          }
+
+          // Initialize layout based on mode
+          if (embed) {
+            document.body.classList.add("layout-embedded");
+          } else if (standalone) {
+            document.body.classList.add("window-mode");
+          } else {
+            document.body.classList.add("layout-full-app");
+          }
+
+          // Initialize audio features
+          initializeAudioFeatures();
+
+          // Set up responsive handling
+          setupResponsiveHandling();
+
+          // Set up keyboard shortcuts
+          setupKeyboardShortcuts();
+
+          // Load avatar settings
+          loadAvatarSettings();
+
+          // Initialize chat if chatLogic is available
+          if (typeof setupChat === "function") {
+            setupChat(context);
+          }
+
+          console.log("✅ Chat interface initialized successfully");
+        } catch (error) {
+          console.error("❌ Error initializing chat interface:", error);
+        }
+      }
+
+      function initializeChatInterfaceWithFallbacks() {
+        try {
+          console.log("🔄 Initializing chat interface with fallbacks...");
+
+          // Get URL parameters
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get("embed") === "1";
+          const standalone = params.get("standalone") === "1";
+          const context = params.get("context") || "AI Assistant";
+
+          // Set context
+          const contextElement = document.getElementById("currentContext");
+          if (contextElement) {
+            contextElement.textContent = context;
+          }
+
+          // Initialize layout based on mode (without LayoutManager)
+          if (embed) {
+            document.body.classList.add("layout-embedded");
+          } else if (standalone) {
+            document.body.classList.add("window-mode");
+          } else {
+            document.body.classList.add("layout-full-app");
+          }
+
+          // Initialize basic features without dependencies
+          initializeAudioFeatures();
+          setupResponsiveHandling();
+          setupKeyboardShortcuts();
+          loadAvatarSettings();
+
+          // Basic chat setup without chatLogic
+          setupBasicChat(context);
+
+          console.log("✅ Chat interface initialized with fallbacks");
+        } catch (error) {
+          console.error(
+            "❌ Error initializing chat interface with fallbacks:",
+            error,
+          );
+        }
+      }
+
+      function setupBasicChat(context) {
+        try {
+          // Basic chat functionality without external dependencies
+          const chatMessages = document.querySelector(".chat-messages");
+          if (chatMessages && chatMessages.children.length === 0) {
+            // Add a simple welcome message
+            const welcomeMsg = document.createElement("div");
+            welcomeMsg.className = "chat-message ai";
+            welcomeMsg.innerHTML = `
+                <div class="message-bubble">
+                    Welcome to the ArionComply AI Assistant! I'm here to help with compliance questions, 
+                    risk management, and AI governance. What would you like to know?
+                </div>
+            `;
+            chatMessages.appendChild(welcomeMsg);
+          }
+
+          console.log("✅ Basic chat setup completed for:", context);
+        } catch (error) {
+          console.error("❌ Error in basic chat setup:", error);
+        }
+      }
+
+      // STANDALONE FUNCTIONS (not nested):
+
+      function setupResponsiveHandling() {
+        // Handle window resize for popup optimization
+        window.addEventListener("resize", function () {
+          if (document.body.classList.contains("window-mode")) {
+            if (window.innerWidth < 500) {
+              document.body.classList.add("compact");
+            } else {
+              document.body.classList.remove("compact");
+            }
+          }
+        });
+
+        // Optimize initial layout based on screen size
+        if (window.innerWidth <= 768) {
+          // Mobile optimizations
+          const suggestions = document.querySelector(".suggestions");
+          if (suggestions && suggestions.children.length > 4) {
+            // Hide extra suggestions on mobile
+            Array.from(suggestions.children)
+              .slice(4)
+              .forEach((el) => {
+                el.style.display = "none";
+              });
+          }
+        }
+      }
+
+      function initializeAudioFeatures() {
+        // Initialize Web Speech API if available
+        if ("speechSynthesis" in window) {
+          console.log("Text-to-Speech supported");
+        } else {
+          console.warn("Text-to-Speech not supported");
+          audioContext.ttsEnabled = false;
+        }
+
+        if (
+          "webkitSpeechRecognition" in window ||
+          "SpeechRecognition" in window
+        ) {
+          console.log("Speech-to-Text supported");
+          setupSpeechRecognition();
+        } else {
+          console.warn("Speech-to-Text not supported");
+          audioContext.sttEnabled = false;
+        }
+
+        // Update UI based on audio capabilities
+        updateAudioStatusIndicators();
+      }
+
+      function setupSpeechRecognition() {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          audioContext.recognition = new SpeechRecognition();
+          audioContext.recognition.continuous = false;
+          audioContext.recognition.interimResults = false;
+          audioContext.recognition.lang = "en-US";
+
+          audioContext.recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("chatInput").value = transcript;
+            stopVoiceInput();
+          };
+
+          audioContext.recognition.onerror = function (event) {
+            console.error("Speech recognition error:", event.error);
+            stopVoiceInput();
+            if (typeof showNotification === "function") {
+              showNotification("Voice input error: " + event.error, "error");
+            }
+          };
+
+          audioContext.recognition.onend = function () {
+            stopVoiceInput();
+          };
+        }
+      }
+
+      function openChatInNewWindow() {
+        // Check if mobile device
+        const isMobile = window.innerWidth <= 768;
+
+        const currentUrl = window.location.href;
+        const separator = currentUrl.includes("?") ? "&" : "?";
+        const popupUrl = currentUrl + separator + "standalone=1";
+
+        if (isMobile) {
+          // On mobile, open in same tab (new window)
+          window.open(popupUrl, "_blank");
+          if (typeof showNotification === "function") {
+            showNotification(
+              "Chat opened in new tab - better for mobile!",
+              "success",
+            );
+          }
+        } else {
+          // On desktop, open optimized popup
+          const popup = window.open(
+            popupUrl,
+            "ArionComplyChat",
+            "width=420,height=700,scrollbars=yes,resizable=yes,toolbar=no,location=no,directories=no,status=no,menubar=no",
+          );
+
+          if (popup) {
+            popup.focus();
+            if (typeof showNotification === "function") {
+              showNotification(
+                "Chat popup ready! Resize window to your preference.",
+                "success",
+              );
+            }
+          } else {
+            if (typeof showNotification === "function") {
+              showNotification(
+                "Please allow popups or use Ctrl+Click to open in new tab",
+                "warning",
+              );
+            }
+          }
+        }
+      }
+
+      function toggleAvatarMode() {
+        document.body.classList.toggle("avatar-mode");
+        const isEnabled = document.body.classList.contains("avatar-mode");
+
+        if (isEnabled) {
+          updateAvatarStatus("Avatar mode enabled");
+          if (typeof showNotification === "function") {
+            showNotification("Audio avatar enabled", "success");
+          }
+        } else {
+          updateAvatarStatus("Ready to assist");
+          if (typeof showNotification === "function") {
+            showNotification("Avatar mode disabled", "info");
+          }
+        }
+
+        updateAudioStatusIndicators();
+      }
+
+      function toggleTTS() {
+        audioContext.ttsEnabled = !audioContext.ttsEnabled;
+        const btn = document.getElementById("ttsToggle");
+        if (btn) btn.classList.toggle("active", audioContext.ttsEnabled);
+        updateAudioStatusIndicators();
+
+        if (audioContext.ttsEnabled) {
+          if (typeof showNotification === "function") {
+            showNotification("Text-to-Speech enabled", "success");
+          }
+        } else {
+          if (typeof showNotification === "function") {
+            showNotification("Text-to-Speech disabled", "info");
+          }
+          // Stop any current speech
+          if ("speechSynthesis" in window) {
+            speechSynthesis.cancel();
+          }
+        }
+      }
+
+      function toggleSTT() {
+        audioContext.sttEnabled = !audioContext.sttEnabled;
+        const btn = document.getElementById("sttToggle");
+        if (btn) btn.classList.toggle("active", audioContext.sttEnabled);
+        updateAudioStatusIndicators();
+
+        if (audioContext.sttEnabled) {
+          if (typeof showNotification === "function") {
+            showNotification("Speech-to-Text enabled", "success");
+          }
+        } else {
+          if (typeof showNotification === "function") {
+            showNotification("Speech-to-Text disabled", "info");
+          }
+        }
+      }
+
+      function toggleLipSync() {
+        audioContext.lipSyncEnabled = !audioContext.lipSyncEnabled;
+        const btn = document.getElementById("lipSyncToggle");
+        if (btn) btn.classList.toggle("active", audioContext.lipSyncEnabled);
+        updateAudioStatusIndicators();
+
+        if (audioContext.lipSyncEnabled) {
+          if (typeof showNotification === "function") {
+            showNotification("Lip sync enabled", "success");
+          }
+        } else {
+          if (typeof showNotification === "function") {
+            showNotification("Lip sync disabled", "info");
+          }
+        }
+      }
+
+      function toggleMute() {
+        audioContext.isMuted = !audioContext.isMuted;
+        const btn = document.getElementById("muteBtn");
+        const icon = btn?.querySelector("i");
+
+        if (audioContext.isMuted) {
+          if (icon) icon.className = "fas fa-volume-mute";
+          if (btn) btn.title = "Unmute";
+          if (typeof showNotification === "function") {
+            showNotification("Audio muted", "info");
+          }
+          // Stop any current speech
+          if ("speechSynthesis" in window) {
+            speechSynthesis.cancel();
+          }
+        } else {
+          if (icon) icon.className = "fas fa-volume-up";
+          if (btn) btn.title = "Mute";
+          if (typeof showNotification === "function") {
+            showNotification("Audio unmuted", "info");
+          }
+        }
+      }
+
+      function toggleVoiceInput() {
+        if (!audioContext.sttEnabled) {
+          if (typeof showNotification === "function") {
+            showNotification("Please enable Speech-to-Text first", "warning");
+          }
+          return;
+        }
+
+        if (audioContext.isRecording) {
+          stopVoiceInput();
+        } else {
+          startVoiceInput();
+        }
+      }
+
+      function startVoiceInput() {
+        if (!audioContext.recognition) {
+          if (typeof showNotification === "function") {
+            showNotification("Speech recognition not available", "error");
+          }
+          return;
+        }
+
+        audioContext.isRecording = true;
+        const btn = document.getElementById("voiceInputBtn");
+        if (btn) btn.classList.add("recording");
+
+        updateAvatarState("listening");
+        updateAvatarStatus("Listening...");
+
+        try {
+          audioContext.recognition.start();
+          if (typeof showNotification === "function") {
+            showNotification("Listening... Speak now", "info");
+          }
+        } catch (error) {
+          console.error("Error starting speech recognition:", error);
+          stopVoiceInput();
+        }
+      }
+
+      function stopVoiceInput() {
+        audioContext.isRecording = false;
+        const btn = document.getElementById("voiceInputBtn");
+        if (btn) btn.classList.remove("recording");
+
+        updateAvatarState("ready");
+        updateAvatarStatus("Ready to assist");
+
+        if (audioContext.recognition) {
+          audioContext.recognition.stop();
+        }
+      }
+
+      function updateAvatarState(state) {
+        const avatarContainer = document.querySelector(".avatar-container");
+        if (!avatarContainer) return;
+
+        // Remove all state classes
+        avatarContainer.classList.remove(
+          "avatar-speaking",
+          "avatar-listening",
+          "avatar-thinking",
+        );
+
+        // Add new state class
+        switch (state) {
+          case "speaking":
+            avatarContainer.classList.add("avatar-speaking");
+            if (audioContext.videoAvatarEnabled) {
+              playAvatarVideo();
+            }
+            break;
+          case "listening":
+            avatarContainer.classList.add("avatar-listening");
+            if (audioContext.videoAvatarEnabled) {
+              pauseAvatarVideo();
+            }
+            break;
+          case "thinking":
+            avatarContainer.classList.add("avatar-thinking");
+            if (audioContext.videoAvatarEnabled) {
+              pauseAvatarVideo();
+            }
+            break;
+          default:
+            if (audioContext.videoAvatarEnabled) {
+              pauseAvatarVideo();
+            }
+            break;
+        }
+      }
+
+      function updateAvatarStatus(status) {
+        const statusElement = document.getElementById("avatarStatus");
+        if (statusElement) {
+          statusElement.textContent = status;
+        }
+      }
+
+      function updateAudioStatusIndicators() {
+        const ttsStatus = document.getElementById("ttsStatus");
+        const sttStatus = document.getElementById("sttStatus");
+        const lipSyncStatus = document.getElementById("lipSyncStatus");
+
+        if (ttsStatus) {
+          ttsStatus.className = `status-dot ${audioContext.ttsEnabled ? "active" : ""}`;
+        }
+        if (sttStatus) {
+          sttStatus.className = `status-dot ${audioContext.sttEnabled ? "active" : ""}`;
+        }
+        if (lipSyncStatus) {
+          lipSyncStatus.className = `status-dot ${audioContext.lipSyncEnabled ? "active" : ""}`;
+        }
+      }
+
+      function speakText(text) {
+        if (
+          !audioContext.ttsEnabled ||
+          audioContext.isMuted ||
+          !("speechSynthesis" in window)
+        ) {
+          return;
+        }
+
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // Apply saved settings
+        const settings = JSON.parse(
+          localStorage.getItem("avatarSettings") || "{}",
+        );
+        utterance.rate = parseFloat(settings.speed || 1);
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        // Set voice based on tone
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const selectedVoice =
+            voices.find((voice) => voice.lang.startsWith("en")) || voices[0];
+          utterance.voice = selectedVoice;
+        }
+
+        utterance.onstart = () => {
+          updateAvatarState("speaking");
+          updateAvatarStatus("Speaking...");
+        };
+
+        utterance.onend = () => {
+          updateAvatarState("ready");
+          updateAvatarStatus("Ready to assist");
+        };
+
+        utterance.onerror = (error) => {
+          console.error("Speech synthesis error:", error);
+          updateAvatarState("ready");
+          updateAvatarStatus("Ready to assist");
+        };
+
+        speechSynthesis.speak(utterance);
+      }
+
+      function sendMessage() {
+        const input = document.getElementById("chatInput");
+        const message = input?.value.trim();
+
+        if (!message) return;
+
+        // Add user message
+        const ctx =
+          document.getElementById("currentContext")?.textContent ||
+          "AI Assistant";
+        if (typeof addChatMessage === "function") {
+          try {
+            addChatMessage(ctx, "user", message);
+          } catch (e) {
+            console.warn("Chat message failed", e);
+          }
+        }
+        if (input) input.value = "";
+
+        // Simulate AI thinking
+        updateAvatarState("thinking");
+        updateAvatarStatus("Thinking...");
+
+        // Simulate AI response
+        setTimeout(() => {
+          const responses = [
+            "I can help you with that. Let me provide some guidance on compliance requirements.",
+            "Based on current regulations, here's what you need to know about AI governance.",
+            "For GDPR compliance, I recommend reviewing your data processing activities.",
+            "That's a great question about risk management. Let me break this down for you.",
+            "I understand you're looking for information about audit procedures. Here's what I suggest.",
+          ];
+
+          const randomResponse =
+            responses[Math.floor(Math.random() * responses.length)];
+          if (typeof addChatMessage === "function") {
+            try {
+              addChatMessage(ctx, "ai", randomResponse);
+            } catch (e) {
+              console.warn("Chat message failed", e);
+            }
+          }
+
+          // Speak the response if audio is enabled
+          if (audioContext.autoPlayEnabled) {
+            speakText(randomResponse);
+          }
+
+          if (!audioContext.autoPlayEnabled) {
+            updateAvatarState("ready");
+            updateAvatarStatus("Ready to assist");
+          }
+        }, 1500);
+      }
+
+      function setupKeyboardShortcuts() {
+        const input = document.getElementById("chatInput");
+        if (input) {
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          });
+
+          // Auto-resize textarea
+          input.addEventListener("input", function () {
+            this.style.height = "auto";
+            this.style.height = Math.min(this.scrollHeight, 120) + "px";
+          });
+        }
+      }
+
+      function insertSuggestion(text) {
+        const input = document.getElementById("chatInput");
+        if (input) {
+          input.value = text;
+          input.focus();
+        }
+      }
+
+      function clearChat() {
+        if (confirm("Clear chat history? This cannot be undone.")) {
+          const ctx =
+            document.getElementById("currentContext")?.textContent ||
+            "AI Assistant";
+          if (typeof clearChatHistory === "function") {
+            clearChatHistory(ctx);
+          } else {
+            // Fallback
+            localStorage.removeItem(`chatHistory-${ctx}`);
+            const container = document.querySelector(".chat-messages");
+            if (container) container.innerHTML = "";
+          }
+
+          if (typeof showNotification === "function") {
+            showNotification("Chat history cleared", "info");
+          }
+        }
+      }
+
+      function updateAvatarPreview() {
+        const selected = document.querySelector('input[name="avatar"]:checked');
+        const preview = document.getElementById("previewAvatar");
+
+        if (selected && preview) {
+          const icons = {
+            arion: "fas fa-robot",
+            nova: "fas fa-star",
+            echo: "fas fa-microphone-alt",
+          };
+
+          const colors = {
+            arion: "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
+            nova: "linear-gradient(135deg, #fef3c7, #fde68a)",
+            echo: "linear-gradient(135deg, #dcfce7, #bbf7d0)",
+          };
+
+          preview.innerHTML = `<i class="${icons[selected.value]}"></i>`;
+          preview.style.background = colors[selected.value];
+        }
+      }
+
+      function testAudioSettings() {
+        const testMessage =
+          "Hello! This is a test of your audio settings. Can you hear me clearly?";
+        updateAvatarState("speaking");
+        updateAvatarStatus("Testing audio...");
+        speakText(testMessage);
+        if (typeof showNotification === "function") {
+          showNotification("Playing audio test...", "info");
+        }
+      }
+
+      function switchToVideoAvatar(videoSource) {
+        const avatarImage = document.getElementById("avatarImage");
+        const avatarVideo = document.getElementById("avatarVideo");
+
+        if (!avatarImage || !avatarVideo || !videoSource) return;
+
+        // Set video sources
+        const sources = avatarVideo.querySelectorAll("source");
+        if (sources.length >= 1) {
+          sources[0].src = videoSource; // MP4 source
+        }
+        if (sources.length >= 2 && videoSource.includes(".mp4")) {
+          // Try to find WebM version
+          sources[1].src = videoSource.replace(".mp4", ".webm");
+        }
+
+        // Load the video
+        avatarVideo.load();
+
+        // Handle video load success
+        avatarVideo.onloadeddata = function () {
+          avatarImage.style.display = "none";
+          avatarVideo.style.display = "block";
+          audioContext.videoAvatarEnabled = true;
+          if (typeof showNotification === "function") {
+            showNotification("Video avatar loaded successfully", "success");
+          }
+        };
+
+        // Handle video load error
+        avatarVideo.onerror = function () {
+          console.error("Failed to load video avatar:", videoSource);
+          switchToStaticAvatar();
+          if (typeof showNotification === "function") {
+            showNotification(
+              "Failed to load video. Using static avatar.",
+              "warning",
+            );
+          }
+        };
+      }
+
+      function switchToStaticAvatar() {
+        const avatarImage = document.getElementById("avatarImage");
+        const avatarVideo = document.getElementById("avatarVideo");
+
+        if (!avatarImage || !avatarVideo) return;
+
+        avatarVideo.style.display = "none";
+        avatarImage.style.display = "flex";
+        audioContext.videoAvatarEnabled = false;
+      }
+
+      function playAvatarVideo() {
+        const avatarVideo = document.getElementById("avatarVideo");
+        if (avatarVideo && audioContext.videoAvatarEnabled) {
+          avatarVideo.play().catch((error) => {
+            console.error("Error playing avatar video:", error);
+          });
+        }
+      }
+
+      function pauseAvatarVideo() {
+        const avatarVideo = document.getElementById("avatarVideo");
+        if (avatarVideo && audioContext.videoAvatarEnabled) {
+          avatarVideo.pause();
+          avatarVideo.currentTime = 0; // Reset to beginning
+        }
+      }
+
+      function previewVideoAvatar() {
+        const videoSource = document.getElementById("avatarVideoSource");
+        if (!videoSource || !videoSource.value.trim()) {
+          if (typeof showNotification === "function") {
+            showNotification("Please enter a video URL first", "warning");
+          }
+          return;
+        }
+
+        const videoUrl = videoSource.value.trim();
+        switchToVideoAvatar(videoUrl);
+
+        // Test the speaking animation
+        setTimeout(() => {
+          updateAvatarState("speaking");
+          updateAvatarStatus("Video preview - speaking animation");
+        }, 500);
+
+        setTimeout(() => {
+          updateAvatarState("ready");
+          updateAvatarStatus("Ready to assist");
+        }, 3000);
+      }
+
+      function saveAvatarSettings() {
+        const selected = document.querySelector('input[name="avatar"]:checked');
+        const tone = document.getElementById("avatarTone");
+        const speed = document.getElementById("avatarSpeed");
+        const videoSource = document.getElementById("avatarVideoSource");
+        const ttsEnabled = document.getElementById("ttsEnabled");
+        const sttEnabled = document.getElementById("sttEnabled");
+        const lipSyncEnabled = document.getElementById("lipSyncEnabled");
+        const autoPlayEnabled = document.getElementById("autoPlayEnabled");
+
+        if (selected && tone && speed) {
+          const settings = {
+            avatar: selected.value,
+            tone: tone.value,
+            speed: speed.value,
+            videoSource: videoSource ? videoSource.value.trim() : "",
+            ttsEnabled: ttsEnabled?.checked !== false,
+            sttEnabled: sttEnabled?.checked || false,
+            lipSyncEnabled: lipSyncEnabled?.checked || false,
+            autoPlayEnabled: autoPlayEnabled?.checked !== false,
+          };
+
+          localStorage.setItem("avatarSettings", JSON.stringify(settings));
+
+          // Apply settings
+          audioContext.ttsEnabled = settings.ttsEnabled;
+          audioContext.sttEnabled = settings.sttEnabled;
+          audioContext.lipSyncEnabled = settings.lipSyncEnabled;
+          audioContext.autoPlayEnabled = settings.autoPlayEnabled;
+          audioContext.videoSource = settings.videoSource;
+
+          // Apply video avatar if source is provided
+          if (settings.videoSource) {
+            switchToVideoAvatar(settings.videoSource);
+          } else {
+            switchToStaticAvatar();
+          }
+
+          // Update UI
+          updateAudioStatusIndicators();
+
+          // Update avatar toggle
+          const toggle = document.getElementById("avatarModeToggle");
+          if (toggle) toggle.checked = true;
+
+          // Enable avatar mode
+          if (!document.body.classList.contains("avatar-mode")) {
+            toggleAvatarMode();
+          }
+
+          if (typeof showNotification === "function") {
+            showNotification("Avatar settings saved successfully", "success");
+          }
+        }
+
+        if (typeof closeAvatarModal === "function") {
+          closeAvatarModal();
+        }
+      }
+
+      function loadAvatarSettings() {
+        const settings = localStorage.getItem("avatarSettings");
+        if (settings) {
+          try {
+            const parsed = JSON.parse(settings);
+
+            // Load UI settings
+            const avatarInput = document.querySelector(
+              `input[name="avatar"][value="${parsed.avatar}"]`,
+            );
+            const tone = document.getElementById("avatarTone");
+            const speed = document.getElementById("avatarSpeed");
+            const videoSource = document.getElementById("avatarVideoSource");
+            const ttsEnabled = document.getElementById("ttsEnabled");
+            const sttEnabled = document.getElementById("sttEnabled");
+            const lipSyncEnabled = document.getElementById("lipSyncEnabled");
+            const autoPlayEnabled = document.getElementById("autoPlayEnabled");
+
+            if (avatarInput) avatarInput.checked = true;
+            if (tone) tone.value = parsed.tone || "friendly";
+            if (speed) speed.value = parsed.speed || 1;
+            if (videoSource) videoSource.value = parsed.videoSource || "";
+            if (ttsEnabled) ttsEnabled.checked = parsed.ttsEnabled !== false;
+            if (sttEnabled) sttEnabled.checked = parsed.sttEnabled || false;
+            if (lipSyncEnabled)
+              lipSyncEnabled.checked = parsed.lipSyncEnabled || false;
+            if (autoPlayEnabled)
+              autoPlayEnabled.checked = parsed.autoPlayEnabled !== false;
+
+            // Apply audio context
+            audioContext.ttsEnabled = parsed.ttsEnabled !== false;
+            audioContext.sttEnabled = parsed.sttEnabled || false;
+            audioContext.lipSyncEnabled = parsed.lipSyncEnabled || false;
+            audioContext.autoPlayEnabled = parsed.autoPlayEnabled !== false;
+            audioContext.videoSource = parsed.videoSource || "";
+
+            // Apply video avatar if source is available
+            if (parsed.videoSource) {
+              switchToVideoAvatar(parsed.videoSource);
+            }
+
+            // Update avatar toggle
+            const toggle = document.getElementById("avatarModeToggle");
+            const hasAudioEnabled =
+              audioContext.ttsEnabled ||
+              audioContext.sttEnabled ||
+              audioContext.lipSyncEnabled;
+            if (toggle) toggle.checked = hasAudioEnabled;
+
+            if (
+              hasAudioEnabled &&
+              !document.body.classList.contains("avatar-mode")
+            ) {
+              toggleAvatarMode();
+            }
+
+            updateAvatarPreview();
+          } catch (e) {
+            console.error("Failed to load avatar settings");
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,120 @@
+{
+  "_description": "Model definitions and parameter specifications",
+  "_file_path": "testing/llm-comparison/config/models.json",
+  "version": "1.0",
+  "providers": {
+    "openai": {
+      "type": "cloud",
+      "display_name": "OpenAI",
+      "default_parameters": {
+        "temperature": 0.1,
+        "top_p": 0.9,
+        "max_tokens": 1024,
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0
+      },
+      "parameter_definitions": {
+        "temperature": {
+          "type": "range",
+          "min": 0.0,
+          "max": 2.0,
+          "step": 0.1,
+          "description": "Controls randomness. Lower = more deterministic, higher = more creative."
+        },
+        "top_p": {
+          "type": "range",
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05,
+          "description": "Nucleus sampling. Considers tokens with cumulative probability up to this value."
+        },
+        "max_tokens": {
+          "type": "number",
+          "min": 1,
+          "max": 4096,
+          "step": 1,
+          "description": "Maximum number of tokens to generate."
+        },
+        "frequency_penalty": {
+          "type": "range",
+          "min": -2.0,
+          "max": 2.0,
+          "step": 0.1,
+          "description": "Penalize frequent tokens. Positive values discourage repetition."
+        },
+        "presence_penalty": {
+          "type": "range",
+          "min": -2.0,
+          "max": 2.0,
+          "step": 0.1,
+          "description": "Penalize tokens that already appeared. Positive values encourage topic diversity."
+        }
+      },
+      "models": [
+        {
+          "id": "gpt-4o",
+          "name": "GPT-4 Omni",
+          "max_context": 128000,
+          "cost_per_1k_tokens": 0.03,
+          "supported_parameters": ["temperature", "top_p", "max_tokens", "frequency_penalty", "presence_penalty", "stop", "seed"]
+        },
+        {
+          "id": "gpt-4o-mini",
+          "name": "GPT-4 Omni Mini", 
+          "max_context": 128000,
+          "cost_per_1k_tokens": 0.0015,
+          "supported_parameters": ["temperature", "top_p", "max_tokens", "frequency_penalty", "presence_penalty", "stop", "seed"]
+        }
+      ]
+    },
+    "anthropic": {
+      "type": "cloud",
+      "display_name": "Anthropic",
+      "default_parameters": {
+        "temperature": 0.1,
+        "top_p": 0.9,
+        "top_k": 40,
+        "max_tokens": 1024
+      },
+      "parameter_definitions": {
+        "temperature": {
+          "type": "range",
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.1,
+          "description": "Controls randomness. Lower = more deterministic, higher = more creative."
+        },
+        "top_p": {
+          "type": "range",
+          "min": 0.0,
+          "max": 1.0,
+          "step": 0.05,
+          "description": "Nucleus sampling."
+        },
+        "top_k": {
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "description": "Consider only the top K most likely tokens."
+        },
+        "max_tokens": {
+          "type": "number",
+          "min": 1,
+          "max": 4096,
+          "step": 1,
+          "description": "Maximum number of tokens to generate."
+        }
+      },
+      "models": [
+        {
+          "id": "claude-3-5-sonnet-20241022",
+          "name": "Claude 3.5 Sonnet",
+          "max_context": 200000,
+          "cost_per_1k_tokens": 0.015,
+          "supported_parameters": ["temperature", "top_p", "top_k", "max_tokens", "stop_sequences"]
+        }
+      ]
+    }
+  }
+}

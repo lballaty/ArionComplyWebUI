@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Module Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      /* Routing Dashboard Styles */
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .routing-main {
+        flex: 1;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #e0e7ff 100%);
+        padding: 2rem 0;
+      }
+
+      .routing-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      .routing-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 0 2rem;
+      }
+
+      .routing-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .routing-logo i {
+        font-size: 3rem;
+        color: var(--primary-blue);
+      }
+
+      .routing-logo-text {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+      }
+
+      .routing-welcome {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .routing-subtitle {
+        color: var(--text-gray);
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .user-info {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 1rem 2rem;
+        margin: 2rem auto;
+        max-width: 500px;
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .user-details {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-avatar {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.25rem;
+      }
+
+      .user-text {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .user-name {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .user-role {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+      }
+
+      .user-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .modules-container {
+        margin: 0 auto;
+      }
+
+      .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      .module-card {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        border: 2px solid transparent;
+      }
+
+      .module-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-blue);
+      }
+
+      .module-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        transform: scaleX(0);
+        transition: transform 0.2s ease;
+      }
+
+      .module-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .module-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+      }
+
+      .module-card:hover .module-icon {
+        transform: scale(1.1);
+      }
+
+      .module-icon i {
+        font-size: 1.75rem;
+        color: white;
+      }
+
+      .module-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+      }
+
+      .module-description {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+      }
+
+      .module-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .module-status {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .status-indicator.active {
+        background: var(--success-green);
+      }
+
+      .status-indicator.beta {
+        background: var(--warning-amber);
+      }
+
+      .status-indicator.new {
+        background: var(--ai-purple);
+      }
+
+      .module-shortcut {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 0.25rem 0.5rem;
+        font-family: monospace;
+      }
+
+      /* Special module types */
+      .module-card.primary .module-icon {
+        background: linear-gradient(135deg, var(--primary-blue), #1e40af);
+      }
+
+      .module-card.ai .module-icon {
+        background: linear-gradient(135deg, var(--ai-purple), #6b21a8);
+      }
+
+      .module-card.danger .module-icon {
+        background: linear-gradient(135deg, var(--danger-red), #dc2626);
+      }
+
+      .module-card.success .module-icon {
+        background: linear-gradient(135deg, var(--success-green), #059669);
+      }
+
+      .module-card.warning .module-icon {
+        background: linear-gradient(135deg, var(--warning-amber), #d97706);
+      }
+
+      .quick-actions {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .quick-actions-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+      }
+
+      .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .action-button {
+        padding: 1rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .action-button:hover {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .action-button i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+
+      .footer-info {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-gray);
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-white);
+        margin-top: 3rem;
+      }
+
+      .logout-button {
+        background: none;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        color: var(--text-gray);
+        transition: all 0.15s ease;
+      }
+
+      .logout-button:hover {
+        border-color: var(--danger-red);
+        color: var(--danger-red);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .routing-main {
+          padding: 1rem 0;
+        }
+
+        .routing-container {
+          padding: 0 1rem;
+        }
+
+        .modules-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .module-card {
+          padding: 1.5rem;
+        }
+
+        .user-info {
+          margin: 1rem;
+          padding: 1rem;
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .routing-logo {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .routing-logo i {
+          font-size: 2rem;
+        }
+
+        .routing-logo-text {
+          font-size: 1.75rem;
+        }
+
+        .header {
+          padding: 1rem;
+        }
+
+        .search-bar {
+          width: 150px;
+        }
+
+        .header-actions {
+          gap: 0.5rem;
+        }
+      }
+
+      /* Loading animation for module cards */
+      .module-card.loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .module-card.loading::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 24px;
+        height: 24px;
+        margin: -12px 0 0 -12px;
+        border: 2px solid var(--border-light);
+        border-top: 2px solid var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected by LayoutManager -->
+
+      <!-- Main Content -->
+      <main class="routing-main">
+        <div class="routing-container">
+          <!-- Header -->
+          <div class="routing-header">
+            <div class="routing-logo">
+              <i class="fas fa-shield-alt"></i>
+              <span class="routing-logo-text">ArionComply</span>
+            </div>
+            <h1 class="routing-welcome" id="welcomeMessage">
+              Welcome back, User
+            </h1>
+            <p class="routing-subtitle">
+              Select a module to access your compliance management tools
+            </p>
+          </div>
+
+          <!-- User Info -->
+          <div class="user-info">
+            <div class="user-details">
+              <div class="user-avatar" id="userAvatar">U</div>
+              <div class="user-text">
+                <div class="user-name" id="userName">Demo User</div>
+                <div class="user-role" id="userRole">Compliance Officer</div>
+              </div>
+            </div>
+            <div class="user-actions">
+              <button class="logout-button" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Sign Out
+              </button>
+            </div>
+          </div>
+
+          <div class="modules-container">
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+              <h2 class="quick-actions-title">Quick Actions</h2>
+              <div class="actions-grid">
+                <a href="wizzard.html" class="action-button">
+                  <i class="fas fa-robot"></i>
+                  <div>Classify AI System</div>
+                </a>
+                <a href="listView.html?type=risks" class="action-button">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <div>Report Risk</div>
+                </a>
+                <a href="documentEditor.html" class="action-button">
+                  <i class="fas fa-file-contract"></i>
+                  <div>Create Policy</div>
+                </a>
+                <a href="calendarView.html" class="action-button">
+                  <i class="fas fa-calendar-plus"></i>
+                  <div>Schedule Audit</div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Modules Grid -->
+            <div class="modules-grid">
+              <!-- Dashboard Module -->
+              <a
+                href="dashboard.html"
+                class="module-card primary"
+                onclick="loadModule(this, 'dashboard.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <h3 class="module-title">Dashboard</h3>
+                <p class="module-description">
+                  Executive overview with key compliance metrics, risk heat
+                  maps, and real-time status monitoring.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+D</div>
+                </div>
+              </a>
+
+              <!-- AI Governance Module -->
+              <a
+                href="listView.html?type=ai"
+                class="module-card ai"
+                onclick="loadModule(this, 'listView.html?type=ai')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="module-title">AI Governance</h3>
+                <p class="module-description">
+                  EU AI Act compliance, system classification, bias monitoring,
+                  and AI risk assessments.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator new"></div>
+                    <span>Featured</span>
+                  </div>
+                  <div class="module-shortcut">Alt+A</div>
+                </div>
+              </a>
+
+              <!-- Risk Management Module -->
+              <a
+                href="listView.html?type=risks"
+                class="module-card danger"
+                onclick="loadModule(this, 'listView.html?type=risks')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="module-title">Risk Management</h3>
+                <p class="module-description">
+                  Comprehensive risk register, assessments, heat maps, and
+                  multi-framework risk tracking.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+R</div>
+                </div>
+              </a>
+
+              <!-- Audits Module -->
+              <a
+                href="calendarView.html"
+                class="module-card warning"
+                onclick="loadModule(this, 'calendarView.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h3 class="module-title">Audits & Calendar</h3>
+                <p class="module-description">
+                  Audit scheduling, compliance calendar, internal assessments,
+                  and external audit coordination.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+C</div>
+                </div>
+              </a>
+
+              <!-- Policy Management Module -->
+              <a
+                href="documentEditor.html"
+                class="module-card success"
+                onclick="loadModule(this, 'documentEditor.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-file-contract"></i>
+                </div>
+                <h3 class="module-title">Policy Management</h3>
+                <p class="module-description">
+                  Document lifecycle, policy editor, version control, and
+                  automated compliance mapping.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+P</div>
+                </div>
+              </a>
+
+              <!-- Privacy Module -->
+              <a
+                href="wizzard.html"
+                class="module-card ai"
+                onclick="loadModule(this, 'wizzard.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-user-shield"></i>
+                </div>
+                <h3 class="module-title">Privacy & GDPR</h3>
+                <p class="module-description">
+                  DPIA wizard, consent management, data mapping, and privacy
+                  impact assessments.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+G</div>
+                </div>
+              </a>
+
+              <!-- Asset Management Module -->
+              <a
+                href="listView.html?type=assets"
+                class="module-card primary"
+                onclick="loadModule(this, 'listView.html?type=assets')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-cubes"></i>
+                </div>
+                <h3 class="module-title">Asset Management</h3>
+                <p class="module-description">
+                  Information assets, IT systems inventory, data classification,
+                  and dependency mapping.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+S</div>
+                </div>
+              </a>
+
+              <!-- Reports Module -->
+              <a
+                href="chartView.html"
+                class="module-card success"
+                onclick="loadModule(this, 'chartView.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="module-title">Analytics & Reports</h3>
+                <p class="module-description">
+                  Interactive dashboards, compliance metrics, trend analysis,
+                  and executive reporting.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+B</div>
+                </div>
+              </a>
+
+              <!-- File Manager Module -->
+              <a
+                href="fileManager.html"
+                class="module-card primary"
+                onclick="loadModule(this, 'fileManager.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-folder"></i>
+                </div>
+                <h3 class="module-title">Document Center</h3>
+                <p class="module-description">
+                  Centralized file management, version control, secure sharing,
+                  and document workflows.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator beta"></div>
+                    <span>Beta</span>
+                  </div>
+                  <div class="module-shortcut">Alt+F</div>
+                </div>
+              </a>
+
+              <!-- Settings Module -->
+              <a
+                href="settingsPanel.html"
+                class="module-card"
+                onclick="loadModule(this, 'settingsPanel.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-cog"></i>
+                </div>
+                <h3 class="module-title">System Settings</h3>
+                <p class="module-description">
+                  User management, system configuration, integrations, and
+                  platform customization.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator active"></div>
+                    <span>Active</span>
+                  </div>
+                  <div class="module-shortcut">Alt+T</div>
+                </div>
+              </a>
+
+              <!-- Prototypes Module -->
+              <a
+                href="prototypeIndex.html"
+                class="module-card warning"
+                onclick="loadModule(this, 'prototypeIndex.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-flask"></i>
+                </div>
+                <h3 class="module-title">Prototypes & Labs</h3>
+                <p class="module-description">
+                  Experimental features, UI components showcase, and development
+                  testing environment.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator beta"></div>
+                    <span>Dev Only</span>
+                  </div>
+                  <div class="module-shortcut">Alt+L</div>
+                </div>
+              </a>
+
+              <!-- Chat Interface Module -->
+              <a
+                href="chatInterface.html"
+                class="module-card ai"
+                onclick="loadModule(this, 'chatInterface.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-comments"></i>
+                </div>
+                <h3 class="module-title">AI Assistant</h3>
+                <p class="module-description">
+                  Intelligent compliance assistant, contextual help, and
+                  conversational guidance.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator new"></div>
+                    <span>AI-Powered</span>
+                  </div>
+                  <div class="module-shortcut">Alt+H</div>
+                </div>
+              </a>
+
+              <!-- Timeline Enhanced Features Module -->
+              <a
+                href="timelineEnhancedFeatures.html"
+                class="module-card ai"
+                onclick="loadModule(this, 'timelineEnhancedFeatures.html')"
+              >
+                <div class="module-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="module-title">Timeline Features</h3>
+                <p class="module-description">
+                  Advanced timeline functionality with drag-and-drop,
+                  collaboration, and export features.
+                </p>
+                <div class="module-meta">
+                  <div class="module-status">
+                    <div class="status-indicator beta"></div>
+                    <span>Preview</span>
+                  </div>
+                  <div class="module-shortcut">Alt+E</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="footer-info">
+            <p>
+              <strong>ArionComply Enterprise Platform</strong> • Version 2.4.1 •
+              Last updated: December 2024
+            </p>
+            <p>
+              Secure multi-tenant SaaS • SOC 2 Type II Certified • GDPR
+              Compliant
+            </p>
+            <p
+              style="
+                margin-top: 1rem;
+                color: var(--text-gray);
+                font-size: 0.875rem;
+              "
+            >
+              <i class="fas fa-keyboard"></i>
+              Tip: Use keyboard shortcuts (Alt + letter) for quick navigation
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <!-- Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">
+            <i class="fas fa-robot"></i>
+            AI Assistant
+          </div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?embed=1&context=Module Dashboard"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        LayoutManager.initializePage("routing.html");
+      });
+    </script>
+    <script>
+      // Sidebar functionality for routing page
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+
+        if (sidebar && backdrop) {
+          sidebar.classList.toggle("open");
+          backdrop.classList.toggle("active");
+        }
+      }
+
+      function closeSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+
+        if (sidebar && backdrop) {
+          sidebar.classList.remove("open");
+          backdrop.classList.remove("active");
+        }
+      }
+
+      function showUserMenu() {
+        // Show user menu dropdown by scrolling to user info
+        const userInfo = document.querySelector(".user-info");
+        if (userInfo) {
+          userInfo.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+
+      // Connect header search to module filtering
+      document.addEventListener("DOMContentLoaded", function () {
+        const headerSearch = document.getElementById("globalSearch");
+        if (headerSearch) {
+          headerSearch.addEventListener("input", function () {
+            filterModules(this.value);
+          });
+        }
+      });
+
+      function filterModules(searchTerm) {
+        const modules = document.querySelectorAll(".module-card");
+        const term = searchTerm.toLowerCase();
+
+        modules.forEach((module) => {
+          const title = module
+            .querySelector(".module-title")
+            .textContent.toLowerCase();
+          const description = module
+            .querySelector(".module-description")
+            .textContent.toLowerCase();
+
+          if (title.includes(term) || description.includes(term)) {
+            module.style.display = "block";
+          } else {
+            module.style.display = term === "" ? "block" : "none";
+          }
+        });
+      }
+
+      // Load user data and personalize interface
+      document.addEventListener("DOMContentLoaded", function () {
+        loadUserData();
+        setupKeyboardShortcuts();
+        animateModuleCards();
+
+        // Set up chat context for this page
+        updateChatContext("Module Dashboard");
+      });
+
+      function loadUserData() {
+        const userData = localStorage.getItem("arioncomply_user");
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+
+            // Update welcome message
+            document.getElementById("welcomeMessage").textContent =
+              `Welcome back, ${user.name}`;
+
+            // Update user info
+            document.getElementById("userName").textContent = user.name;
+            document.getElementById("userRole").textContent =
+              user.role || "Compliance Officer";
+
+            // Update user avatar with initials
+            const initials = user.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase();
+            document.getElementById("userAvatar").textContent = initials;
+
+            // Show demo indicator if in demo mode
+            if (localStorage.getItem("arioncomply_demo_mode") === "true") {
+              const demoIndicator = document.createElement("div");
+              demoIndicator.style.cssText = `
+                            position: fixed;
+                            top: 1rem;
+                            right: 1rem;
+                            background: var(--warning-amber);
+                            color: white;
+                            padding: 0.5rem 1rem;
+                            border-radius: var(--border-radius-sm);
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            z-index: 1000;
+                        `;
+              demoIndicator.innerHTML =
+                '<i class="fas fa-flask"></i> Demo Mode';
+              document.body.appendChild(demoIndicator);
+            }
+          } catch (e) {
+            console.error("Failed to load user data");
+          }
+        } else {
+          // Redirect to login if no user data
+          window.location.href = "index.html";
+        }
+      }
+
+      function setupKeyboardShortcuts() {
+        document.addEventListener("keydown", function (e) {
+          if (e.altKey) {
+            const shortcuts = {
+              d: "dashboard.html",
+              a: "listView.html?type=ai",
+              r: "listView.html?type=risks",
+              c: "calendarView.html",
+              p: "documentEditor.html",
+              g: "wizzard.html",
+              s: "listView.html?type=assets",
+              b: "chartView.html",
+              f: "fileManager.html",
+              t: "settingsPanel.html",
+              l: "prototypeIndex.html",
+              h: "chatInterface.html",
+              e: "timelineEnhancedFeatures.html",
+            };
+
+            if (shortcuts[e.key.toLowerCase()]) {
+              e.preventDefault();
+              window.location.href = shortcuts[e.key.toLowerCase()];
+            }
+          }
+        });
+      }
+
+      function animateModuleCards() {
+        const cards = document.querySelectorAll(".module-card");
+        cards.forEach((card, index) => {
+          card.style.opacity = "0";
+          card.style.transform = "translateY(20px)";
+
+          setTimeout(() => {
+            card.style.transition = "all 0.3s ease";
+            card.style.opacity = "1";
+            card.style.transform = "translateY(0)";
+          }, index * 100);
+        });
+      }
+
+      function loadModule(cardElement, url) {
+        // Add loading state
+        cardElement.classList.add("loading");
+
+        // Simulate loading delay
+        setTimeout(() => {
+          window.location.href = url;
+        }, 500);
+      }
+
+      function logout() {
+        if (confirm("Are you sure you want to sign out?")) {
+          // Clear session data
+          localStorage.removeItem("arioncomply_user");
+          localStorage.removeItem("arioncomply_session");
+          localStorage.removeItem("arioncomply_demo_mode");
+
+          // Redirect to login
+          window.location.href = "index.html";
+        }
+      }
+
+      // Add click tracking for analytics (mockup)
+      document.querySelectorAll(".module-card").forEach((card) => {
+        card.addEventListener("click", function (e) {
+          const moduleName = this.querySelector(".module-title").textContent;
+          console.log(`Module accessed: ${moduleName}`);
+
+          // In a real app, this would send analytics data
+          if (typeof gtag !== "undefined") {
+            gtag("event", "module_access", {
+              module_name: moduleName,
+              user_role: document.getElementById("userRole").textContent,
+            });
+          }
+        });
+      });
+
+      // Initialize search functionality
+      setTimeout(() => {
+        console.log("Header search initialized");
+      }, 1000);
+
+      // Add welcome animation
+      function playWelcomeAnimation() {
+        const header = document.querySelector(".routing-header");
+        header.style.opacity = "0";
+        header.style.transform = "translateY(-20px)";
+
+        setTimeout(() => {
+          header.style.transition = "all 0.5s ease";
+          header.style.opacity = "1";
+          header.style.transform = "translateY(0)";
+        }, 200);
+      }
+
+      playWelcomeAnimation();
+
+      // Notification system for consistency with other pages
+      function showNotification(message, type = "info") {
+        const notification = document.createElement("div");
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+
+        notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                padding: 1rem 1.5rem;
+                border-radius: var(--border-radius);
+                color: white;
+                font-weight: 500;
+                z-index: 2000;
+                transition: all 0.3s ease;
+                transform: translateX(100%);
+            `;
+
+        const colors = {
+          success: "var(--success-green)",
+          warning: "var(--warning-amber)",
+          error: "var(--danger-red)",
+          info: "var(--primary-blue)",
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.transform = "translateX(0)";
+        }, 10);
+
+        setTimeout(() => {
+          notification.style.transform = "translateX(100%)";
+          setTimeout(() => {
+            if (document.body.contains(notification)) {
+              document.body.removeChild(notification);
+            }
+          }, 300);
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Document Editor</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .document-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .document-tree {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .document-editor {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .tree-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.25rem;
+        transition: all 0.15s ease;
+      }
+
+      .tree-item:hover {
+        background: var(--bg-light);
+      }
+
+      .tree-item.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .tree-item.folder {
+        font-weight: 600;
+      }
+
+      .tree-item .tree-icon {
+        margin-right: 0.5rem;
+        width: 16px;
+      }
+
+      .tree-item .tree-badge {
+        margin-left: auto;
+        font-size: 0.75rem;
+      }
+
+      .tree-children {
+        margin-left: 1rem;
+      }
+
+      .editor-toolbar {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-right: 1rem;
+      }
+
+      .toolbar-button {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border-light);
+        background: var(--bg-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+      }
+
+      .toolbar-button:hover {
+        background: var(--bg-light);
+        border-color: var(--primary-blue);
+      }
+
+      .toolbar-button.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .editor-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .document-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .document-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .document-meta {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .document-body {
+        flex: 1;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .editor-textarea {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        padding: 2rem;
+        font-family: "Georgia", serif;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: none;
+      }
+
+      .document-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .version-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .auto-save-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .auto-save-indicator.saving {
+        color: var(--warning-amber);
+      }
+
+      .auto-save-indicator.saved {
+        color: var(--success-green);
+      }
+
+      .document-sidebar {
+        position: fixed;
+        right: -350px;
+        top: 0;
+        width: 350px;
+        height: 100vh;
+        background: var(--bg-white);
+        border-left: 1px solid var(--border-light);
+        transition: right 0.3s ease;
+        z-index: 200;
+        overflow-y: auto;
+      }
+
+      .document-sidebar.open {
+        right: 0;
+      }
+
+      .sidebar-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .sidebar-content {
+        padding: 1.5rem;
+      }
+
+      .template-section {
+        margin-bottom: 2rem;
+      }
+
+      .template-item {
+        padding: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .template-item:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .comment-thread {
+        background: var(--bg-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1rem;
+      }
+
+      .comment {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .comment:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+
+      .comment-author {
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .comment-text {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .comment-time {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Document Editor Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Policy Management</h1>
+              <p class="page-subtitle">
+                Centralized Policy Library & Document Control
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="showTemplates()">
+                <i class="fas fa-file-alt"></i>
+                Templates
+              </button>
+              <button class="btn btn-secondary" onclick="showComments()">
+                <i class="fas fa-comments"></i>
+                Comments
+              </button>
+              <button class="btn btn-secondary" onclick="exportDocument()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="saveDocument()">
+                <i class="fas fa-save"></i>
+                Save
+              </button>
+            </div>
+          </div>
+
+          <div class="document-container">
+            <!-- Document Tree -->
+            <div class="document-tree">
+              <div style="margin-bottom: 1rem">
+                <h3>Policy Library</h3>
+                <button
+                  class="btn btn-primary"
+                  style="width: 100%; margin-top: 0.5rem"
+                  onclick="createNewDocument()"
+                >
+                  <i class="fas fa-plus"></i>
+                  New Policy
+                </button>
+              </div>
+
+              <div class="tree-item folder" onclick="toggleFolder(this)">
+                <i class="fas fa-folder-open tree-icon"></i>
+                <span>Information Security</span>
+              </div>
+              <div class="tree-children">
+                <div
+                  class="tree-item"
+                  onclick="selectDocument(this, 'info-sec-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>Information Security Policy</span>
+                  <span class="badge badge-success tree-badge">Approved</span>
+                </div>
+                <div
+                  class="tree-item"
+                  onclick="selectDocument(this, 'risk-mgmt-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>Risk Management Policy</span>
+                  <span class="badge badge-warning tree-badge">Review</span>
+                </div>
+              </div>
+
+              <div class="tree-item folder" onclick="toggleFolder(this)">
+                <i class="fas fa-folder-open tree-icon"></i>
+                <span>AI Governance</span>
+              </div>
+              <div class="tree-children">
+                <div
+                  class="tree-item active"
+                  onclick="selectDocument(this, 'ai-mgmt-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>AI Management System Policy</span>
+                  <span class="badge badge-ai tree-badge">Draft</span>
+                </div>
+                <div
+                  class="tree-item"
+                  onclick="selectDocument(this, 'ai-ethics-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>AI Ethics Guidelines</span>
+                  <span class="badge badge-success tree-badge">Approved</span>
+                </div>
+              </div>
+
+              <div class="tree-item folder" onclick="toggleFolder(this)">
+                <i class="fas fa-folder tree-icon"></i>
+                <span>Privacy & GDPR</span>
+              </div>
+              <div class="tree-children" style="display: none">
+                <div
+                  class="tree-item"
+                  onclick="selectDocument(this, 'privacy-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>Privacy Policy</span>
+                  <span class="badge badge-success tree-badge">Approved</span>
+                </div>
+                <div
+                  class="tree-item"
+                  onclick="selectDocument(this, 'data-retention-policy')"
+                >
+                  <i class="fas fa-file-alt tree-icon"></i>
+                  <span>Data Retention Policy</span>
+                  <span class="badge badge-info tree-badge">Review</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Editor -->
+            <div class="document-editor">
+              <!-- Toolbar -->
+              <div class="editor-toolbar">
+                <div class="toolbar-group">
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('bold')"
+                    title="Bold"
+                  >
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('italic')"
+                    title="Italic"
+                  >
+                    <i class="fas fa-italic"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('underline')"
+                    title="Underline"
+                  >
+                    <i class="fas fa-underline"></i>
+                  </button>
+                </div>
+
+                <div class="toolbar-group">
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('justifyLeft')"
+                    title="Align Left"
+                  >
+                    <i class="fas fa-align-left"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('justifyCenter')"
+                    title="Align Center"
+                  >
+                    <i class="fas fa-align-center"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('justifyRight')"
+                    title="Align Right"
+                  >
+                    <i class="fas fa-align-right"></i>
+                  </button>
+                </div>
+
+                <div class="toolbar-group">
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('insertUnorderedList')"
+                    title="Bullet List"
+                  >
+                    <i class="fas fa-list-ul"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="formatText('insertOrderedList')"
+                    title="Numbered List"
+                  >
+                    <i class="fas fa-list-ol"></i>
+                  </button>
+                </div>
+
+                <div class="toolbar-group">
+                  <button
+                    class="toolbar-button"
+                    onclick="insertTable()"
+                    title="Insert Table"
+                  >
+                    <i class="fas fa-table"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="insertLink()"
+                    title="Insert Link"
+                  >
+                    <i class="fas fa-link"></i>
+                  </button>
+                </div>
+
+                <div class="toolbar-group">
+                  <button
+                    class="toolbar-button"
+                    onclick="showVersionHistory()"
+                    title="Version History"
+                  >
+                    <i class="fas fa-history"></i>
+                  </button>
+                  <button
+                    class="toolbar-button"
+                    onclick="shareDocument()"
+                    title="Share"
+                  >
+                    <i class="fas fa-share"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Document Content -->
+              <div class="editor-content">
+                <div class="document-header">
+                  <div class="document-title">
+                    AI Management System Policy v2.1
+                  </div>
+                  <div class="document-meta">
+                    <div><strong>Owner:</strong> AI Governance Officer</div>
+                    <div>
+                      <strong>Status:</strong>
+                      <span class="badge badge-ai">Draft</span>
+                    </div>
+                    <div><strong>Next Review:</strong> 2025-03-15</div>
+                    <div>
+                      <strong>Framework:</strong>
+                      <span class="badge badge-ai">ISO 42001</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="document-body">
+                  <textarea
+                    class="editor-textarea"
+                    oninput="handleTextChange()"
+                    placeholder="Start writing your policy..."
+                  >
+# AI Management System Policy
+
+## 1. PURPOSE AND SCOPE
+
+This policy establishes the framework for the management of artificial intelligence (AI) systems within our organization, ensuring compliance with ISO/IEC 42001:2023 and the EU AI Act.
+
+### 1.1 Objectives
+- Establish governance framework for AI systems
+- Ensure responsible AI development and deployment
+- Maintain compliance with applicable regulations
+- Promote ethical AI practices throughout the organization
+
+## 2. AI GOVERNANCE FRAMEWORK
+
+Our organization implements a comprehensive AI governance framework that includes:
+
+- AI system classification and risk assessment procedures
+- Human oversight requirements for high-risk AI systems
+- Continuous monitoring and performance evaluation
+- Bias detection and mitigation measures
+- Transparency and accountability mechanisms
+
+### 2.1 AI System Lifecycle Management
+All AI systems must follow our standardized lifecycle approach:
+
+1. **Planning and Design Phase**
+   - Business case development
+   - Risk assessment and classification
+   - Ethical review and approval
+
+2. **Development Phase**
+   - Technical development with documented decisions
+   - Testing and validation procedures
+   - Security and privacy by design
+
+3. **Deployment Phase**
+   - Controlled rollout with monitoring
+   - User training and documentation
+   - Performance baseline establishment
+
+4. **Operations Phase**
+   - Continuous monitoring and maintenance
+   - Performance evaluation and improvement
+   - Incident response and remediation
+
+5. **Retirement Phase**
+   - Data archival and deletion procedures
+   - System decommissioning protocols
+   - Knowledge transfer and documentation
+
+## 3. ROLES AND RESPONSIBILITIES
+
+### 3.1 AI Governance Officer
+- Overall AI governance strategy and implementation
+- Compliance monitoring and reporting
+- Risk assessment oversight
+- Stakeholder coordination
+
+### 3.2 AI Development Teams
+- Implement technical controls and safeguards
+- Document development decisions and rationale
+- Conduct testing and validation activities
+- Report issues and incidents
+
+### 3.3 Data Protection Officer
+- Privacy impact assessments for AI systems
+- Data governance and protection oversight
+- GDPR compliance for AI processing activities
+
+## 4. COMPLIANCE AND MONITORING
+
+Regular audits and assessments will be conducted to ensure:
+- Adherence to this policy and related procedures
+- Compliance with applicable laws and regulations
+- Effectiveness of implemented controls
+- Continuous improvement opportunities
+
+### 4.1 Performance Metrics
+- AI system performance indicators
+- Bias detection and mitigation metrics
+- User satisfaction and feedback
+- Incident frequency and resolution times
+
+## 5. TRAINING AND AWARENESS
+
+All personnel involved in AI activities must receive appropriate training on:
+- AI governance principles and practices
+- Ethical AI development and deployment
+- Risk management and compliance requirements
+- Incident reporting and response procedures
+
+## 6. POLICY REVIEW
+
+This policy will be reviewed annually or when significant changes occur in:
+- Regulatory requirements
+- Organizational structure or objectives
+- Technology capabilities or risks
+- Industry best practices
+
+---
+
+**Effective Date:** TBD
+**Review Date:** March 15, 2025
+**Version:** 2.1 (Draft)
+**Approved By:** [Pending Review]
+                                </textarea
+                  >
+                </div>
+
+                <div class="document-footer">
+                  <div class="version-info">
+                    <span>Version 2.1</span>
+                    <span>•</span>
+                    <span>Last modified: December 15, 2024</span>
+                    <span>•</span>
+                    <span>2,847 words</span>
+                  </div>
+                  <div class="auto-save-indicator saved" id="save-indicator">
+                    <i class="fas fa-check-circle"></i>
+                    <span>All changes saved</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Document Sidebar -->
+      <div class="document-sidebar" id="document-sidebar">
+        <div class="sidebar-header">
+          <h3 id="sidebar-title">Templates</h3>
+          <button
+            onclick="closeSidebar()"
+            style="
+              background: none;
+              border: none;
+              font-size: 1.5rem;
+              cursor: pointer;
+              float: right;
+            "
+          >
+            ×
+          </button>
+        </div>
+        <div class="sidebar-content" id="sidebar-content">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Policy%20Management&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD these new scripts in this exact order -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+
+    <script>
+      // =============================================================================
+// documentEditor.html - Seed Data Integration Script
+// =============================================================================
+// FIND the <script> section in documentEditor.html and REPLACE it with this code
+
+let currentDocumentId = null;
+let currentDocument = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout system
+  LayoutManager.initializePage("documentEditor.html");
+  
+  // Initialize document editor with seed data
+  loadDocumentList();
+  loadDocumentTemplates();
+  
+  // Set up auto-save
+  setupAutoSave();
+  
+  // Page-specific initialization
+  updateChatContext("Document Management");
+  
+  console.log("✅ Document editor initialized with seed data");
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadDocumentList() {
+  console.log("Loading documents from seed data...");
+  
+  const documents = getDocuments();
+  
+  if (documents.length === 0) {
+    console.warn("No documents found in seed data");
+    return;
+  }
+  
+  const documentList = document.getElementById('document-list') || 
+                       document.querySelector('.document-list');
+  
+  if (!documentList) {
+    console.warn("Document list container not found");
+    return;
+  }
+  
+  documentList.innerHTML = '';
+  
+  documents.forEach(doc => {
+    const docItem = createDocumentListItem(doc);
+    documentList.appendChild(docItem);
+  });
+  
+  console.log(`✅ Loaded ${documents.length} documents from seed data`);
+}
+
+function createDocumentListItem(doc) {
+  const item = document.createElement('div');
+  item.className = 'document-item';
+  item.dataset.docId = doc.id;
+  
+  const statusColor = {
+    'draft': 'var(--warning-amber)',
+    'approved': 'var(--success-green)',
+    'review': 'var(--primary-blue)',
+    'archived': 'var(--text-gray)'
+  };
+  
+  item.innerHTML = `
+    <div class="document-item-header">
+      <div class="document-title">${doc.title}</div>
+      <div class="document-status" style="background: ${statusColor[doc.status]}">
+        ${doc.status}
+      </div>
+    </div>
+    <div class="document-meta">
+      <span class="document-version">v${doc.version}</span>
+      <span class="document-category">${doc.category}</span>
+      <span class="document-author">${doc.author}</span>
+    </div>
+    <div class="document-dates">
+      <span class="created-date">Created: ${formatDate(doc.createdDate)}</span>
+      <span class="modified-date">Modified: ${formatDate(doc.lastModified)}</span>
+    </div>
+    <div class="document-actions">
+      <button onclick="openDocument('${doc.id}')" class="btn btn-sm btn-primary">
+        <i class="fas fa-edit"></i> Edit
+      </button>
+      <button onclick="duplicateDocument('${doc.id}')" class="btn btn-sm btn-secondary">
+        <i class="fas fa-copy"></i> Duplicate
+      </button>
+      <button onclick="deleteDocument('${doc.id}')" class="btn btn-sm btn-danger">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </div>
+  `;
+  
+  return item;
+}
+
+function loadDocumentTemplates() {
+  console.log("Loading document templates from seed data...");
+  
+  const templates = JSON.parse(localStorage.getItem("documentTemplates") || "[]");
+  
+  if (templates.length === 0) {
+    console.warn("No document templates found in seed data");
+    return;
+  }
+  
+  const templateSelect = document.getElementById('template-select') || 
+                         document.querySelector('.template-select');
+  
+  if (!templateSelect) {
+    console.warn("Template select not found");
+    return;
+  }
+  
+  templateSelect.innerHTML = '<option value="">Select Template</option>';
+  
+  templates.forEach(template => {
+    const option = document.createElement('option');
+    option.value = template.id;
+    option.textContent = template.name;
+    templateSelect.appendChild(option);
+  });
+  
+  console.log(`✅ Loaded ${templates.length} document templates`);
+}
+
+// =============================================================================
+// DOCUMENT MANAGEMENT FUNCTIONS
+// =============================================================================
+
+function openDocument(docId) {
+  console.log(`Opening document: ${docId}`);
+  
+  const documents = getDocuments();
+  const doc = documents.find(d => d.id === docId);
+  
+  if (!doc) {
+    showNotification("Document not found", "error");
+    return;
+  }
+  
+  currentDocumentId = docId;
+  currentDocument = doc;
+  
+  // Update editor fields
+  const titleInput = document.getElementById('document-title') || 
+                     document.querySelector('.document-title-input');
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  const categorySelect = document.getElementById('document-category') || 
+                         document.querySelector('.document-category-select');
+  const versionInput = document.getElementById('document-version') || 
+                       document.querySelector('.document-version-input');
+  
+  if (titleInput) titleInput.value = doc.title;
+  if (contentEditor) contentEditor.value = doc.content;
+  if (categorySelect) categorySelect.value = doc.category;
+  if (versionInput) versionInput.value = doc.version;
+  
+  // Update page title
+  const pageTitle = document.querySelector('.page-title');
+  if (pageTitle) {
+    pageTitle.textContent = `Editing: ${doc.title}`;
+  }
+  
+  // Highlight selected document in list
+  document.querySelectorAll('.document-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  const selectedItem = document.querySelector(`[data-doc-id="${docId}"]`);
+  if (selectedItem) {
+    selectedItem.classList.add('selected');
+  }
+  
+  showNotification(`Opened document: ${doc.title}`, "success");
+}
+
+function createNewDocument() {
+  console.log("Creating new document...");
+  
+  const title = prompt("Enter document title:");
+  if (!title) return;
+  
+  const category = prompt("Enter document category (policy/procedure/framework/inventory):") || "policy";
+  
+  const newDoc = {
+    title: title,
+    content: "# " + title + "\n\n[Start writing your document here...]",
+    category: category,
+    version: "1.0",
+    status: "draft",
+    author: "user@example.com"
+  };
+  
+  const addedDoc = addDocument(newDoc);
+  
+  if (addedDoc) {
+    loadDocumentList();
+    openDocument(addedDoc.id);
+    showNotification(`Document "${title}" created successfully!`, "success");
+  }
+}
+
+function saveDocument() {
+  console.log("Saving document...");
+  
+  const titleInput = document.getElementById('document-title') || 
+                     document.querySelector('.document-title-input');
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  const categorySelect = document.getElementById('document-category') || 
+                         document.querySelector('.document-category-select');
+  const versionInput = document.getElementById('document-version') || 
+                       document.querySelector('.document-version-input');
+  
+  if (!titleInput || !contentEditor) {
+    showNotification("Editor fields not found", "error");
+    return;
+  }
+  
+  const title = titleInput.value.trim();
+  const content = contentEditor.value;
+  const category = categorySelect ? categorySelect.value : "policy";
+  const version = versionInput ? versionInput.value : "1.0";
+  
+  if (!title) {
+    showNotification("Document title is required", "error");
+    return;
+  }
+  
+  const updates = {
+    title: title,
+    content: content,
+    category: category,
+    version: version
+  };
+  
+  if (currentDocumentId) {
+    // Update existing document
+    const updatedDoc = updateDocument(currentDocumentId, updates);
+    if (updatedDoc) {
+      currentDocument = updatedDoc;
+      loadDocumentList();
+      showNotification("Document saved successfully", "success");
+    }
+  } else {
+    // Create new document
+    const newDoc = addDocument({
+      ...updates,
+      status: "draft",
+      author: "user@example.com"
+    });
+    
+    if (newDoc) {
+      currentDocumentId = newDoc.id;
+      currentDocument = newDoc;
+      loadDocumentList();
+      showNotification("Document created and saved successfully", "success");
+    }
+  }
+}
+
+function duplicateDocument(docId) {
+  console.log(`Duplicating document: ${docId}`);
+  
+  const documents = getDocuments();
+  const doc = documents.find(d => d.id === docId);
+  
+  if (!doc) {
+    showNotification("Document not found", "error");
+    return;
+  }
+  
+  const duplicatedDoc = {
+    title: `${doc.title} (Copy)`,
+    content: doc.content,
+    category: doc.category,
+    version: "1.0",
+    status: "draft",
+    author: doc.author
+  };
+  
+  const newDoc = addDocument(duplicatedDoc);
+  
+  if (newDoc) {
+    loadDocumentList();
+    showNotification(`Document duplicated: ${newDoc.title}`, "success");
+  }
+}
+
+function deleteDocument(docId) {
+  console.log(`Deleting document: ${docId}`);
+  
+  const documents = getDocuments();
+  const doc = documents.find(d => d.id === docId);
+  
+  if (!doc) {
+    showNotification("Document not found", "error");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete "${doc.title}"?`)) {
+    const success = deleteDocument(docId);
+    
+    if (success) {
+      loadDocumentList();
+      
+      // Clear editor if this was the current document
+      if (currentDocumentId === docId) {
+        clearEditor();
+      }
+      
+      showNotification(`Document "${doc.title}" deleted successfully`, "success");
+    }
+  }
+}
+
+function loadTemplate(templateId) {
+  console.log(`Loading template: ${templateId}`);
+  
+  if (!templateId) return;
+  
+  const templates = JSON.parse(localStorage.getItem("documentTemplates") || "[]");
+  const template = templates.find(t => t.id === templateId);
+  
+  if (!template) {
+    showNotification("Template not found", "error");
+    return;
+  }
+  
+  const titleInput = document.getElementById('document-title') || 
+                     document.querySelector('.document-title-input');
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  const categorySelect = document.getElementById('document-category') || 
+                         document.querySelector('.document-category-select');
+  
+  if (titleInput) titleInput.value = template.name;
+  if (contentEditor) contentEditor.value = template.content;
+  if (categorySelect) categorySelect.value = template.category;
+  
+  currentDocumentId = null;
+  currentDocument = null;
+  
+  showNotification(`Template "${template.name}" loaded`, "success");
+}
+
+// =============================================================================
+// DOCUMENT EDITOR FEATURES
+// =============================================================================
+
+function clearEditor() {
+  console.log("Clearing editor...");
+  
+  const titleInput = document.getElementById('document-title') || 
+                     document.querySelector('.document-title-input');
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  const categorySelect = document.getElementById('document-category') || 
+                         document.querySelector('.document-category-select');
+  const versionInput = document.getElementById('document-version') || 
+                       document.querySelector('.document-version-input');
+  
+  if (titleInput) titleInput.value = '';
+  if (contentEditor) contentEditor.value = '';
+  if (categorySelect) categorySelect.value = 'policy';
+  if (versionInput) versionInput.value = '1.0';
+  
+  currentDocumentId = null;
+  currentDocument = null;
+  
+  // Clear selection from document list
+  document.querySelectorAll('.document-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  // Reset page title
+  const pageTitle = document.querySelector('.page-title');
+  if (pageTitle) {
+    pageTitle.textContent = 'Document Editor';
+  }
+}
+
+function exportDocument() {
+  console.log("Exporting document...");
+  
+  if (!currentDocument) {
+    showNotification("No document to export", "warning");
+    return;
+  }
+  
+  const content = `# ${currentDocument.title}\n\n${currentDocument.content}`;
+  const blob = new Blob([content], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${currentDocument.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showNotification(`Document exported: ${currentDocument.title}`, "success");
+}
+
+function previewDocument() {
+  console.log("Previewing document...");
+  
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  
+  if (!contentEditor) {
+    showNotification("No content to preview", "warning");
+    return;
+  }
+  
+  const content = contentEditor.value;
+  
+  // Simple markdown preview (basic implementation)
+  const previewWindow = window.open('', '_blank');
+  previewWindow.document.write(`
+    <html>
+      <head>
+        <title>Document Preview</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+          h1, h2, h3 { color: #333; }
+          pre { background: #f4f4f4; padding: 10px; border-radius: 4px; }
+          code { background: #f4f4f4; padding: 2px 4px; border-radius: 2px; }
+        </style>
+      </head>
+      <body>
+        <pre>${content}</pre>
+      </body>
+    </html>
+  `);
+  
+  showNotification("Document preview opened", "success");
+}
+
+// =============================================================================
+// AUTO-SAVE FUNCTIONALITY
+// =============================================================================
+
+function setupAutoSave() {
+  console.log("Setting up auto-save...");
+  
+  const contentEditor = document.getElementById('document-content') || 
+                        document.querySelector('.document-content-editor');
+  
+  if (!contentEditor) return;
+  
+  let autoSaveTimeout;
+  
+  contentEditor.addEventListener('input', function() {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      if (currentDocumentId) {
+        saveDocument();
+        console.log("Auto-saved document");
+      }
+    }, 5000); // Auto-save after 5 seconds of inactivity
+  });
+  
+  console.log("✅ Auto-save setup complete");
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+function searchDocuments(query) {
+  console.log(`Searching documents: ${query}`);
+  
+  const documents = getDocuments();
+  const filteredDocs = documents.filter(doc => 
+    doc.title.toLowerCase().includes(query.toLowerCase()) ||
+    doc.content.toLowerCase().includes(query.toLowerCase()) ||
+    doc.category.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  // Re-render document list with filtered results
+  const documentList = document.getElementById('document-list') || 
+                       document.querySelector('.document-list');
+  
+  if (documentList) {
+    documentList.innerHTML = '';
+    filteredDocs.forEach(doc => {
+      const docItem = createDocumentListItem(doc);
+      documentList.appendChild(docItem);
+    });
+  }
+  
+  showNotification(`Found ${filteredDocs.length} documents matching "${query}"`, "info");
+}
+
+// =============================================================================
+// KEYBOARD SHORTCUTS
+// =============================================================================
+
+document.addEventListener('keydown', function(e) {
+  // Ctrl+S or Cmd+S to save
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveDocument();
+  }
+  
+  // Ctrl+N or Cmd+N to create new document
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    e.preventDefault();
+    createNewDocument();
+  }
+  
+  // Ctrl+P or Cmd+P to preview
+  if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+    e.preventDefault();
+    previewDocument();
+  }
+});
+
+// =============================================================================
+// USAGE INSTRUCTIONS
+// =============================================================================
+/*
+1. FIND the <script> section in documentEditor.html
+2. REPLACE the entire script content with this code
+3. ENSURE seedData.js is loaded before this script
+4. The editor will automatically load documents from localStorage
+5. Auto-save functionality included
+6. All CRUD operations persist to localStorage
+
+Required HTML elements:
+- #document-list or .document-list for document list
+- #document-title or .document-title-input for title input
+- #document-content or .document-content-editor for content editor
+- #document-category or .document-category-select for category
+- #document-version or .document-version-input for version
+- #template-select or .template-select for template selection
+*/
+    </script>
+  </body>
+</html>

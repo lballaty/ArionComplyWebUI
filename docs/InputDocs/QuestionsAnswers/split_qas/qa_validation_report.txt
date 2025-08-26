@@ -1,0 +1,2 @@
+
+✅ Validation complete. Report written to: qa_validation_report.txt

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Notification Center</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .notification-container {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        overflow: hidden;
+      }
+      .notification-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .notification-item:last-child {
+        border-bottom: none;
+      }
+      .notification-icon {
+        color: var(--primary-blue);
+      }
+      .notification-time {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+      .notification-input {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .notification-input input {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Notification Center</h1>
+              <p class="page-subtitle">Latest alerts and system activity</p>
+            </div>
+          </div>
+          <div class="notification-input">
+            <input
+              type="text"
+              id="newNotification"
+              placeholder="Reminder or alert"
+            />
+            <button class="btn btn-ai" onclick="addNotificationFromInput()">
+              Add
+            </button>
+          </div>
+          <div class="notification-container" id="notificationList"></div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Notifications&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- NEW: Add navigation scripts BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      function addNotificationFromInput() {
+        const input = document.getElementById("newNotification");
+        if (input && input.value.trim()) {
+          addStoredNotification(input.value.trim());
+          input.value = "";
+          renderNotificationList("notificationList");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("notificationCenter.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Notifications");
+        updateBreadcrumb("Home > Notifications");
+        renderNotificationList("notificationList");
+      });
+    </script>
+  </body>
+</html>

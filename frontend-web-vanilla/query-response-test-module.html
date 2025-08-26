@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GLLM Query Test</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <link href="query-response-test-module.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container">
+      <main class="main-content">
+        <header class="header">
+          <div class="header-left">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <div class="breadcrumb">
+              <span id="breadcrumb-text">Query Test</span>
+            </div>
+          </div>
+        </header>
+        <div class="content">
+          <div class="query-test-container">
+            <h1 class="page-title">GLLM Query Engine Demo</h1>
+            <div class="form-group">
+              <label class="form-label" for="providerSelect">Provider</label>
+              <select class="form-input" id="providerSelect">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="questionInput">Question</label>
+              <textarea
+                class="form-input"
+                id="questionInput"
+                rows="4"
+                placeholder="Ask a question..."
+              ></textarea>
+            </div>
+            <button
+              class="btn btn-primary"
+              id="askBtn"
+              style="margin-top: 1rem"
+            >
+              Ask
+            </button>
+            <pre id="responseOutput" class="response-output"></pre>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="gllm-query-format.js"></script>
+
+    <script src="gllm-return-format.js"></script>
+
+    <script src="gllm-query-engine.js"></script>
+    <script src="query-response-test-module.js"></script>
+    <script src="scripts.js"></script>
+  </body>
+</html>

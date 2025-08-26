@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Enhanced Timeline Features</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-blue: #2563eb;
+        --ai-purple: #7c3aed;
+        --success-green: #10b981;
+        --warning-amber: #f59e0b;
+        --danger-red: #ef4444;
+        --bg-white: #ffffff;
+        --bg-light: #f8fafc;
+        --bg-gray: #f1f5f9;
+        --text-dark: #1e293b;
+        --text-gray: #64748b;
+        --border-light: #e2e8f0;
+        --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --border-radius: 8px;
+        --border-radius-sm: 6px;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        line-height: 1.5;
+        margin: 0;
+        padding: 2rem;
+      }
+
+      .enhancement-container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .enhancement-header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .enhancement-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary-blue);
+      }
+
+      .enhancement-subtitle {
+        color: var(--text-gray);
+        font-size: 1.125rem;
+      }
+
+      /* Drag and Drop Enhancement */
+      .drag-drop-demo {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-light);
+      }
+
+      .demo-timeline {
+        position: relative;
+        height: 100px;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        margin: 1rem 0;
+        border: 1px solid var(--border-light);
+      }
+
+      .draggable-event {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 80px;
+        height: 24px;
+        background: var(--primary-blue);
+        border-radius: 4px;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+
+      .draggable-event:hover {
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+
+      .draggable-event:active {
+        cursor: grabbing;
+        transform: translateY(-50%) scale(0.95);
+      }
+
+      .draggable-event.audit {
+        background: var(--danger-red);
+      }
+
+      .draggable-event.milestone {
+        background: var(--ai-purple);
+      }
+
+      .drop-zone {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: transparent;
+        transition: all 0.15s ease;
+      }
+
+      .drop-zone.active {
+        background: var(--primary-blue);
+        width: 4px;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      }
+
+      /* Real-time Collaboration */
+      .collaboration-demo {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-light);
+      }
+
+      .user-cursors {
+        position: relative;
+        height: 60px;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        margin: 1rem 0;
+        overflow: hidden;
+      }
+
+      .user-cursor {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .cursor-pointer {
+        width: 0;
+        height: 0;
+        border-left: 8px solid;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+      }
+
+      .cursor-pointer.user1 {
+        border-left-color: var(--primary-blue);
+      }
+
+      .cursor-pointer.user2 {
+        border-left-color: var(--success-green);
+      }
+
+      .cursor-pointer.user3 {
+        border-left-color: var(--warning-amber);
+      }
+
+      .cursor-label {
+        background: var(--text-dark);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+      }
+
+      .collaboration-panel {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .active-users {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        position: relative;
+      }
+
+      .user-avatar.user1 {
+        background: var(--primary-blue);
+      }
+
+      .user-avatar.user2 {
+        background: var(--success-green);
+      }
+
+      .user-avatar.user3 {
+        background: var(--warning-amber);
+      }
+
+      .user-status {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 12px;
+        height: 12px;
+        background: var(--success-green);
+        border: 2px solid var(--bg-white);
+        border-radius: 50%;
+      }
+
+      .activity-feed {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .activity-item {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: var(--bg-white);
+        border-radius: var(--border-radius-sm);
+      }
+
+      /* Export Options */
+      .export-demo {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-light);
+      }
+
+      .export-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .export-option {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .export-option:hover {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .export-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-blue);
+      }
+
+      .export-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .export-description {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      /* Calendar Integration */
+      .calendar-demo {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-light);
+      }
+
+      .calendar-preview {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .calendar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border-light);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+      }
+
+      .calendar-day {
+        background: var(--bg-white);
+        padding: 0.5rem;
+        min-height: 40px;
+        font-size: 0.875rem;
+        position: relative;
+      }
+
+      .calendar-day.other-month {
+        color: var(--text-gray);
+        background: var(--bg-gray);
+      }
+
+      .calendar-event {
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+        height: 4px;
+        border-radius: 2px;
+      }
+
+      .calendar-event.audit {
+        background: var(--danger-red);
+      }
+
+      .calendar-event.milestone {
+        background: var(--ai-purple);
+      }
+
+      .sync-options {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .sync-provider {
+        flex: 1;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .sync-provider:hover {
+        border-color: var(--primary-blue);
+      }
+
+      .sync-provider.connected {
+        border-color: var(--success-green);
+        background: rgba(16, 185, 129, 0.05);
+      }
+
+      /* Implementation Code Blocks */
+      .code-block {
+        background: var(--text-dark);
+        color: #f8f8f2;
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 0.875rem;
+        overflow-x: auto;
+      }
+
+      .code-block .comment {
+        color: #6272a4;
+      }
+
+      .code-block .keyword {
+        color: #ff79c6;
+      }
+
+      .code-block .string {
+        color: #f1fa8c;
+      }
+
+      .code-block .function {
+        color: #50fa7b;
+      }
+
+      .implementation-section {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left: 4px solid var(--primary-blue);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin: 2rem 0;
+      }
+
+      .demo-controls {
+        background: var(--bg-gray);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin: 1rem 0;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .demo-btn {
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.15s ease;
+      }
+
+      .demo-btn:hover {
+        background: #1d4ed8;
+      }
+
+      .demo-btn.secondary {
+        background: var(--bg-white);
+        color: var(--text-dark);
+        border: 1px solid var(--border-light);
+      }
+
+      .demo-btn.secondary:hover {
+        background: var(--bg-light);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="enhancement-container">
+      <div class="enhancement-header">
+        <h1 class="enhancement-title">Timeline Enhancement Features</h1>
+        <p class="enhancement-subtitle">
+          Advanced features for your existing timeline implementation
+        </p>
+      </div>
+
+      <!-- Drag and Drop Enhancement -->
+      <div class="drag-drop-demo">
+        <h3><i class="fas fa-arrows-alt"></i> Drag-and-Drop Rescheduling</h3>
+        <p>
+          Interactive event rescheduling with visual feedback and conflict
+          detection.
+        </p>
+
+        <div class="demo-controls">
+          <button class="demo-btn" onclick="startDragDemo()">Start Demo</button>
+          <button class="demo-btn secondary" onclick="resetDragDemo()">
+            Reset
+          </button>
+          <span
+            style="
+              margin-left: 1rem;
+              font-size: 0.875rem;
+              color: var(--text-gray);
+            "
+          >
+            Drag events to reschedule them
+          </span>
+        </div>
+
+        <div class="demo-timeline" id="dragTimeline">
+          <div
+            class="draggable-event audit"
+            style="left: 10%"
+            draggable="true"
+            data-event="audit-1"
+          >
+            Audit
+          </div>
+          <div
+            class="draggable-event"
+            style="left: 40%"
+            draggable="true"
+            data-event="meeting-1"
+          >
+            Meeting
+          </div>
+          <div
+            class="draggable-event milestone"
+            style="left: 70%"
+            draggable="true"
+            data-event="milestone-1"
+          >
+            Milestone
+          </div>
+        </div>
+
+        <div class="implementation-section">
+          <h4>🔧 Implementation Approach</h4>
+          <div class="code-block">
+            <span class="comment"
+              >// Enhanced drag-and-drop with conflict detection</span
+            >
+            <span class="keyword">function</span>
+            <span class="function">enableTimelineDragDrop</span>() {
+            <span class="keyword">const</span> events =
+            document.querySelectorAll(<span class="string"
+              >'.timeline-event'</span
+            >); events.forEach(event => { event.addEventListener(<span
+              class="string"
+              >'dragstart'</span
+            >, handleDragStart); event.addEventListener(<span class="string"
+              >'dragend'</span
+            >, handleDragEnd); });
+
+            <span class="comment">// Drop zones for time intervals</span>
+            <span class="function">createDropZones</span>();
+            <span class="function">enableConflictDetection</span>(); }
+
+            <span class="keyword">function</span>
+            <span class="function">handleDragStart</span>(e) { draggedEvent =
+            e.target; <span class="function">showDropZones</span>();
+            <span class="function">highlightConflicts</span>(draggedEvent); }
+          </div>
+          <p><strong>Key Features:</strong></p>
+          <ul>
+            <li>Real-time conflict detection and highlighting</li>
+            <li>Snap-to-grid for precise timing</li>
+            <li>Visual feedback during drag operations</li>
+            <li>Undo/redo for accidental changes</li>
+            <li>Batch operations for multiple events</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Real-time Collaboration -->
+      <div class="collaboration-demo">
+        <h3><i class="fas fa-users"></i> Real-time Collaboration</h3>
+        <p>
+          Multi-user editing with live cursors, change tracking, and conflict
+          resolution.
+        </p>
+
+        <div class="demo-controls">
+          <button class="demo-btn" onclick="startCollabDemo()">
+            Simulate Collaboration
+          </button>
+          <button class="demo-btn secondary" onclick="stopCollabDemo()">
+            Stop
+          </button>
+        </div>
+
+        <div class="user-cursors" id="collabTimeline">
+          <div class="user-cursor" style="left: 20%" id="cursor1">
+            <div class="cursor-pointer user1"></div>
+            <div class="cursor-label">Sarah editing</div>
+          </div>
+          <div class="user-cursor" style="left: 60%" id="cursor2">
+            <div class="cursor-pointer user2"></div>
+            <div class="cursor-label">John viewing</div>
+          </div>
+        </div>
+
+        <div class="collaboration-panel">
+          <div class="active-users">
+            <span style="font-weight: 600; margin-right: 1rem"
+              >Active Users:</span
+            >
+            <div class="user-avatar user1">
+              SJ
+              <div class="user-status"></div>
+            </div>
+            <div class="user-avatar user2">
+              JS
+              <div class="user-status"></div>
+            </div>
+            <div class="user-avatar user3">
+              MW
+              <div class="user-status"></div>
+            </div>
+          </div>
+
+          <div class="activity-feed">
+            <div class="activity-item">
+              <strong>Sarah Johnson</strong> moved "ISO Audit" to Dec 23 •
+              <span style="color: var(--text-gray)">2 minutes ago</span>
+            </div>
+            <div class="activity-item">
+              <strong>John Smith</strong> added comment to "Risk Assessment" •
+              <span style="color: var(--text-gray)">5 minutes ago</span>
+            </div>
+            <div class="activity-item">
+              <strong>Mike Wilson</strong> joined the timeline •
+              <span style="color: var(--text-gray)">8 minutes ago</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="implementation-section">
+          <h4>🔧 WebSocket Implementation</h4>
+          <div class="code-block">
+            <span class="comment"
+              >// Real-time collaboration via WebSockets</span
+            >
+            <span class="keyword">class</span>
+            <span class="function">TimelineCollaboration</span> {
+            <span class="keyword">constructor</span>(timelineId) {
+            <span class="keyword">this</span>.ws =
+            <span class="keyword">new</span> WebSocket(<span class="string"
+              >`wss://api.arioncomply.com/timeline/${timelineId}`</span
+            >); <span class="keyword">this</span>.setupEventHandlers(); }
+
+            <span class="function">broadcastChange</span>(eventId, newPosition,
+            userId) { <span class="keyword">this</span>.ws.send(JSON.stringify({
+            type: <span class="string">'event_moved'</span>, eventId,
+            newPosition, userId, timestamp: Date.now() })); }
+
+            <span class="function">handleRemoteChange</span>(data) {
+            <span class="comment">// Apply changes from other users</span>
+            <span class="function">updateEventPosition</span>(data.eventId,
+            data.newPosition);
+            <span class="function">showUserCursor</span>(data.userId,
+            data.newPosition); } }
+          </div>
+          <p><strong>Collaboration Features:</strong></p>
+          <ul>
+            <li>Live user cursors and presence indicators</li>
+            <li>Real-time change synchronization</li>
+            <li>Conflict resolution with operational transforms</li>
+            <li>User permissions and role-based access</li>
+            <li>Change history and audit trail</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="export-demo">
+        <h3><i class="fas fa-download"></i> Advanced Export Options</h3>
+        <p>
+          Comprehensive export functionality for compliance reporting and
+          sharing.
+        </p>
+
+        <div class="export-options">
+          <div class="export-option" onclick="exportDemo('pdf')">
+            <div class="export-icon">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="export-title">PDF Report</div>
+            <div class="export-description">
+              High-quality timeline with annotations
+            </div>
+          </div>
+
+          <div class="export-option" onclick="exportDemo('excel')">
+            <div class="export-icon">
+              <i class="fas fa-file-excel"></i>
+            </div>
+            <div class="export-title">Excel Data</div>
+            <div class="export-description">Structured data for analysis</div>
+          </div>
+
+          <div class="export-option" onclick="exportDemo('image')">
+            <div class="export-icon">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="export-title">High-Res Image</div>
+            <div class="export-description">PNG/SVG for presentations</div>
+          </div>
+
+          <div class="export-option" onclick="exportDemo('json')">
+            <div class="export-icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <div class="export-title">JSON Data</div>
+            <div class="export-description">API-compatible format</div>
+          </div>
+
+          <div class="export-option" onclick="exportDemo('print')">
+            <div class="export-icon">
+              <i class="fas fa-print"></i>
+            </div>
+            <div class="export-title">Print Layout</div>
+            <div class="export-description">Optimized for printing</div>
+          </div>
+
+          <div class="export-option" onclick="exportDemo('share')">
+            <div class="export-icon">
+              <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="export-title">Share Link</div>
+            <div class="export-description">Secure timeline sharing</div>
+          </div>
+        </div>
+
+        <div class="implementation-section">
+          <h4>🔧 Export Implementation</h4>
+          <div class="code-block">
+            <span class="comment"
+              >// Advanced export with custom formatting</span
+            >
+            <span class="keyword">async function</span>
+            <span class="function">exportTimeline</span>(format, options = {}) {
+            <span class="keyword">const</span> timeline =
+            <span class="function">captureTimelineData</span>();
+
+            <span class="keyword">switch</span>(format) {
+            <span class="keyword">case</span> <span class="string">'pdf'</span>:
+            <span class="keyword">return await</span>
+            <span class="function">generatePDF</span>(timeline, { template:
+            options.template || <span class="string">'compliance-report'</span>,
+            annotations: <span class="keyword">true</span>, watermark:
+            options.watermark });
+
+            <span class="keyword">case</span>
+            <span class="string">'excel'</span>:
+            <span class="keyword">return</span>
+            <span class="function">generateExcel</span>(timeline, { sheets:
+            [<span class="string">'Events'</span>,
+            <span class="string">'Milestones'</span>,
+            <span class="string">'Resources'</span>], charts:
+            <span class="keyword">true</span>
+            }); } }
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Integration -->
+      <div class="calendar-demo">
+        <h3><i class="fas fa-calendar"></i> Calendar Integration</h3>
+        <p>
+          Seamless integration with external calendar systems and scheduling
+          tools.
+        </p>
+
+        <div class="calendar-preview">
+          <div class="calendar-header">
+            <span>December 2024</span>
+            <div>
+              <button class="demo-btn secondary" onclick="prevMonth()">
+                ←
+              </button>
+              <button class="demo-btn secondary" onclick="nextMonth()">
+                →
+              </button>
+            </div>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="calendar-day other-month">29</div>
+            <div class="calendar-day other-month">30</div>
+            <div class="calendar-day">1</div>
+            <div class="calendar-day">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day">4</div>
+            <div class="calendar-day">5</div>
+            <div class="calendar-day">6</div>
+            <div class="calendar-day">7</div>
+            <div class="calendar-day">8</div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            <div class="calendar-day">13</div>
+            <div class="calendar-day">14</div>
+            <div class="calendar-day">15</div>
+            <div class="calendar-day">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day">18</div>
+            <div class="calendar-day">19</div>
+            <div class="calendar-day">20</div>
+            <div class="calendar-day">21</div>
+            <div class="calendar-day">22</div>
+            <div class="calendar-day">
+              23
+              <div class="calendar-event audit"></div>
+            </div>
+            <div class="calendar-day">24</div>
+            <div class="calendar-day">25</div>
+            <div class="calendar-day">26</div>
+            <div class="calendar-day">27</div>
+            <div class="calendar-day">
+              28
+              <div class="calendar-event milestone"></div>
+            </div>
+            <div class="calendar-day">29</div>
+            <div class="calendar-day">30</div>
+            <div class="calendar-day">31</div>
+            <div class="calendar-day other-month">1</div>
+            <div class="calendar-day other-month">2</div>
+          </div>
+        </div>
+
+        <div class="sync-options">
+          <div class="sync-provider connected" onclick="toggleSync('outlook')">
+            <i
+              class="fab fa-microsoft"
+              style="
+                font-size: 1.5rem;
+                color: var(--primary-blue);
+                margin-bottom: 0.5rem;
+              "
+            ></i>
+            <div style="font-weight: 600">Outlook</div>
+            <div style="font-size: 0.75rem; color: var(--success-green)">
+              Connected
+            </div>
+          </div>
+
+          <div class="sync-provider" onclick="toggleSync('google')">
+            <i
+              class="fab fa-google"
+              style="font-size: 1.5rem; color: #ea4335; margin-bottom: 0.5rem"
+            ></i>
+            <div style="font-weight: 600">Google Calendar</div>
+            <div style="font-size: 0.75rem; color: var(--text-gray)">
+              Connect
+            </div>
+          </div>
+
+          <div class="sync-provider" onclick="toggleSync('teams')">
+            <i
+              class="fab fa-microsoft"
+              style="font-size: 1.5rem; color: #6264a7; margin-bottom: 0.5rem"
+            ></i>
+            <div style="font-weight: 600">Teams</div>
+            <div style="font-size: 0.75rem; color: var(--text-gray)">
+              Connect
+            </div>
+          </div>
+        </div>
+
+        <div class="implementation-section">
+          <h4>🔧 Calendar API Integration</h4>
+          <div class="code-block">
+            <span class="comment"
+              >// Calendar integration with Microsoft Graph API</span
+            >
+            <span class="keyword">class</span>
+            <span class="function">CalendarSync</span> {
+            <span class="keyword">async</span>
+            <span class="function">syncToOutlook</span>(events) {
+            <span class="keyword">const</span> accessToken =
+            <span class="keyword">await</span>
+            <span class="function">getAccessToken</span>();
+
+            <span class="keyword">for</span> (<span class="keyword">const</span>
+            event <span class="keyword">of</span> events) {
+            <span class="keyword">const</span> calendarEvent = { subject:
+            event.title, start: { dateTime: event.startDate }, end: { dateTime:
+            event.endDate }, body: { content: event.description }, categories:
+            [<span class="string">'Compliance'</span>, event.framework] };
+
+            <span class="keyword">await</span>
+            <span class="function">createCalendarEvent</span>(calendarEvent,
+            accessToken); } }
+
+            <span class="function">enableTwoWaySync</span>() {
+            <span class="comment"
+              >// Listen for calendar changes and update timeline</span
+            >
+            <span class="function">setupWebhookSubscription</span>(); } }
+          </div>
+          <p><strong>Integration Features:</strong></p>
+          <ul>
+            <li>Two-way synchronization with external calendars</li>
+            <li>Conflict detection and resolution</li>
+            <li>Meeting room booking integration</li>
+            <li>Automatic reminder and notification setup</li>
+            <li>iCal export for universal compatibility</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Demo functionality
+      let dragDemo = false;
+      let collabDemo = false;
+
+      function startDragDemo() {
+        dragDemo = true;
+        const events = document.querySelectorAll(".draggable-event");
+        events.forEach((event) => {
+          event.addEventListener("dragstart", handleDragStart);
+          event.addEventListener("dragend", handleDragEnd);
+        });
+
+        showNotification("Drag demo started - try dragging events!", "info");
+      }
+
+      function resetDragDemo() {
+        const events = document.querySelectorAll(".draggable-event");
+        events[0].style.left = "10%";
+        events[1].style.left = "40%";
+        events[2].style.left = "70%";
+        showNotification("Positions reset", "info");
+      }
+
+      function handleDragStart(e) {
+        e.dataTransfer.effectAllowed = "move";
+      }
+
+      function handleDragEnd(e) {
+        // Simulate snapping to grid
+        const rect = e.target.parentElement.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percentage = (x / rect.width) * 100;
+        e.target.style.left = Math.round(percentage / 5) * 5 + "%";
+
+        showNotification("Event rescheduled successfully", "success");
+      }
+
+      function startCollabDemo() {
+        collabDemo = true;
+        animateCollaboration();
+        showNotification("Collaboration simulation started", "info");
+      }
+
+      function stopCollabDemo() {
+        collabDemo = false;
+        showNotification("Collaboration simulation stopped", "info");
+      }
+
+      function animateCollaboration() {
+        if (!collabDemo) return;
+
+        const cursor1 = document.getElementById("cursor1");
+        const cursor2 = document.getElementById("cursor2");
+
+        // Animate cursors
+        setTimeout(() => {
+          cursor1.style.left = Math.random() * 80 + 10 + "%";
+          cursor2.style.left = Math.random() * 80 + 10 + "%";
+          animateCollaboration();
+        }, 2000);
+      }
+
+      function exportDemo(format) {
+        showNotification(
+          `Exporting timeline as ${format.toUpperCase()}...`,
+          "info",
+        );
+      }
+
+      function toggleSync(provider) {
+        const element = event.currentTarget;
+        const isConnected = element.classList.contains("connected");
+
+        if (isConnected) {
+          element.classList.remove("connected");
+          element.querySelector("div:last-child").textContent = "Connect";
+          element.querySelector("div:last-child").style.color =
+            "var(--text-gray)";
+          showNotification(`Disconnected from ${provider}`, "warning");
+        } else {
+          element.classList.add("connected");
+          element.querySelector("div:last-child").textContent = "Connected";
+          element.querySelector("div:last-child").style.color =
+            "var(--success-green)";
+          showNotification(`Connected to ${provider}`, "success");
+        }
+      }
+
+      function prevMonth() {
+        showNotification("Previous month", "info");
+      }
+
+      function nextMonth() {
+        showNotification("Next month", "info");
+      }
+
+      // Notification system
+      function showNotification(message, type = "info") {
+        const notification = document.createElement("div");
+        notification.textContent = message;
+        notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 2000;
+                transition: all 0.3s ease;
+                transform: translateX(100%);
+            `;
+
+        const colors = {
+          success: "var(--success-green)",
+          warning: "var(--warning-amber)",
+          error: "var(--danger-red)",
+          info: "var(--primary-blue)",
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.transform = "translateX(0)";
+        }, 10);
+
+        setTimeout(() => {
+          notification.style.transform = "translateX(100%)";
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 3000);
+      }
+    </script>
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+  </body>
+</html>

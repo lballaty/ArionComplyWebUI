@@ -1,0 +1,1702 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Workflow Engine</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .workflow-container {
+        display: grid;
+        grid-template-columns: 250px 1fr 300px;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .workflow-palette {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .workflow-canvas {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .workflow-properties {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .palette-section {
+        margin-bottom: 2rem;
+      }
+
+      .palette-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .node-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: grab;
+        transition: all 0.15s ease;
+        background: var(--bg-white);
+      }
+
+      .node-item:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+        transform: translateY(-1px);
+      }
+
+      .node-item:active {
+        cursor: grabbing;
+      }
+
+      .node-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        color: white;
+      }
+
+      .node-icon.start {
+        background: var(--success-green);
+      }
+
+      .node-icon.task {
+        background: var(--primary-blue);
+      }
+
+      .node-icon.decision {
+        background: var(--warning-amber);
+      }
+
+      .node-icon.approval {
+        background: var(--ai-purple);
+      }
+
+      .node-icon.notification {
+        background: var(--text-gray);
+      }
+
+      .node-icon.end {
+        background: var(--danger-red);
+      }
+
+      .node-info {
+        flex: 1;
+      }
+
+      .node-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+      }
+
+      .node-desc {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        line-height: 1.2;
+      }
+
+      .canvas-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .canvas-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .canvas-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .canvas-body {
+        flex: 1;
+        position: relative;
+        background: radial-gradient(
+          circle,
+          var(--border-light) 1px,
+          transparent 1px
+        );
+        background-size: 20px 20px;
+        overflow: hidden;
+      }
+
+      .workflow-viewport {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: auto;
+        cursor: grab;
+      }
+
+      .workflow-viewport:active {
+        cursor: grabbing;
+      }
+
+      .workflow-node {
+        position: absolute;
+        background: var(--bg-white);
+        border: 2px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        min-width: 120px;
+        user-select: none;
+      }
+
+      .workflow-node:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+      }
+
+      .workflow-node.selected {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .workflow-node.start {
+        border-color: var(--success-green);
+      }
+
+      .workflow-node.end {
+        border-color: var(--danger-red);
+      }
+
+      .workflow-node.decision {
+        border-color: var(--warning-amber);
+        border-radius: 50px;
+      }
+
+      .node-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .node-header-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        color: white;
+        font-size: 0.75rem;
+      }
+
+      .node-title {
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+
+      .node-description {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .node-status {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-white);
+      }
+
+      .node-status.active {
+        background: var(--success-green);
+      }
+
+      .node-status.waiting {
+        background: var(--warning-amber);
+      }
+
+      .node-status.error {
+        background: var(--danger-red);
+      }
+
+      .connection-line {
+        position: absolute;
+        stroke: var(--primary-blue);
+        stroke-width: 2;
+        fill: none;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .connection-arrow {
+        fill: var(--primary-blue);
+      }
+
+      .workflow-toolbar {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 100;
+      }
+
+      .toolbar-btn {
+        width: 36px;
+        height: 36px;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .toolbar-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .toolbar-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .workflow-list {
+        margin-bottom: 2rem;
+      }
+
+      .workflow-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .workflow-item:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .workflow-item.active {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .workflow-meta {
+        flex: 1;
+      }
+
+      .workflow-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+      }
+
+      .workflow-status {
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .status-indicator.running {
+        background: var(--success-green);
+      }
+
+      .status-indicator.paused {
+        background: var(--warning-amber);
+      }
+
+      .status-indicator.draft {
+        background: var(--text-gray);
+      }
+
+      .workflow-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .workflow-action {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        font-size: 0.75rem;
+      }
+
+      .workflow-action:hover {
+        background: var(--bg-gray);
+      }
+
+      .properties-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .properties-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .properties-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .property-section {
+        margin-bottom: 2rem;
+      }
+
+      .property-section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+      }
+
+      .property-field {
+        margin-bottom: 1rem;
+      }
+
+      .property-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .property-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+        font-size: 0.875rem;
+      }
+
+      .property-input:focus {
+        border-color: var(--primary-blue);
+      }
+
+      .property-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+
+      .property-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .execution-log {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 0.75rem;
+      }
+
+      .log-entry {
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius-sm);
+      }
+
+      .log-entry.info {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-blue);
+      }
+
+      .log-entry.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-green);
+      }
+
+      .log-entry.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-amber);
+      }
+
+      .log-entry.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-red);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Workflow Engine Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workflow Engine</h1>
+              <p class="page-subtitle">
+                Process Automation & Compliance Workflows
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="importWorkflow()">
+                <i class="fas fa-upload"></i>
+                Import
+              </button>
+              <button class="btn btn-secondary" onclick="deployWorkflow()">
+                <i class="fas fa-rocket"></i>
+                Deploy
+              </button>
+              <button class="btn btn-primary" onclick="createWorkflow()">
+                <i class="fas fa-plus"></i>
+                New Workflow
+              </button>
+            </div>
+          </div>
+
+          <div class="workflow-container">
+            <!-- Workflow Palette -->
+            <div class="workflow-palette">
+              <div class="palette-section">
+                <div class="palette-title">Workflows</div>
+                <div class="workflow-list">
+                  <div
+                    class="workflow-item active"
+                    onclick="selectWorkflow(this, 'incident-response')"
+                  >
+                    <div class="workflow-meta">
+                      <div class="workflow-name">Incident Response</div>
+                      <div class="workflow-status">
+                        <div class="status-indicator running"></div>
+                        <span>Running • 3 active</span>
+                      </div>
+                    </div>
+                    <div class="workflow-actions">
+                      <button
+                        class="workflow-action"
+                        onclick="pauseWorkflow(event, 'incident-response')"
+                        title="Pause"
+                      >
+                        <i class="fas fa-pause"></i>
+                      </button>
+                      <button
+                        class="workflow-action"
+                        onclick="editWorkflow(event, 'incident-response')"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-item"
+                    onclick="selectWorkflow(this, 'risk-assessment')"
+                  >
+                    <div class="workflow-meta">
+                      <div class="workflow-name">Risk Assessment</div>
+                      <div class="workflow-status">
+                        <div class="status-indicator running"></div>
+                        <span>Running • 7 active</span>
+                      </div>
+                    </div>
+                    <div class="workflow-actions">
+                      <button
+                        class="workflow-action"
+                        onclick="pauseWorkflow(event, 'risk-assessment')"
+                        title="Pause"
+                      >
+                        <i class="fas fa-pause"></i>
+                      </button>
+                      <button
+                        class="workflow-action"
+                        onclick="editWorkflow(event, 'risk-assessment')"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-item"
+                    onclick="selectWorkflow(this, 'policy-review')"
+                  >
+                    <div class="workflow-meta">
+                      <div class="workflow-name">Policy Review</div>
+                      <div class="workflow-status">
+                        <div class="status-indicator paused"></div>
+                        <span>Paused • 2 pending</span>
+                      </div>
+                    </div>
+                    <div class="workflow-actions">
+                      <button
+                        class="workflow-action"
+                        onclick="resumeWorkflow(event, 'policy-review')"
+                        title="Resume"
+                      >
+                        <i class="fas fa-play"></i>
+                      </button>
+                      <button
+                        class="workflow-action"
+                        onclick="editWorkflow(event, 'policy-review')"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-item"
+                    onclick="selectWorkflow(this, 'ai-assessment')"
+                  >
+                    <div class="workflow-meta">
+                      <div class="workflow-name">AI Risk Assessment</div>
+                      <div class="workflow-status">
+                        <div class="status-indicator draft"></div>
+                        <span>Draft</span>
+                      </div>
+                    </div>
+                    <div class="workflow-actions">
+                      <button
+                        class="workflow-action"
+                        onclick="publishWorkflow(event, 'ai-assessment')"
+                        title="Publish"
+                      >
+                        <i class="fas fa-rocket"></i>
+                      </button>
+                      <button
+                        class="workflow-action"
+                        onclick="editWorkflow(event, 'ai-assessment')"
+                        title="Edit"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="palette-section">
+                <div class="palette-title">Node Types</div>
+                <div class="node-item" draggable="true" data-node-type="start">
+                  <div class="node-icon start">
+                    <i class="fas fa-play"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">Start Event</div>
+                    <div class="node-desc">Workflow trigger point</div>
+                  </div>
+                </div>
+
+                <div class="node-item" draggable="true" data-node-type="task">
+                  <div class="node-icon task">
+                    <i class="fas fa-tasks"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">User Task</div>
+                    <div class="node-desc">Manual task assignment</div>
+                  </div>
+                </div>
+
+                <div
+                  class="node-item"
+                  draggable="true"
+                  data-node-type="decision"
+                >
+                  <div class="node-icon decision">
+                    <i class="fas fa-question"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">Decision Gateway</div>
+                    <div class="node-desc">Conditional branching</div>
+                  </div>
+                </div>
+
+                <div
+                  class="node-item"
+                  draggable="true"
+                  data-node-type="approval"
+                >
+                  <div class="node-icon approval">
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">Approval Task</div>
+                    <div class="node-desc">Review and approval</div>
+                  </div>
+                </div>
+
+                <div
+                  class="node-item"
+                  draggable="true"
+                  data-node-type="notification"
+                >
+                  <div class="node-icon notification">
+                    <i class="fas fa-bell"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">Notification</div>
+                    <div class="node-desc">Send alerts/emails</div>
+                  </div>
+                </div>
+
+                <div class="node-item" draggable="true" data-node-type="end">
+                  <div class="node-icon end">
+                    <i class="fas fa-stop"></i>
+                  </div>
+                  <div class="node-info">
+                    <div class="node-name">End Event</div>
+                    <div class="node-desc">Workflow completion</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Workflow Canvas -->
+            <div class="workflow-canvas">
+              <div class="canvas-header">
+                <div class="canvas-title">
+                  <i class="fas fa-project-diagram"></i>
+                  <span id="workflow-title">Incident Response Workflow</span>
+                </div>
+                <div class="canvas-actions">
+                  <button
+                    class="btn btn-secondary"
+                    onclick="zoomFit()"
+                    title="Fit to Screen"
+                  >
+                    <i class="fas fa-expand-arrows-alt"></i>
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    onclick="saveWorkflow()"
+                    title="Save"
+                  >
+                    <i class="fas fa-save"></i>
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    onclick="runWorkflow()"
+                    title="Run"
+                  >
+                    <i class="fas fa-play"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="canvas-body">
+                <div class="workflow-toolbar">
+                  <button
+                    class="toolbar-btn active"
+                    onclick="selectTool('select')"
+                    title="Select"
+                  >
+                    <i class="fas fa-mouse-pointer"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="selectTool('connect')"
+                    title="Connect"
+                  >
+                    <i class="fas fa-link"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="selectTool('pan')"
+                    title="Pan"
+                  >
+                    <i class="fas fa-hand-paper"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="zoomIn()"
+                    title="Zoom In"
+                  >
+                    <i class="fas fa-search-plus"></i>
+                  </button>
+                  <button
+                    class="toolbar-btn"
+                    onclick="zoomOut()"
+                    title="Zoom Out"
+                  >
+                    <i class="fas fa-search-minus"></i>
+                  </button>
+                </div>
+
+                <div
+                  class="workflow-viewport"
+                  id="workflow-viewport"
+                  ondrop="handleDrop(event)"
+                  ondragover="handleDragOver(event)"
+                >
+                  <!-- SVG for connections -->
+                  <svg
+                    style="
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      height: 100%;
+                      pointer-events: none;
+                      z-index: 1;
+                    "
+                  >
+                    <defs>
+                      <marker
+                        id="arrowhead"
+                        markerWidth="10"
+                        markerHeight="7"
+                        refX="9"
+                        refY="3.5"
+                        orient="auto"
+                      >
+                        <polygon
+                          points="0 0, 10 3.5, 0 7"
+                          class="connection-arrow"
+                        />
+                      </marker>
+                    </defs>
+
+                    <!-- Connection lines -->
+                    <path
+                      class="connection-line"
+                      d="M 200 120 Q 250 120 300 150"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <path
+                      class="connection-line"
+                      d="M 420 180 Q 470 180 520 150"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <path
+                      class="connection-line"
+                      d="M 640 180 Q 690 180 740 150"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                    <path
+                      class="connection-line"
+                      d="M 860 180 Q 910 180 960 120"
+                      marker-end="url(#arrowhead)"
+                    ></path>
+                  </svg>
+
+                  <!-- Workflow Nodes -->
+                  <div
+                    class="workflow-node start"
+                    style="left: 80px; top: 100px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('start-1')"
+                    data-node-id="start-1"
+                  >
+                    <div class="node-status active"></div>
+                    <div class="node-header">
+                      <div class="node-header-icon start">
+                        <i class="fas fa-play"></i>
+                      </div>
+                      <div class="node-title">Incident Reported</div>
+                    </div>
+                    <div class="node-description">
+                      Security incident detected or reported
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-node task"
+                    style="left: 280px; top: 130px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('task-1')"
+                    data-node-id="task-1"
+                  >
+                    <div class="node-status waiting"></div>
+                    <div class="node-header">
+                      <div class="node-header-icon task">
+                        <i class="fas fa-tasks"></i>
+                      </div>
+                      <div class="node-title">Initial Assessment</div>
+                    </div>
+                    <div class="node-description">
+                      Assess incident severity and impact
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-node decision"
+                    style="left: 500px; top: 130px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('decision-1')"
+                    data-node-id="decision-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-header-icon decision">
+                        <i class="fas fa-question"></i>
+                      </div>
+                      <div class="node-title">High Severity?</div>
+                    </div>
+                    <div class="node-description">
+                      Check if incident requires escalation
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-node approval"
+                    style="left: 720px; top: 130px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('approval-1')"
+                    data-node-id="approval-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-header-icon approval">
+                        <i class="fas fa-check"></i>
+                      </div>
+                      <div class="node-title">Management Approval</div>
+                    </div>
+                    <div class="node-description">
+                      Get management authorization
+                    </div>
+                  </div>
+
+                  <div
+                    class="workflow-node end"
+                    style="left: 940px; top: 100px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('end-1')"
+                    data-node-id="end-1"
+                  >
+                    <div class="node-header">
+                      <div class="node-header-icon end">
+                        <i class="fas fa-stop"></i>
+                      </div>
+                      <div class="node-title">Incident Resolved</div>
+                    </div>
+                    <div class="node-description">
+                      Incident closed and documented
+                    </div>
+                  </div>
+
+                  <!-- Alternative path for low severity -->
+                  <div
+                    class="workflow-node task"
+                    style="left: 500px; top: 280px"
+                    onclick="selectNode(this)"
+                    ondblclick="WorkflowStepEditor.open('task-2')"
+                    data-node-id="task-2"
+                  >
+                    <div class="node-header">
+                      <div class="node-header-icon task">
+                        <i class="fas fa-tasks"></i>
+                      </div>
+                      <div class="node-title">Standard Response</div>
+                    </div>
+                    <div class="node-description">
+                      Handle with standard procedures
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Workflow Properties -->
+            <div class="workflow-properties">
+              <div class="properties-header">
+                <div class="properties-title">Properties</div>
+                <div class="properties-subtitle">
+                  Configure workflow settings
+                </div>
+              </div>
+
+              <div id="workflow-properties">
+                <div class="property-section">
+                  <div class="property-section-title">General</div>
+                  <div class="property-field">
+                    <label class="property-label">Workflow Name</label>
+                    <input
+                      type="text"
+                      class="property-input"
+                      value="Incident Response Workflow"
+                      id="workflow-name"
+                    />
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Description</label>
+                    <textarea
+                      class="property-input"
+                      rows="3"
+                      id="workflow-description"
+                    >
+Automated incident response workflow for security events</textarea
+                    >
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Category</label>
+                    <select class="property-select" id="workflow-category">
+                      <option>Incident Management</option>
+                      <option>Risk Assessment</option>
+                      <option>Compliance Review</option>
+                      <option>AI Governance</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="property-section">
+                  <div class="property-section-title">Execution</div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="auto-start" checked />
+                    <label for="auto-start">Auto-start when triggered</label>
+                  </div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="parallel-execution" />
+                    <label for="parallel-execution"
+                      >Allow parallel execution</label
+                    >
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Timeout (hours)</label>
+                    <input
+                      type="number"
+                      class="property-input"
+                      value="24"
+                      id="workflow-timeout"
+                    />
+                  </div>
+                </div>
+
+                <div class="property-section">
+                  <div class="property-section-title">Notifications</div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="notify-start" checked />
+                    <label for="notify-start">Notify on workflow start</label>
+                  </div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="notify-complete" checked />
+                    <label for="notify-complete">Notify on completion</label>
+                  </div>
+                  <div class="property-checkbox">
+                    <input type="checkbox" id="notify-error" checked />
+                    <label for="notify-error">Notify on errors</label>
+                  </div>
+                </div>
+              </div>
+
+              <div id="node-properties" style="display: none">
+                <div class="property-section">
+                  <div class="property-section-title">Node Settings</div>
+                  <div class="property-field">
+                    <label class="property-label">Node Name</label>
+                    <input type="text" class="property-input" id="node-name" />
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Description</label>
+                    <textarea
+                      class="property-input"
+                      rows="2"
+                      id="node-description"
+                    ></textarea>
+                  </div>
+                  <div class="property-field">
+                    <label class="property-label">Assignee</label>
+                    <select class="property-select" id="node-assignee">
+                      <option>Security Team</option>
+                      <option>IT Manager</option>
+                      <option>Compliance Officer</option>
+                      <option>Risk Manager</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="property-section">
+                <div class="property-section-title">Execution Log</div>
+                <div class="execution-log">
+                  <div class="log-entry info">
+                    2024-12-22 14:30:15 - Workflow started
+                  </div>
+                  <div class="log-entry success">
+                    2024-12-22 14:30:16 - Start event triggered
+                  </div>
+                  <div class="log-entry info">
+                    2024-12-22 14:30:45 - Task assigned: Initial Assessment
+                  </div>
+                  <div class="log-entry warning">
+                    2024-12-22 14:35:12 - Waiting for user input
+                  </div>
+                  <div class="log-entry info">
+                    2024-12-22 14:42:33 - Task completed by John Smith
+                  </div>
+                  <div class="log-entry info">
+                    2024-12-22 14:42:34 - Decision gateway evaluated
+                  </div>
+                  <div class="log-entry success">
+                    2024-12-22 14:42:35 - Proceeding to approval task
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Workflow%20Engine&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="workflowModel.js"></script>
+    <script src="workflowEditor.js"></script>
+    <script src="workflowStepEditor.js"></script>
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+// =============================================================================
+// WORKFLOW ENGINE WITH SEED DATA INTEGRATION
+// =============================================================================
+
+let selectedTool = "select";
+let selectedWorkflow = "incident-response";
+let selectedNode = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout system
+  LayoutManager.initializePage("workflowEngine.html");
+  
+  // Initialize workflow engine with seed data
+  loadWorkflowDefinitions();
+  initializeWorkflowEngine();
+  
+  // Page-specific initialization
+  updateChatContext("Workflow Engine");
+  
+  // URL parameter handling
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  if (id) {
+    WorkflowEditor.loadWorkflow(id);
+  } else {
+    WorkflowEditor.createNewWorkflow("Untitled Workflow");
+  }
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadWorkflowDefinitions() {
+  console.log("Loading workflow definitions from seed data...");
+  
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  
+  if (workflows.length === 0) {
+    console.warn("No workflow definitions found in seed data");
+    return;
+  }
+  
+  // Clear existing workflow list
+  const workflowList = document.querySelector('.workflow-list');
+  if (workflowList) {
+    workflowList.innerHTML = '';
+  }
+  
+  // Render each workflow definition
+  workflows.forEach(workflow => {
+    renderWorkflowDefinition(workflow);
+  });
+  
+  console.log(`✅ Loaded ${workflows.length} workflow definitions from seed data`);
+}
+
+function renderWorkflowDefinition(workflow) {
+  const workflowList = document.querySelector('.workflow-list');
+  if (!workflowList) {
+    console.error("Workflow list container not found");
+    return;
+  }
+  
+  const workflowCard = document.createElement('div');
+  workflowCard.className = 'workflow-card';
+  workflowCard.innerHTML = `
+    <div class="workflow-header">
+      <h3>${workflow.name}</h3>
+      <div class="workflow-status ${workflow.status || 'draft'}">
+        ${(workflow.status || 'draft').charAt(0).toUpperCase() + (workflow.status || 'draft').slice(1)}
+      </div>
+    </div>
+    <div class="workflow-details">
+      <p><strong>Nodes:</strong> ${workflow.nodes}</p>
+      <p><strong>Connections:</strong> ${workflow.connections}</p>
+      <p><strong>ID:</strong> ${workflow.id}</p>
+    </div>
+    <div class="workflow-actions">
+      <button class="workflow-action edit" onclick="editWorkflow(event, '${workflow.id}')" title="Edit">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="workflow-action publish" onclick="publishWorkflow(event, '${workflow.id}')" title="Publish">
+        <i class="fas fa-rocket"></i>
+      </button>
+      <button class="workflow-action duplicate" onclick="duplicateWorkflow(event, '${workflow.id}')" title="Duplicate">
+        <i class="fas fa-copy"></i>
+      </button>
+      <button class="workflow-action delete" onclick="deleteWorkflowDef(event, '${workflow.id}')" title="Delete">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  `;
+  
+  workflowList.appendChild(workflowCard);
+}
+
+function initializeWorkflowEngine() {
+  console.log("Initializing workflow engine...");
+  
+  // Set up drag and drop
+  const viewport = document.getElementById('workflow-viewport');
+  if (viewport) {
+    viewport.addEventListener('drop', handleDrop);
+    viewport.addEventListener('dragover', handleDragOver);
+  }
+  
+  // Set up node palette drag events
+  const nodeItems = document.querySelectorAll('.node-item');
+  nodeItems.forEach(item => {
+    item.addEventListener('dragstart', handleNodeDragStart);
+  });
+  
+  console.log("✅ Workflow engine initialization complete");
+}
+
+// =============================================================================
+// ENHANCED WORKFLOW ACTIONS WITH SEED DATA
+// =============================================================================
+
+function editWorkflow(event, workflowId) {
+  event.stopPropagation();
+  console.log(`Editing workflow: ${workflowId}`);
+  
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflow = workflows.find(w => w.id === workflowId);
+  
+  if (!workflow) {
+    console.error(`Workflow ${workflowId} not found`);
+    showNotification("Workflow not found", "error");
+    return;
+  }
+  
+  // Load workflow into editor
+  loadWorkflowIntoEditor(workflow);
+  showNotification(`Loaded workflow: ${workflow.name}`, "info");
+}
+
+function publishWorkflow(event, workflowId) {
+  event.stopPropagation();
+  console.log(`Publishing workflow: ${workflowId}`);
+  
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflowIndex = workflows.findIndex(w => w.id === workflowId);
+  
+  if (workflowIndex === -1) {
+    console.error(`Workflow ${workflowId} not found`);
+    showNotification("Workflow not found", "error");
+    return;
+  }
+  
+  // Update workflow status
+  workflows[workflowIndex].status = 'published';
+  workflows[workflowIndex].publishedDate = new Date().toISOString();
+  
+  // Save back to localStorage
+  localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+  
+  // Refresh display
+  loadWorkflowDefinitions();
+  showNotification(`Workflow "${workflows[workflowIndex].name}" published successfully`, "success");
+}
+
+function duplicateWorkflow(event, workflowId) {
+  event.stopPropagation();
+  console.log(`Duplicating workflow: ${workflowId}`);
+  
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflow = workflows.find(w => w.id === workflowId);
+  
+  if (!workflow) {
+    console.error(`Workflow ${workflowId} not found`);
+    showNotification("Workflow not found", "error");
+    return;
+  }
+  
+  // Create duplicate with new ID
+  const duplicatedWorkflow = {
+    ...workflow,
+    id: `WF-${Date.now()}`,
+    name: `${workflow.name} (Copy)`,
+    status: 'draft',
+    createdDate: new Date().toISOString()
+  };
+  
+  workflows.push(duplicatedWorkflow);
+  localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+  
+  // Refresh display
+  loadWorkflowDefinitions();
+  showNotification(`Workflow duplicated: ${duplicatedWorkflow.name}`, "success");
+}
+
+function deleteWorkflowDef(event, workflowId) {
+  event.stopPropagation();
+  console.log(`Deleting workflow: ${workflowId}`);
+  
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflowIndex = workflows.findIndex(w => w.id === workflowId);
+  
+  if (workflowIndex === -1) {
+    console.error(`Workflow ${workflowId} not found`);
+    showNotification("Workflow not found", "error");
+    return;
+  }
+  
+  const workflow = workflows[workflowIndex];
+  
+  // Confirm deletion
+  if (confirm(`Are you sure you want to delete "${workflow.name}"?`)) {
+    workflows.splice(workflowIndex, 1);
+    localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+    
+    // Refresh display
+    loadWorkflowDefinitions();
+    showNotification(`Workflow "${workflow.name}" deleted successfully`, "success");
+  }
+}
+
+function loadWorkflowIntoEditor(workflow) {
+  console.log(`Loading workflow into editor: ${workflow.name}`);
+  
+  // Update workflow title
+  const titleElement = document.getElementById('workflow-title');
+  if (titleElement) {
+    titleElement.textContent = workflow.name;
+  }
+  
+  // Update workflow properties panel
+  updateWorkflowProperties(workflow);
+  
+  showNotification(`Workflow "${workflow.name}" loaded in editor`, "info");
+}
+
+function updateWorkflowProperties(workflow) {
+  // Update properties panel with workflow details
+  const propertiesPanel = document.querySelector('.workflow-properties');
+  if (propertiesPanel) {
+    propertiesPanel.innerHTML = `
+      <h3>Workflow Properties</h3>
+      <div class="property-group">
+        <label>Name:</label>
+        <input type="text" value="${workflow.name}" id="workflow-name-input" onchange="updateWorkflowName('${workflow.id}', this.value)">
+      </div>
+      <div class="property-group">
+        <label>Status:</label>
+        <select id="workflow-status-select" onchange="updateWorkflowStatus('${workflow.id}', this.value)">
+          <option value="draft" ${workflow.status === 'draft' ? 'selected' : ''}>Draft</option>
+          <option value="published" ${workflow.status === 'published' ? 'selected' : ''}>Published</option>
+          <option value="archived" ${workflow.status === 'archived' ? 'selected' : ''}>Archived</option>
+        </select>
+      </div>
+      <div class="property-group">
+        <label>Nodes:</label>
+        <span>${workflow.nodes}</span>
+      </div>
+      <div class="property-group">
+        <label>Connections:</label>
+        <span>${workflow.connections}</span>
+      </div>
+      <div class="property-group">
+        <label>Created:</label>
+        <span>${workflow.createdDate ? new Date(workflow.createdDate).toLocaleDateString() : 'Unknown'}</span>
+      </div>
+    `;
+  }
+}
+
+function updateWorkflowName(workflowId, newName) {
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflowIndex = workflows.findIndex(w => w.id === workflowId);
+  
+  if (workflowIndex !== -1) {
+    workflows[workflowIndex].name = newName;
+    localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+    showNotification("Workflow name updated", "success");
+  }
+}
+
+function updateWorkflowStatus(workflowId, newStatus) {
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const workflowIndex = workflows.findIndex(w => w.id === workflowId);
+  
+  if (workflowIndex !== -1) {
+    workflows[workflowIndex].status = newStatus;
+    localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+    loadWorkflowDefinitions(); // Refresh display
+    showNotification("Workflow status updated", "success");
+  }
+}
+
+// =============================================================================
+// EXISTING WORKFLOW FUNCTIONS (KEEP THESE)
+// =============================================================================
+
+function handleDragOver(event) {
+  event.preventDefault();
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+
+  const nodeType = event.dataTransfer.getData("text/plain");
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const nodeConfigs = {
+    start: { title: "Start Event", desc: "Workflow trigger", icon: "fa-play", className: "start" },
+    task: { title: "User Task", desc: "Manual task", icon: "fa-tasks", className: "task" },
+    decision: { title: "Decision", desc: "Conditional branch", icon: "fa-question", className: "decision" },
+    approval: { title: "Approval", desc: "Review step", icon: "fa-check", className: "approval" },
+    notification: { title: "Notification", desc: "Send alert", icon: "fa-bell", className: "notification" },
+    end: { title: "End Event", desc: "Workflow end", icon: "fa-stop", className: "end" }
+  };
+
+  const config = nodeConfigs[nodeType];
+  if (!config) return;
+
+  const nodeId = `${nodeType}-${Date.now()}`;
+  const node = document.createElement("div");
+  node.className = `workflow-node ${config.className}`;
+  node.style.left = x + "px";
+  node.style.top = y + "px";
+  node.onclick = () => selectNode(node);
+  node.ondblclick = () => WorkflowStepEditor.open(nodeId);
+  node.dataset.nodeId = nodeId;
+
+  node.innerHTML = `
+    <div class="node-header">
+        <div class="node-header-icon ${config.className}">
+            <i class="fas ${config.icon}"></i>
+        </div>
+        <div class="node-title">${config.title}</div>
+    </div>
+    <div class="node-description">${config.desc}</div>
+  `;
+
+  document.getElementById("workflow-viewport").appendChild(node);
+  WorkflowEditor.handleNodeAdded(nodeType, x, y, nodeId);
+  showNotification(`Added ${config.title} node`, "success");
+}
+
+function handleNodeDragStart(e) {
+  console.log("Node drag started");
+  e.dataTransfer.setData("text/plain", e.target.dataset.nodeType);
+}
+
+function selectTool(tool) {
+  // Update button states
+  document.querySelectorAll(".toolbar-btn").forEach((btn) => btn.classList.remove("active"));
+  event.target.classList.add("active");
+
+  selectedTool = tool;
+  showNotification(`Selected ${tool} tool`, "info");
+}
+
+function selectWorkflow(element, workflowId) {
+  // Remove active class from all workflows
+  document.querySelectorAll(".workflow-item").forEach((item) => item.classList.remove("active"));
+
+  // Add active class to selected workflow
+  element.classList.add("active");
+  selectedWorkflow = workflowId;
+
+  // Update workflow title
+  const titles = {
+    "incident-response": "Incident Response Workflow",
+    "risk-assessment": "Risk Assessment Workflow",
+    "policy-review": "Policy Review Workflow",
+    "ai-assessment": "AI Risk Assessment Workflow",
+  };
+
+  document.getElementById("workflow-title").textContent = titles[workflowId];
+  showNotification(`Opened: ${titles[workflowId]}`, "info");
+}
+
+function selectNode(node) {
+  // Remove selection from all nodes
+  document.querySelectorAll(".workflow-node").forEach((n) => n.classList.remove("selected"));
+
+  // Select current node
+  node.classList.add("selected");
+  selectedNode = node;
+
+  // Show node properties
+  showNodeProperties(node);
+}
+
+function showNodeProperties(node) {
+  document.getElementById("workflow-properties").style.display = "none";
+  document.getElementById("node-properties").style.display = "block";
+
+  const title = node.querySelector(".node-title").textContent;
+  const description = node.querySelector(".node-description").textContent;
+
+  document.getElementById("node-name").value = title;
+  document.getElementById("node-description").value = description;
+}
+
+function saveWorkflow() {
+  const titleElement = document.getElementById('workflow-title');
+  const workflowName = titleElement ? titleElement.textContent : 'Untitled Workflow';
+  
+  // Get current workflow data
+  const nodes = document.querySelectorAll('.workflow-node').length;
+  const connections = document.querySelectorAll('.connection-line').length;
+  
+  // Create or update workflow
+  const workflows = JSON.parse(localStorage.getItem("workflowDefinitions") || "[]");
+  const existingWorkflow = workflows.find(w => w.name === workflowName);
+  
+  if (existingWorkflow) {
+    // Update existing workflow
+    existingWorkflow.nodes = nodes;
+    existingWorkflow.connections = connections;
+    existingWorkflow.lastModified = new Date().toISOString();
+  } else {
+    // Create new workflow
+    const newWorkflow = {
+      id: `WF-${Date.now()}`,
+      name: workflowName,
+      nodes: nodes,
+      connections: connections,
+      status: 'draft',
+      createdDate: new Date().toISOString()
+    };
+    workflows.push(newWorkflow);
+  }
+  
+  localStorage.setItem("workflowDefinitions", JSON.stringify(workflows));
+  loadWorkflowDefinitions(); // Refresh display
+  showNotification("Workflow saved successfully", "success");
+}
+
+function runWorkflow() {
+  console.log("Running workflow...");
+  
+  const titleElement = document.getElementById('workflow-title');
+  const workflowName = titleElement ? titleElement.textContent : 'Untitled Workflow';
+  
+  showNotification(`Workflow "${workflowName}" is running...`, "info");
+  
+  // Simulate workflow execution
+  setTimeout(() => {
+    showNotification(`Workflow "${workflowName}" completed successfully`, "success");
+  }, 3000);
+}
+
+// Keep all other existing functions (zoomIn, zoomOut, etc.)
+function zoomIn() {
+  showNotification("Zooming in...", "info");
+}
+
+function zoomOut() {
+  showNotification("Zooming out...", "info");
+}
+
+function zoomFit() {
+  showNotification("Fitting to screen...", "info");
+}
+
+function createWorkflow() {
+  const name = prompt("Workflow name");
+  if (name !== null) {
+    WorkflowEditor.createNewWorkflow(name);
+    WorkflowEditor.saveCurrentWorkflow();
+    showNotification("Creating new workflow...", "info");
+  }
+}
+
+function importWorkflow() {
+  showNotification("Opening import dialog...", "info");
+}
+
+function deployWorkflow() {
+  showNotification("Deploying workflow to production...", "info");
+}
+
+// Keep all mouse event handlers
+let draggedNode = null;
+let dragOffset = { x: 0, y: 0 };
+
+document.addEventListener("mousedown", function (e) {
+  if (e.target.closest(".workflow-node") && selectedTool === "select") {
+    draggedNode = e.target.closest(".workflow-node");
+    const rect = draggedNode.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    draggedNode.style.zIndex = "1000";
+  }
+});
+
+document.addEventListener("mousemove", function (e) {
+  if (draggedNode) {
+    const viewport = document.getElementById("workflow-viewport");
+    const viewportRect = viewport.getBoundingClientRect();
+    const x = e.clientX - viewportRect.left - dragOffset.x;
+    const y = e.clientY - viewportRect.top - dragOffset.y;
+    draggedNode.style.left = Math.max(0, x) + "px";
+    draggedNode.style.top = Math.max(0, y) + "px";
+  }
+});
+
+document.addEventListener("mouseup", function (e) {
+  if (draggedNode) {
+    draggedNode.style.zIndex = "";
+    const step = WorkflowEditor.getStep(draggedNode.dataset.nodeId);
+    if (step) {
+      step.x = parseInt(draggedNode.style.left, 10);
+      step.y = parseInt(draggedNode.style.top, 10);
+      WorkflowEditor.saveCurrentWorkflow();
+    }
+    draggedNode = null;
+  }
+});
+
+// Keep property update handlers
+document.getElementById("workflow-name").addEventListener("input", function () {
+  document.getElementById("workflow-title").textContent = this.value;
+  const wf = WorkflowEditor.getCurrentWorkflow();
+  if (wf) {
+    wf.name = this.value;
+    WorkflowEditor.saveCurrentWorkflow();
+  }
+});
+
+document.getElementById("node-name").addEventListener("input", function () {
+  if (selectedNode) {
+    selectedNode.querySelector(".node-title").textContent = this.value;
+    const step = WorkflowEditor.getStep(selectedNode.dataset.nodeId);
+    if (step) {
+      step.title = this.value;
+      WorkflowEditor.saveCurrentWorkflow();
+    }
+  }
+});
+
+document.getElementById("node-description").addEventListener("input", function () {
+  if (selectedNode) {
+    selectedNode.querySelector(".node-description").textContent = this.value;
+    const step = WorkflowEditor.getStep(selectedNode.dataset.nodeId);
+    if (step) {
+      step.description = this.value;
+      WorkflowEditor.saveCurrentWorkflow();
+    }
+  }
+});
+
+// Keep click outside handler
+document.addEventListener("click", function (e) {
+  if (!e.target.closest(".workflow-node") && !e.target.closest(".workflow-properties")) {
+    document.querySelectorAll(".workflow-node").forEach((n) => n.classList.remove("selected"));
+    selectedNode = null;
+    document.getElementById("workflow-properties").style.display = "block";
+    document.getElementById("node-properties").style.display = "none";
+  }
+});
+    </script>
+  </body>
+</html>

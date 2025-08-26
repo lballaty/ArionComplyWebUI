@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Dashboard Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Compliance Dashboard</h1>
+              <p class="page-subtitle">
+                AI Accountability & Multi-Framework Compliance Overview
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-ai" onclick="location.href='wizzard.html'">
+                <i class="fas fa-robot"></i>
+                Classify AI System
+              </button>
+              <button
+                class="btn btn-primary"
+                onclick="location.href='listView.html'"
+              >
+                <i class="fas fa-plus"></i>
+                Create Risk
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card success">
+              <div class="kpi-value">95%</div>
+              <div class="kpi-label">Compliance Score</div>
+            </div>
+            <div class="kpi-card warning">
+              <div class="kpi-value">12</div>
+              <div class="kpi-label">Open Risks</div>
+            </div>
+            <div class="kpi-card primary">
+              <div class="kpi-value">8</div>
+              <div class="kpi-label">AI Systems</div>
+            </div>
+            <div class="kpi-card danger">
+              <div class="kpi-value">3</div>
+              <div class="kpi-label">Overdue Actions</div>
+            </div>
+          </div>
+
+          <!-- Risk Heat Map -->
+          <div class="card" style="margin-bottom: 2rem">
+            <h3 style="margin-bottom: 1rem">
+              Risk Heat Map - Likelihood vs Impact
+            </h3>
+            <div class="risk-heatmap">
+              <!-- Headers -->
+              <div></div>
+              <div class="risk-axis-label">Very Low</div>
+              <div class="risk-axis-label">Low</div>
+              <div class="risk-axis-label">Medium</div>
+              <div class="risk-axis-label">High</div>
+              <div class="risk-axis-label">Very High</div>
+
+              <!-- Very High Impact Row -->
+              <div
+                class="risk-axis-label"
+                style="writing-mode: vertical-rl; text-orientation: mixed"
+              >
+                Very High
+              </div>
+              <div class="risk-cell medium" onclick="showRiskDetails('R-015')">
+                1
+                <div class="tooltip">R-015: CEO Email Compromise</div>
+              </div>
+              <div class="risk-cell high" onclick="showRiskDetails('R-012')">
+                2
+                <div class="tooltip">
+                  R-012: Major Data Center Outage<br />R-018: Regulatory Fine
+                </div>
+              </div>
+              <div
+                class="risk-cell very-high"
+                onclick="showRiskDetails('R-003')"
+              >
+                3
+                <div class="tooltip">
+                  R-003: GDPR Violation<br />R-009: AI System Bias<br />R-021:
+                  Cloud Breach
+                </div>
+              </div>
+              <div
+                class="risk-cell critical"
+                onclick="showRiskDetails('R-001')"
+              >
+                1
+                <div class="tooltip">R-001: AI Hiring Discrimination</div>
+              </div>
+              <div class="risk-cell critical" style="background: #7f1d1d">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+
+              <!-- High Impact Row -->
+              <div
+                class="risk-axis-label"
+                style="writing-mode: vertical-rl; text-orientation: mixed"
+              >
+                High
+              </div>
+              <div class="risk-cell low" onclick="showRiskDetails('R-022')">
+                2
+                <div class="tooltip">
+                  R-022: Phishing Training Gap<br />R-025: Password Policy
+                </div>
+              </div>
+              <div class="risk-cell medium" onclick="showRiskDetails('R-008')">
+                1
+                <div class="tooltip">R-008: Supplier Security Gap</div>
+              </div>
+              <div class="risk-cell high" onclick="showRiskDetails('R-002')">
+                2
+                <div class="tooltip">
+                  R-002: Cloud Infrastructure<br />R-011: Insider Threat
+                </div>
+              </div>
+              <div
+                class="risk-cell very-high"
+                onclick="showRiskDetails('R-007')"
+              >
+                1
+                <div class="tooltip">R-007: Ransomware Attack</div>
+              </div>
+              <div class="risk-cell critical">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+
+              <!-- Medium Impact Row -->
+              <div
+                class="risk-axis-label"
+                style="writing-mode: vertical-rl; text-orientation: mixed"
+              >
+                Medium
+              </div>
+              <div
+                class="risk-cell very-low"
+                onclick="showRiskDetails('R-030')"
+              >
+                1
+                <div class="tooltip">R-030: Software License Audit</div>
+              </div>
+              <div class="risk-cell low" onclick="showRiskDetails('R-019')">
+                3
+                <div class="tooltip">
+                  R-019: Network Congestion<br />R-024: Mobile Device Loss<br />R-028:
+                  Policy Review Delay
+                </div>
+              </div>
+              <div class="risk-cell medium" onclick="showRiskDetails('R-013')">
+                2
+                <div class="tooltip">
+                  R-013: AI Model Drift<br />R-016: Document Classification
+                </div>
+              </div>
+              <div class="risk-cell high" onclick="showRiskDetails('R-006')">
+                1
+                <div class="tooltip">R-006: API Security Weakness</div>
+              </div>
+              <div class="risk-cell very-high">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+
+              <!-- Low Impact Row -->
+              <div
+                class="risk-axis-label"
+                style="writing-mode: vertical-rl; text-orientation: mixed"
+              >
+                Low
+              </div>
+              <div
+                class="risk-cell very-low"
+                onclick="showRiskDetails('R-035')"
+              >
+                2
+                <div class="tooltip">
+                  R-035: Office WiFi Security<br />R-037: Printer Security
+                </div>
+              </div>
+              <div
+                class="risk-cell very-low"
+                onclick="showRiskDetails('R-033')"
+              >
+                4
+                <div class="tooltip">
+                  R-033: Email Signature<br />R-034: Browser Updates<br />R-036:
+                  File Naming<br />R-038: Desk Policy
+                </div>
+              </div>
+              <div class="risk-cell low" onclick="showRiskDetails('R-031')">
+                1
+                <div class="tooltip">R-031: Training Record Delays</div>
+              </div>
+              <div class="risk-cell medium">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+              <div class="risk-cell high">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+
+              <!-- Very Low Impact Row -->
+              <div
+                class="risk-axis-label"
+                style="writing-mode: vertical-rl; text-orientation: mixed"
+              >
+                Very Low
+              </div>
+              <div
+                class="risk-cell very-low"
+                onclick="showRiskDetails('R-040')"
+              >
+                1
+                <div class="tooltip">R-040: Office Plant Maintenance</div>
+              </div>
+              <div class="risk-cell very-low">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+              <div class="risk-cell very-low">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+              <div class="risk-cell low">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+              <div class="risk-cell medium">
+                0
+                <div class="tooltip">No risks in this category</div>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 1rem;
+                font-size: 0.875rem;
+                color: var(--text-gray);
+              "
+            >
+              <p>
+                <strong>Legend:</strong> Numbers indicate count of risks in each
+                category. Hover for risk details, click to view full risk
+                assessment.
+              </p>
+            </div>
+          </div>
+
+          <!-- Charts and Activity -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem">
+            <div class="card">
+              <h3 style="margin-bottom: 1rem">Compliance Trends</h3>
+              <div class="chart-placeholder">
+                Compliance Score Trend Chart - Last 12 Months
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom: 1rem">Recent Activity</h3>
+              <div style="space-y: 1rem">
+                <div
+                  style="
+                    padding: 0.75rem;
+                    background: var(--bg-light);
+                    border-radius: var(--border-radius-sm);
+                    margin-bottom: 0.5rem;
+                  "
+                >
+                  <div style="font-weight: 500">AI System Classified</div>
+                  <div style="font-size: 0.875rem; color: var(--text-gray)">
+                    Customer Analytics AI - High Risk
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-gray)">
+                    2 hours ago
+                  </div>
+                </div>
+                <div
+                  style="
+                    padding: 0.75rem;
+                    background: var(--bg-light);
+                    border-radius: var(--border-radius-sm);
+                    margin-bottom: 0.5rem;
+                  "
+                >
+                  <div style="font-weight: 500">Risk Assessment Completed</div>
+                  <div style="font-size: 0.875rem; color: var(--text-gray)">
+                    Cloud Infrastructure Risk
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-gray)">
+                    4 hours ago
+                  </div>
+                </div>
+                <div
+                  style="
+                    padding: 0.75rem;
+                    background: var(--bg-light);
+                    border-radius: var(--border-radius-sm);
+                  "
+                >
+                  <div style="font-weight: 500">Policy Updated</div>
+                  <div style="font-size: 0.875rem; color: var(--text-gray)">
+                    AI Governance Policy v2.1
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-gray)">
+                    6 hours ago
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Dashboard%20Overview"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD these new scripts in this exact order -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+
+    <!-- THEN existing scripts -->
+    <script src="scripts.js"></script>
+
+    <script>
+      // Dashboard-specific initialization
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("dashboard.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Dashboard Overview");
+      });
+    </script>
+  </body>
+</html>

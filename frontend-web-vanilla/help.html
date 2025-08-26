@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Help Center</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .help-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 2rem;
+      }
+      .help-nav {
+        margin-bottom: 2rem;
+      }
+      .help-nav a {
+        margin-right: 1rem;
+        text-decoration: none;
+        color: var(--primary-blue);
+        font-weight: 500;
+      }
+      .help-section {
+        margin-bottom: 2rem;
+      }
+      .help-section h2 {
+        margin-bottom: 0.5rem;
+      }
+      .faq-item {
+        margin-bottom: 1rem;
+      }
+      .faq-question {
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .faq-answer {
+        display: none;
+        padding-left: 1rem;
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <main class="main-content">
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Help & Support</h1>
+              <p class="page-subtitle">Guidance for using ArionComply</p>
+            </div>
+          </div>
+          <div class="help-container">
+            <nav class="help-nav">
+              <a href="#getting-started">Getting Started</a>
+              <a href="#navigation">Navigation</a>
+              <a href="#tasks">Common Tasks</a>
+              <a href="#faq">FAQ</a>
+            </nav>
+            <section id="getting-started" class="help-section">
+              <h2>Getting Started</h2>
+              <p>
+                Learn the basics of signing in and configuring your account.
+              </p>
+            </section>
+            <section id="navigation" class="help-section">
+              <h2>Navigating the Interface</h2>
+              <p>Overview of the sidebar, dashboard and search features.</p>
+            </section>
+            <section id="tasks" class="help-section">
+              <h2>Common Tasks</h2>
+              <ul>
+                <li>Launching a compliance assessment wizard</li>
+                <li>Viewing your risk register and heat maps</li>
+                <li>Managing documents and policies</li>
+              </ul>
+            </section>
+            <section id="faq" class="help-section">
+              <h2>Frequently Asked Questions</h2>
+              <div class="faq-item">
+                <div class="faq-question">How do I add a new AI system?</div>
+                <div class="faq-answer">
+                  Navigate to <em>Assessments &gt; AI System Inventory</em> and
+                  click <strong>Add AI System</strong>.
+                </div>
+              </div>
+              <div class="faq-item">
+                <div class="faq-question">Where can I update my profile?</div>
+                <div class="faq-answer">
+                  Open the user menu in the header and select
+                  <strong>Profile</strong>.
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        LayoutManager.initializePage("help.html");
+        document.querySelectorAll(".faq-question").forEach(function (q) {
+          q.addEventListener("click", function () {
+            const ans = this.nextElementSibling;
+            ans.style.display =
+              ans.style.display === "block" ? "none" : "block";
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

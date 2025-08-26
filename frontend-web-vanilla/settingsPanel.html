@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Settings</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .settings-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .settings-nav {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .settings-content {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        overflow-y: auto;
+      }
+
+      .settings-nav-section {
+        margin-bottom: 2rem;
+      }
+
+      .nav-section-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .settings-nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        margin-bottom: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        color: var(--text-gray);
+      }
+
+      .settings-nav-item:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+      }
+
+      .settings-nav-item.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .nav-item-icon {
+        width: 20px;
+        margin-right: 0.75rem;
+        text-align: center;
+      }
+
+      .nav-item-text {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .nav-item-badge {
+        background: var(--danger-red);
+        color: white;
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .settings-header {
+        padding: 2rem 2rem 1rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .settings-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .settings-subtitle {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+      }
+
+      .settings-body {
+        padding: 2rem;
+      }
+
+      .settings-section {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .settings-section.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .section-group {
+        margin-bottom: 3rem;
+      }
+
+      .group-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .group-description {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+      }
+
+      .settings-card {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      .card-title {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 24px;
+        background: var(--border-light);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-switch.active {
+        background: var(--primary-blue);
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle-switch.active .toggle-slider {
+        transform: translateX(24px);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-input,
+      .form-select,
+      .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+        background: var(--bg-white);
+      }
+
+      .form-input:focus,
+      .form-select:focus,
+      .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .form-textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .user-avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+      }
+
+      .avatar-upload {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .integration-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .integration-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.15s ease;
+      }
+
+      .integration-card:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+      }
+
+      .integration-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-blue);
+      }
+
+      .integration-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .integration-status {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        margin-bottom: 1rem;
+      }
+
+      .integration-status.connected {
+        color: var(--success-green);
+      }
+
+      .framework-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .framework-item {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .framework-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .framework-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+      }
+
+      .framework-icon.iso {
+        background: var(--primary-blue);
+      }
+
+      .framework-icon.gdpr {
+        background: var(--success-green);
+      }
+
+      .framework-icon.soc {
+        background: var(--warning-amber);
+      }
+
+      .framework-icon.ai {
+        background: var(--ai-purple);
+      }
+
+      .framework-details h4 {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-dark);
+      }
+
+      .framework-details p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .notification-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+      }
+
+      .notification-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+      }
+
+      .notification-icon.email {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-blue);
+      }
+
+      .notification-icon.push {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-green);
+      }
+
+      .notification-icon.slack {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-amber);
+      }
+
+      .notification-details h4 {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-dark);
+      }
+
+      .notification-details p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .danger-zone {
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .danger-zone h3 {
+        color: var(--danger-red);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .export-import-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .action-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .action-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-blue);
+      }
+
+      .settings-footer {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-light);
+      }
+
+      .save-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--success-green);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Settings Panel -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Settings</h1>
+              <p class="page-subtitle">
+                System Configuration & User Preferences
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="resetSettings()">
+                <i class="fas fa-undo"></i>
+                Reset to Defaults
+              </button>
+              <button class="btn btn-secondary" onclick="exportSettings()">
+                <i class="fas fa-download"></i>
+                Export Configuration
+              </button>
+              <button class="btn btn-primary" onclick="saveAllSettings()">
+                <i class="fas fa-save"></i>
+                Save All Changes
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-container">
+            <!-- Settings Navigation -->
+            <div class="settings-nav">
+              <div class="settings-nav-section">
+                <div class="nav-section-title">Account</div>
+                <div
+                  class="settings-nav-item active"
+                  onclick="showSection('general')"
+                >
+                  <i class="fas fa-user nav-item-icon"></i>
+                  <span class="nav-item-text">General</span>
+                </div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('security')"
+                >
+                  <i class="fas fa-shield-alt nav-item-icon"></i>
+                  <span class="nav-item-text">Security</span>
+                </div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('notifications')"
+                >
+                  <i class="fas fa-bell nav-item-icon"></i>
+                  <span class="nav-item-text">Notifications</span>
+                  <span class="nav-item-badge">3</span>
+                </div>
+              </div>
+
+              <div class="settings-nav-section">
+                <div class="nav-section-title">System</div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('frameworks')"
+                >
+                  <i class="fas fa-certificate nav-item-icon"></i>
+                  <span class="nav-item-text">Frameworks</span>
+                </div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('ai-assistant')"
+                >
+                  <i class="fas fa-robot nav-item-icon"></i>
+                  <span class="nav-item-text">AI Assistant</span>
+                </div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('integrations')"
+                >
+                  <i class="fas fa-plug nav-item-icon"></i>
+                  <span class="nav-item-text">Integrations</span>
+                </div>
+              </div>
+
+              <div class="settings-nav-section">
+                <div class="nav-section-title">Data</div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('export-import')"
+                >
+                  <i class="fas fa-exchange-alt nav-item-icon"></i>
+                  <span class="nav-item-text">Export & Import</span>
+                </div>
+                <div
+                  class="settings-nav-item"
+                  onclick="showSection('advanced')"
+                >
+                  <i class="fas fa-cogs nav-item-icon"></i>
+                  <span class="nav-item-text">Advanced</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+              <!-- General Settings -->
+              <div class="settings-section active" id="general-section">
+                <div class="settings-header">
+                  <h2 class="settings-title">General Settings</h2>
+                  <p class="settings-subtitle">
+                    Manage your account and profile information
+                  </p>
+                </div>
+
+                <div class="settings-body">
+                  <div class="section-group">
+                    <div class="group-title">Profile Information</div>
+                    <div class="group-description">
+                      Update your personal details and profile settings
+                    </div>
+
+                    <div class="settings-card">
+                      <div class="user-avatar-section">
+                        <div class="user-avatar">LB</div>
+                        <div class="avatar-upload">
+                          <button class="btn btn-secondary">
+                            Change Avatar
+                          </button>
+                          <p
+                            style="font-size: 0.75rem; color: var(--text-gray)"
+                          >
+                            JPG, PNG up to 2MB
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="form-label">First Name</label>
+                          <input
+                            type="text"
+                            class="form-input"
+                            value="Libor"
+                            placeholder="Enter first name"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Last Name</label>
+                          <input
+                            type="text"
+                            class="form-input"
+                            value="Ballaty"
+                            placeholder="Enter last name"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="form-label">Email Address</label>
+                          <input
+                            type="email"
+                            class="form-input"
+                            value="libor@arioncomply.com"
+                            placeholder="Enter email"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Job Title</label>
+                          <input
+                            type="text"
+                            class="form-input"
+                            value="Chief Technology Officer"
+                            placeholder="Enter job title"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label class="form-label">Organization</label>
+                        <input
+                          type="text"
+                          class="form-input"
+                          value="ArionComply"
+                          placeholder="Enter organization"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section-group">
+                    <div class="group-title">Preferences</div>
+                    <div class="group-description">
+                      Customize your experience and interface settings
+                    </div>
+
+                    <div class="settings-card">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="form-label">Language</label>
+                          <select class="form-select">
+                            <option value="en" selected>English</option>
+                            <option value="de">Deutsch</option>
+                            <option value="fr">Français</option>
+                            <option value="es">Español</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Timezone</label>
+                          <select class="form-select">
+                            <option value="utc">UTC</option>
+                            <option value="cet" selected>
+                              Central European Time
+                            </option>
+                            <option value="est">Eastern Standard Time</option>
+                            <option value="pst">Pacific Standard Time</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label class="form-label">Date Format</label>
+                          <select class="form-select">
+                            <option value="dd/mm/yyyy" selected>
+                              DD/MM/YYYY
+                            </option>
+                            <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Theme</label>
+                          <select class="form-select">
+                            <option value="light" selected>Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="auto">Auto (System)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional sections would go here... -->
+
+              <!-- Settings Footer -->
+              <div class="settings-footer">
+                <div class="save-status">
+                  <i class="fas fa-check-circle"></i>
+                  <span>All changes saved automatically</span>
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-gray)">
+                  Last updated: December 22, 2024 at 2:30 PM
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Settings%20Configuration&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      let currentSection = "general";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("settingsPanel.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Settings Configuration");
+      });
+
+      function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll(".settings-section").forEach((section) => {
+          section.classList.remove("active");
+        });
+
+        // Remove active class from all nav items
+        document.querySelectorAll(".settings-nav-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+
+        // Show selected section
+        document.getElementById(sectionId + "-section").classList.add("active");
+
+        // Add active class to clicked nav item
+        event.target.classList.add("active");
+
+        // Update breadcrumb
+        const sectionNames = {
+          general: "General",
+          security: "Security",
+          notifications: "Notifications",
+          frameworks: "Frameworks",
+          "ai-assistant": "AI Assistant",
+          integrations: "Integrations",
+          "export-import": "Export & Import",
+          advanced: "Advanced",
+        };
+
+        updateBreadcrumb(`Settings > ${sectionNames[sectionId]}`);
+        currentSection = sectionId;
+      }
+
+      function toggleSetting(element) {
+        element.classList.toggle("active");
+
+        const isActive = element.classList.contains("active");
+        showNotification(
+          `Setting ${isActive ? "enabled" : "disabled"}`,
+          "success",
+        );
+      }
+
+      function saveAllSettings() {
+        showNotification("All settings saved successfully", "success");
+      }
+
+      function resetSettings() {
+        if (
+          confirm(
+            "Are you sure you want to reset all settings to defaults? This cannot be undone.",
+          )
+        ) {
+          showNotification("Settings reset to defaults", "info");
+        }
+      }
+
+      function exportSettings() {
+        showNotification("Exporting configuration...", "info");
+      }
+
+      function exportData() {
+        showNotification("Preparing data export...", "info");
+      }
+
+      function importData() {
+        showNotification("Opening data import wizard...", "info");
+      }
+
+      function resetAllData() {
+        const confirmation = prompt(
+          'This will delete ALL your data permanently. Type "DELETE" to confirm:',
+        );
+        if (confirmation === "DELETE") {
+          showNotification("Data reset initiated...", "error");
+        } else {
+          showNotification("Data reset cancelled", "info");
+        }
+      }
+
+      function deleteAccount() {
+        const confirmation = prompt(
+          'This will permanently delete your account. Type "DELETE ACCOUNT" to confirm:',
+        );
+        if (confirmation === "DELETE ACCOUNT") {
+          showNotification("Account deletion initiated...", "error");
+        } else {
+          showNotification("Account deletion cancelled", "info");
+        }
+      }
+
+      // Auto-save functionality
+      document.addEventListener("input", function (event) {
+        if (event.target.matches(".form-input, .form-select, .form-textarea")) {
+          clearTimeout(window.autoSaveTimeout);
+          window.autoSaveTimeout = setTimeout(() => {
+            const saveStatus = document.querySelector(".save-status");
+            saveStatus.innerHTML =
+              '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
+
+            setTimeout(() => {
+              saveStatus.innerHTML =
+                '<i class="fas fa-check-circle"></i><span>All changes saved automatically</span>';
+            }, 1000);
+          }, 2000);
+        }
+      });
+
+      // Integration connection handlers
+      document
+        .querySelectorAll(".integration-card button")
+        .forEach((button) => {
+          button.addEventListener("click", function () {
+            const integrationName =
+              this.closest(".integration-card").querySelector(
+                ".integration-name",
+              ).textContent;
+            const action = this.textContent;
+
+            if (action === "Connect") {
+              showNotification(`Connecting to ${integrationName}...`, "info");
+              setTimeout(() => {
+                this.textContent = "Configure";
+                this.className = "btn btn-secondary";
+                this.closest(".integration-card").querySelector(
+                  ".integration-status",
+                ).textContent = "Connected";
+                this.closest(".integration-card").querySelector(
+                  ".integration-status",
+                ).className = "integration-status connected";
+                showNotification(
+                  `${integrationName} connected successfully`,
+                  "success",
+                );
+              }, 2000);
+            } else {
+              showNotification(
+                `Opening ${integrationName} configuration...`,
+                "info",
+              );
+            }
+          });
+        });
+
+      // Framework toggle handlers
+      document
+        .querySelectorAll(".framework-item .toggle-switch")
+        .forEach((toggle) => {
+          toggle.addEventListener("click", function () {
+            const frameworkName = this.closest(".framework-item").querySelector(
+              ".framework-details h4",
+            ).textContent;
+            const isActive = this.classList.contains("active");
+
+            showNotification(
+              `${frameworkName} ${isActive ? "disabled" : "enabled"}`,
+              "info",
+            );
+          });
+        });
+    </script>
+  </body>
+</html>

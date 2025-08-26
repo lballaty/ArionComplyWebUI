@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Timeline View</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .timeline-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .timeline-sidebar {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .timeline-main {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .timeline-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .timeline-option {
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: var(--bg-white);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .timeline-option:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .timeline-option.active {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .option-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+      }
+
+      .option-icon.audit {
+        background: var(--danger-red);
+      }
+
+      .option-icon.compliance {
+        background: var(--success-green);
+      }
+
+      .option-icon.incident {
+        background: var(--warning-amber);
+      }
+
+      .option-icon.project {
+        background: var(--primary-blue);
+      }
+
+      .option-icon.milestone {
+        background: var(--ai-purple);
+      }
+
+      .option-info {
+        flex: 1;
+      }
+
+      .option-name {
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-bottom: 0.125rem;
+      }
+
+      .option-desc {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .filter-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+
+      .filter-select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+
+      .date-range {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .date-input {
+        padding: 0.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+      }
+
+      .timeline-stats {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+      }
+
+      .stats-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .stat-label {
+        color: var(--text-gray);
+      }
+
+      .stat-value {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .timeline-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .timeline-title {
+        font-weight: 600;
+        font-size: 1.125rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .timeline-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .timeline-toolbar {
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .timeline-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .timeline-control-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-size: 0.875rem;
+      }
+
+      .timeline-control-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .timeline-control-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .zoom-controls {
+        display: flex;
+        gap: 0.25rem;
+        margin-left: auto;
+      }
+
+      .zoom-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+      }
+
+      .zoom-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .timeline-content {
+        flex: 1;
+        padding: 2rem;
+        overflow-x: auto;
+        overflow-y: auto;
+      }
+
+      .timeline-scale {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-light);
+        position: sticky;
+        top: 0;
+        background: var(--bg-white);
+        z-index: 10;
+      }
+
+      .scale-marker {
+        flex: 1;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        position: relative;
+      }
+
+      .scale-marker::after {
+        content: "";
+        position: absolute;
+        bottom: -1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1px;
+        height: 0.75rem;
+        background: var(--border-light);
+      }
+
+      .scale-marker.major {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .scale-marker.major::after {
+        height: 1rem;
+        background: var(--text-gray);
+      }
+
+      .timeline-track {
+        margin-bottom: 3rem;
+        position: relative;
+      }
+
+      .track-header {
+        margin-bottom: 1rem;
+      }
+
+      .track-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .track-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .track-line {
+        position: relative;
+        height: 60px;
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-light);
+      }
+
+      .timeline-event {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        z-index: 5;
+      }
+
+      .timeline-event:hover {
+        z-index: 10;
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      .event-marker {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 3px solid var(--bg-white);
+        position: relative;
+      }
+
+      .event-marker.audit {
+        background: var(--danger-red);
+      }
+
+      .event-marker.compliance {
+        background: var(--success-green);
+      }
+
+      .event-marker.incident {
+        background: var(--warning-amber);
+      }
+
+      .event-marker.milestone {
+        background: var(--ai-purple);
+        border-radius: 0;
+        transform: rotate(45deg);
+      }
+
+      .event-marker.project {
+        background: var(--primary-blue);
+      }
+
+      .event-duration {
+        position: absolute;
+        top: 50%;
+        left: 8px;
+        transform: translateY(-50%);
+        height: 8px;
+        background: var(--primary-blue);
+        opacity: 0.3;
+        border-radius: 4px;
+        min-width: 20px;
+      }
+
+      .event-duration.audit {
+        background: var(--danger-red);
+      }
+
+      .event-duration.compliance {
+        background: var(--success-green);
+      }
+
+      .event-duration.incident {
+        background: var(--warning-amber);
+      }
+
+      .event-tooltip {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text-dark);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.15s ease;
+        z-index: 1000;
+        max-width: 200px;
+        white-space: normal;
+        text-align: center;
+      }
+
+      .event-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: var(--text-dark);
+      }
+
+      .timeline-event:hover .event-tooltip {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .event-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      }
+
+      .event-modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 2rem;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-gray);
+      }
+
+      .modal-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+      }
+
+      .modal-field {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .modal-field-label {
+        color: var(--text-gray);
+      }
+
+      .modal-field-value {
+        font-weight: 500;
+      }
+
+      .timeline-legend {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .legend-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .legend-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      .legend-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .legend-marker.milestone {
+        border-radius: 0;
+        transform: rotate(45deg);
+      }
+
+      .current-time-indicator {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--danger-red);
+        z-index: 20;
+        opacity: 0.8;
+      }
+
+      .current-time-indicator::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -3px;
+        width: 8px;
+        height: 8px;
+        background: var(--danger-red);
+        border-radius: 50%;
+      }
+
+      .current-time-label {
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.625rem;
+        color: var(--danger-red);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .swimlane-separator {
+        height: 1px;
+        background: var(--border-light);
+        margin: 2rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Timeline View Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Compliance Timeline</h1>
+              <p class="page-subtitle">Project Timeline & Milestone Tracking</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="exportTimeline()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-secondary" onclick="shareTimeline()">
+                <i class="fas fa-share"></i>
+                Share
+              </button>
+              <button class="btn btn-primary" onclick="addEvent()">
+                <i class="fas fa-plus"></i>
+                Add Event
+              </button>
+            </div>
+          </div>
+
+          <div class="timeline-container">
+            <!-- Timeline Sidebar -->
+            <div class="timeline-sidebar">
+              <div class="sidebar-section">
+                <div class="section-title">Timeline Views</div>
+                <div class="timeline-options">
+                  <div
+                    class="timeline-option active"
+                    onclick="switchTimeline(this, 'audit')"
+                  >
+                    <div class="option-icon audit">
+                      <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="option-info">
+                      <div class="option-name">Audit Timeline</div>
+                      <div class="option-desc">Audit schedule & findings</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="timeline-option"
+                    onclick="switchTimeline(this, 'compliance')"
+                  >
+                    <div class="option-icon compliance">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="option-info">
+                      <div class="option-name">Compliance Milestones</div>
+                      <div class="option-desc">Certification & deadlines</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="timeline-option"
+                    onclick="switchTimeline(this, 'incident')"
+                  >
+                    <div class="option-icon incident">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="option-info">
+                      <div class="option-name">Incident History</div>
+                      <div class="option-desc">
+                        Security incidents & responses
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="timeline-option"
+                    onclick="switchTimeline(this, 'project')"
+                  >
+                    <div class="option-icon project">
+                      <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="option-info">
+                      <div class="option-name">Project Timeline</div>
+                      <div class="option-desc">Implementation projects</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="section-title">Filters</div>
+                <div class="filter-group">
+                  <label class="filter-label">Event Type</label>
+                  <select
+                    class="filter-select"
+                    onchange="filterByType(this.value)"
+                  >
+                    <option value="">All Types</option>
+                    <option value="audit">Audits</option>
+                    <option value="milestone">Milestones</option>
+                    <option value="incident">Incidents</option>
+                    <option value="training">Training</option>
+                    <option value="review">Reviews</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Framework</label>
+                  <select
+                    class="filter-select"
+                    onchange="filterByFramework(this.value)"
+                  >
+                    <option value="">All Frameworks</option>
+                    <option value="iso27001">ISO 27001</option>
+                    <option value="gdpr">GDPR</option>
+                    <option value="soc2">SOC 2</option>
+                    <option value="ai-act">EU AI Act</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Status</label>
+                  <select
+                    class="filter-select"
+                    onchange="filterByStatus(this.value)"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Time Range</label>
+                  <div class="date-range">
+                    <input type="date" class="date-input" value="2024-01-01" />
+                    <input type="date" class="date-input" value="2024-12-31" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="timeline-stats">
+                  <div class="stats-title">Timeline Statistics</div>
+                  <div class="stat-item">
+                    <span class="stat-label">Total Events</span>
+                    <span class="stat-value">47</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">This Month</span>
+                    <span class="stat-value">8</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Completed</span>
+                    <span class="stat-value">34</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Overdue</span>
+                    <span class="stat-value">3</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Next 30 Days</span>
+                    <span class="stat-value">12</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline Main -->
+            <div class="timeline-main">
+              <div class="timeline-header">
+                <div class="timeline-title">
+                  <i class="fas fa-clock"></i>
+                  <span>2024 Audit Timeline</span>
+                </div>
+                <div class="timeline-actions">
+                  <button class="btn btn-secondary" onclick="todayView()">
+                    <i class="fas fa-crosshairs"></i>
+                    Today
+                  </button>
+                </div>
+              </div>
+
+              <div class="timeline-toolbar">
+                <div class="timeline-controls">
+                  <button
+                    class="timeline-control-btn"
+                    onclick="setTimeScale('day')"
+                  >
+                    Day
+                  </button>
+                  <button
+                    class="timeline-control-btn"
+                    onclick="setTimeScale('week')"
+                  >
+                    Week
+                  </button>
+                  <button
+                    class="timeline-control-btn active"
+                    onclick="setTimeScale('month')"
+                  >
+                    Month
+                  </button>
+                  <button
+                    class="timeline-control-btn"
+                    onclick="setTimeScale('quarter')"
+                  >
+                    Quarter
+                  </button>
+                  <button
+                    class="timeline-control-btn"
+                    onclick="setTimeScale('year')"
+                  >
+                    Year
+                  </button>
+                </div>
+                <div class="zoom-controls">
+                  <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                  <button
+                    class="zoom-btn"
+                    onclick="fitToScreen()"
+                    title="Fit to Screen"
+                  >
+                    <i class="fas fa-expand-arrows-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="timeline-content">
+                <!-- Timeline Legend -->
+                <div class="timeline-legend">
+                  <div class="legend-title">Event Types</div>
+                  <div class="legend-items">
+                    <div class="legend-item">
+                      <div
+                        class="legend-marker"
+                        style="background: var(--danger-red)"
+                      ></div>
+                      <span>Audits</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-marker"
+                        style="background: var(--success-green)"
+                      ></div>
+                      <span>Compliance</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-marker"
+                        style="background: var(--warning-amber)"
+                      ></div>
+                      <span>Incidents</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-marker milestone"
+                        style="background: var(--ai-purple)"
+                      ></div>
+                      <span>Milestones</span>
+                    </div>
+                    <div class="legend-item">
+                      <div
+                        class="legend-marker"
+                        style="background: var(--primary-blue)"
+                      ></div>
+                      <span>Projects</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Timeline Scale -->
+                <div class="timeline-scale">
+                  <div class="scale-marker major">Jan 2024</div>
+                  <div class="scale-marker">Feb</div>
+                  <div class="scale-marker">Mar</div>
+                  <div class="scale-marker major">Apr</div>
+                  <div class="scale-marker">May</div>
+                  <div class="scale-marker">Jun</div>
+                  <div class="scale-marker major">Jul</div>
+                  <div class="scale-marker">Aug</div>
+                  <div class="scale-marker">Sep</div>
+                  <div class="scale-marker major">Oct</div>
+                  <div class="scale-marker">Nov</div>
+                  <div class="scale-marker major">Dec 2024</div>
+                </div>
+
+                <!-- Current Time Indicator -->
+                <div class="current-time-indicator" style="left: 92%">
+                  <div class="current-time-label">Today</div>
+                </div>
+
+                <!-- External Audits Track -->
+                <div class="timeline-track">
+                  <div class="track-header">
+                    <div class="track-title">External Audits</div>
+                    <div class="track-subtitle">
+                      Third-party certification audits
+                    </div>
+                  </div>
+                  <div class="track-line" id="track-audit">
+                    <div
+                      class="timeline-event"
+                      style="left: 15%"
+                      onclick="openEvent('audit-1')"
+                    >
+                      <div class="event-duration audit" style="width: 5%"></div>
+                      <div class="event-marker audit"></div>
+                      <div class="event-tooltip">
+                        ISO 27001 Annual Audit<br />Feb 15-17, 2024
+                      </div>
+                    </div>
+
+                    <div
+                      class="timeline-event"
+                      style="left: 45%"
+                      onclick="openEvent('audit-2')"
+                    >
+                      <div class="event-duration audit" style="width: 3%"></div>
+                      <div class="event-marker audit"></div>
+                      <div class="event-tooltip">
+                        SOC 2 Type II Audit<br />Jun 10-12, 2024
+                      </div>
+                    </div>
+
+                    <div
+                      class="timeline-event"
+                      style="left: 95%"
+                      onclick="openEvent('audit-3')"
+                    >
+                      <div class="event-marker audit"></div>
+                      <div class="event-tooltip">
+                        Year-end Compliance Review<br />Dec 20, 2024
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Additional tracks would continue here... -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Event Modal -->
+      <div class="event-modal" id="eventModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Event Details</div>
+            <button class="modal-close" onclick="closeEventModal()">×</button>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Basic Information</div>
+            <div class="modal-field">
+              <span class="modal-field-label">Event Type:</span>
+              <span class="modal-field-value" id="modalEventType"
+                >External Audit</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Status:</span>
+              <span class="modal-field-value" id="modalStatus">Completed</span>
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Framework:</span>
+              <span class="modal-field-value" id="modalFramework"
+                >ISO 27001</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Start Date:</span>
+              <span class="modal-field-value" id="modalStartDate"
+                >February 15, 2024</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">End Date:</span>
+              <span class="modal-field-value" id="modalEndDate"
+                >February 17, 2024</span
+              >
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Description</div>
+            <p id="modalDescription">
+              Annual surveillance audit for ISO 27001 certification.
+              Comprehensive review of information security management system
+              including policy compliance, risk assessment updates, and control
+              effectiveness testing.
+            </p>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Stakeholders</div>
+            <div class="modal-field">
+              <span class="modal-field-label">Lead Auditor:</span>
+              <span class="modal-field-value" id="modalLeadAuditor"
+                >External Certification Body</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Internal Contact:</span>
+              <span class="modal-field-value" id="modalContact"
+                >Compliance Team</span
+              >
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <div class="modal-section-title">Outcomes</div>
+            <div class="modal-field">
+              <span class="modal-field-label">Result:</span>
+              <span class="modal-field-value" id="modalResult"
+                >Certification Maintained</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Findings:</span>
+              <span class="modal-field-value" id="modalFindings"
+                >2 Minor Non-conformities</span
+              >
+            </div>
+            <div class="modal-field">
+              <span class="modal-field-label">Next Review:</span>
+              <span class="modal-field-value" id="modalNextReview"
+                >February 2025</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Timeline%20Analysis&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      let currentTimeline = "audit";
+      let currentScale = "month";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("timelineView.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Timeline Analysis");
+
+        const events = dynamicUITableSeedData(
+          "timelineEvents",
+          (i) => ({
+            id: `event-${i}`,
+            type: ["audit", "milestone", "incident", "project"][i % 4],
+            left: (i * 3) % 100,
+            width: (i % 5) + 1,
+            label: `Event ${i}`,
+          }),
+          30,
+        );
+
+        const tracks = {
+          audit: document.getElementById("track-audit"),
+          milestone: document.getElementById("track-milestone"),
+          incident: document.getElementById("track-incident"),
+          project: document.getElementById("track-project"),
+        };
+
+        events.forEach((ev) => {
+          const eDiv = document.createElement("div");
+          eDiv.className = "timeline-event";
+          eDiv.style.left = ev.left + "%";
+          eDiv.setAttribute("onclick", `openEvent('${ev.id}')`);
+          const dur = document.createElement("div");
+          dur.className = `event-duration ${ev.type}`;
+          dur.style.width = ev.width + "%";
+          const marker = document.createElement("div");
+          marker.className = `event-marker ${ev.type}`;
+          const tip = document.createElement("div");
+          tip.className = "event-tooltip";
+          tip.textContent = ev.label;
+          eDiv.appendChild(dur);
+          eDiv.appendChild(marker);
+          eDiv.appendChild(tip);
+          if (tracks[ev.type]) {
+            tracks[ev.type].appendChild(eDiv);
+          }
+        });
+      });
+
+      function switchTimeline(element, timelineType) {
+        // Update timeline option states
+        document
+          .querySelectorAll(".timeline-option")
+          .forEach((option) => option.classList.remove("active"));
+        element.classList.add("active");
+
+        currentTimeline = timelineType;
+
+        const timelineNames = {
+          audit: "2024 Audit Timeline",
+          compliance: "Compliance Milestones",
+          incident: "Security Incident History",
+          project: "Implementation Projects",
+        };
+
+        document.querySelector(".timeline-title span").textContent =
+          timelineNames[timelineType];
+        showNotification(`Switched to ${timelineNames[timelineType]}`, "info");
+      }
+
+      function setTimeScale(scale) {
+        // Update scale button states
+        document
+          .querySelectorAll(".timeline-control-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+
+        currentScale = scale;
+        showNotification(`Time scale set to ${scale}`, "info");
+
+        // Update timeline scale (in real app, this would rerender the timeline)
+        updateTimelineScale(scale);
+      }
+
+      function updateTimelineScale(scale) {
+        const scaleContainer = document.querySelector(".timeline-scale");
+        const scales = {
+          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          week: ["Week 1", "Week 2", "Week 3", "Week 4"],
+          month: [
+            "Jan 2024",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec 2024",
+          ],
+          quarter: ["Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024"],
+          year: ["2022", "2023", "2024", "2025"],
+        };
+
+        // This would update the scale markers in a real implementation
+        console.log("Updating timeline scale to:", scale);
+      }
+
+      function openEvent(eventId) {
+        const eventData = {
+          "audit-1": {
+            title: "ISO 27001 Annual Audit",
+            type: "External Audit",
+            status: "Completed",
+            framework: "ISO 27001",
+            startDate: "February 15, 2024",
+            endDate: "February 17, 2024",
+            description:
+              "Annual surveillance audit for ISO 27001 certification. Comprehensive review of information security management system including policy compliance, risk assessment updates, and control effectiveness testing.",
+            leadAuditor: "External Certification Body",
+            contact: "Compliance Team",
+            result: "Certification Maintained",
+            findings: "2 Minor Non-conformities",
+            nextReview: "February 2025",
+          },
+          "milestone-1": {
+            title: "ISO 27001 Certification",
+            type: "Compliance Milestone",
+            status: "Achieved",
+            framework: "ISO 27001",
+            startDate: "January 30, 2024",
+            endDate: "January 30, 2024",
+            description:
+              "Successfully achieved ISO 27001:2022 certification following comprehensive audit and implementation of information security management system.",
+            leadAuditor: "Certification Body",
+            contact: "CISO",
+            result: "Certification Granted",
+            findings: "No Major Issues",
+            nextReview: "January 2027",
+          },
+        };
+
+        const data = eventData[eventId] || eventData["audit-1"];
+
+        document.getElementById("modalTitle").textContent = data.title;
+        document.getElementById("modalEventType").textContent = data.type;
+        document.getElementById("modalStatus").textContent = data.status;
+        document.getElementById("modalFramework").textContent = data.framework;
+        document.getElementById("modalStartDate").textContent = data.startDate;
+        document.getElementById("modalEndDate").textContent = data.endDate;
+        document.getElementById("modalDescription").textContent =
+          data.description;
+        document.getElementById("modalLeadAuditor").textContent =
+          data.leadAuditor;
+        document.getElementById("modalContact").textContent = data.contact;
+        document.getElementById("modalResult").textContent = data.result;
+        document.getElementById("modalFindings").textContent = data.findings;
+        document.getElementById("modalNextReview").textContent =
+          data.nextReview;
+
+        document.getElementById("eventModal").classList.add("show");
+      }
+
+      function closeEventModal() {
+        document.getElementById("eventModal").classList.remove("show");
+      }
+
+      function addEvent() {
+        showNotification("Opening new event form...", "info");
+      }
+
+      function exportTimeline() {
+        showNotification("Exporting timeline...", "info");
+      }
+
+      function shareTimeline() {
+        showNotification("Opening share options...", "info");
+      }
+
+      function todayView() {
+        showNotification("Centering on today...", "info");
+      }
+
+      function zoomIn() {
+        showNotification("Zooming in...", "info");
+      }
+
+      function zoomOut() {
+        showNotification("Zooming out...", "info");
+      }
+
+      function fitToScreen() {
+        showNotification("Fitting timeline to screen...", "info");
+      }
+
+      function filterByType(type) {
+        showNotification(`Filtering by type: ${type || "All"}`, "info");
+      }
+
+      function filterByFramework(framework) {
+        showNotification(
+          `Filtering by framework: ${framework || "All"}`,
+          "info",
+        );
+      }
+
+      function filterByStatus(status) {
+        showNotification(`Filtering by status: ${status || "All"}`, "info");
+      }
+
+      // Modal close on outside click
+      document
+        .getElementById("eventModal")
+        .addEventListener("click", function (event) {
+          if (event.target === this) {
+            closeEventModal();
+          }
+        });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", function (event) {
+        if (
+          event.key === "Escape" &&
+          document.getElementById("eventModal").classList.contains("show")
+        ) {
+          closeEventModal();
+        }
+      });
+
+      // Simulate timeline interactions
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add scroll synchronization for timeline tracks
+        const timelineContent = document.querySelector(".timeline-content");
+        let isScrolling = false;
+
+        timelineContent.addEventListener("scroll", function () {
+          if (!isScrolling) {
+            isScrolling = true;
+            // Synchronize all timeline tracks
+            setTimeout(() => {
+              isScrolling = false;
+            }, 100);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

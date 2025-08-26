@@ -1,0 +1,15 @@
+{
+  "_file_path": "config.json (in project root)",
+  "_description": "Configuration for the compliance assistant - models, prompts, and app settings",
+  
+  "systemPrompt": "You are an ISO 27001 and GDPR compliance assistant.\n- Provide clear, concise guidance based on ISO/IEC 27001:2022 and GDPR.\n- Ask clarifying questions before answering.\n- Use bullet points, section references, and avoid speculation.\nRestrictions:\n- Do NOT provide legal advice.\n- Do NOT guess or hallucinate.\n- Do NOT answer non-compliance questions.",
+  "models": {
+    "openai": "gpt-4o",
+    "claude": "claude-3-5-sonnet-20241022"
+  },
+  "maxTokens": 1024,
+  "appConfig": {
+    "title": "Compliance Assistant Tester (Claude vs GPT)",
+    "description": "Compare AI responses for ISO 27001 and GDPR compliance questions"
+  }
+}

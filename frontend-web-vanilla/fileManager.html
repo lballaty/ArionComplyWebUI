@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Document Management</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .file-manager-container {
+        display: grid;
+        grid-template-columns: 250px 1fr 300px;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .folder-tree {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .file-browser {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .file-details {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .tree-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      .tree-title {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .tree-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .tree-action-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+      }
+
+      .tree-action-btn:hover {
+        background: var(--bg-light);
+      }
+
+      .folder-node {
+        margin-bottom: 0.25rem;
+      }
+
+      .folder-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+
+      .folder-item:hover {
+        background: var(--bg-light);
+      }
+
+      .folder-item.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .folder-toggle {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+      }
+
+      .folder-icon {
+        margin-right: 0.5rem;
+        width: 16px;
+        text-align: center;
+      }
+
+      .folder-name {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .folder-count {
+        font-size: 0.75rem;
+        opacity: 0.7;
+      }
+
+      .folder-children {
+        margin-left: 1rem;
+        display: none;
+      }
+
+      .folder-children.expanded {
+        display: block;
+      }
+
+      .browser-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: between;
+      }
+
+      .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        gap: 0.5rem;
+      }
+
+      .breadcrumb-item {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .breadcrumb-item:hover {
+        color: var(--primary-blue);
+      }
+
+      .breadcrumb-item.current {
+        color: var(--text-dark);
+        font-weight: 500;
+      }
+
+      .breadcrumb-separator {
+        color: var(--text-gray);
+        font-size: 0.75rem;
+      }
+
+      .browser-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .view-mode-toggle {
+        display: flex;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+      }
+
+      .view-mode-btn {
+        padding: 0.5rem;
+        border: none;
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .view-mode-btn.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .browser-toolbar {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .search-files {
+        flex: 1;
+        position: relative;
+      }
+
+      .search-files input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+      }
+
+      .search-files i {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-gray);
+      }
+
+      .sort-dropdown {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+      }
+
+      .file-content {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .file-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+      }
+
+      .file-list {
+        display: none;
+      }
+
+      .file-list.active {
+        display: block;
+      }
+
+      .file-grid.active {
+        display: grid;
+      }
+
+      .file-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        position: relative;
+      }
+
+      .file-item:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+      }
+
+      .file-item.selected {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .file-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .file-icon.pdf {
+        color: var(--danger-red);
+      }
+
+      .file-icon.doc {
+        color: var(--primary-blue);
+      }
+
+      .file-icon.xls {
+        color: var(--success-green);
+      }
+
+      .file-icon.img {
+        color: var(--ai-purple);
+      }
+
+      .file-icon.folder {
+        color: var(--warning-amber);
+      }
+
+      .file-name {
+        font-size: 0.75rem;
+        text-align: center;
+        line-height: 1.2;
+        word-break: break-word;
+      }
+
+      .file-size {
+        font-size: 0.625rem;
+        color: var(--text-gray);
+        margin-top: 0.25rem;
+      }
+
+      .file-checkbox {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        display: none;
+      }
+
+      .file-item:hover .file-checkbox,
+      .file-item.selected .file-checkbox {
+        display: block;
+      }
+
+      .file-row {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .file-row:hover {
+        background: var(--bg-light);
+      }
+
+      .file-row.selected {
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .file-row-checkbox {
+        margin-right: 1rem;
+      }
+
+      .file-row-icon {
+        margin-right: 1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      .file-row-name {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .file-row-size {
+        width: 80px;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .file-row-date {
+        width: 120px;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .file-row-actions {
+        width: 100px;
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .file-action-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        opacity: 0;
+      }
+
+      .file-row:hover .file-action-btn {
+        opacity: 1;
+      }
+
+      .file-action-btn:hover {
+        background: var(--bg-gray);
+      }
+
+      .details-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .details-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .details-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .file-preview {
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      .preview-icon {
+        font-size: 4rem;
+        color: var(--text-gray);
+        opacity: 0.5;
+        margin-bottom: 1rem;
+      }
+
+      .preview-text {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+      }
+
+      .details-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+      }
+
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 0.875rem;
+      }
+
+      .detail-label {
+        color: var(--text-gray);
+      }
+
+      .detail-value {
+        color: var(--text-dark);
+        font-weight: 500;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+
+      .tag {
+        padding: 0.125rem 0.5rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .version-item {
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+      }
+
+      .version-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .version-number {
+        font-weight: 600;
+        color: var(--primary-blue);
+      }
+
+      .version-date {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .version-description {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-gray);
+      }
+
+      .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+      }
+
+      .upload-zone {
+        border: 2px dashed var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        transition: all 0.15s ease;
+        cursor: pointer;
+      }
+
+      .upload-zone:hover {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .upload-zone.dragover {
+        border-color: var(--primary-blue);
+        background: rgba(37, 99, 235, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - File Manager Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Document Management</h1>
+              <p class="page-subtitle">
+                Centralized Document Storage & Version Control
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="syncFiles()">
+                <i class="fas fa-sync"></i>
+                Sync
+              </button>
+              <button class="btn btn-secondary" onclick="createFolder()">
+                <i class="fas fa-folder-plus"></i>
+                New Folder
+              </button>
+              <button class="btn btn-primary" onclick="uploadFile()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Upload
+              </button>
+            </div>
+          </div>
+
+          <div class="file-manager-container">
+            <!-- Folder Tree -->
+            <div class="folder-tree">
+              <div class="tree-header">
+                <div class="tree-title">Folders</div>
+                <div class="tree-actions">
+                  <button
+                    class="tree-action-btn"
+                    onclick="refreshTree()"
+                    title="Refresh"
+                  >
+                    <i class="fas fa-sync"></i>
+                  </button>
+                  <button
+                    class="tree-action-btn"
+                    onclick="collapseAll()"
+                    title="Collapse All"
+                  >
+                    <i class="fas fa-compress"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="folder-node">
+                <div
+                  class="folder-item active"
+                  onclick="selectFolder(this, 'root')"
+                >
+                  <div class="folder-toggle" onclick="toggleFolder(this)">
+                    <i class="fas fa-chevron-down"></i>
+                  </div>
+                  <i class="fas fa-home folder-icon"></i>
+                  <span class="folder-name">Document Root</span>
+                  <span class="folder-count">247</span>
+                </div>
+                <div class="folder-children expanded">
+                  <div class="folder-node">
+                    <div
+                      class="folder-item"
+                      onclick="selectFolder(this, 'policies')"
+                    >
+                      <div class="folder-toggle" onclick="toggleFolder(this)">
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                      <i class="fas fa-folder folder-icon"></i>
+                      <span class="folder-name">Policies</span>
+                      <span class="folder-count">48</span>
+                    </div>
+                    <div class="folder-children">
+                      <div class="folder-node">
+                        <div
+                          class="folder-item"
+                          onclick="selectFolder(this, 'info-security')"
+                        >
+                          <div class="folder-toggle"></div>
+                          <i class="fas fa-folder folder-icon"></i>
+                          <span class="folder-name">Information Security</span>
+                          <span class="folder-count">15</span>
+                        </div>
+                      </div>
+                      <div class="folder-node">
+                        <div
+                          class="folder-item"
+                          onclick="selectFolder(this, 'privacy')"
+                        >
+                          <div class="folder-toggle"></div>
+                          <i class="fas fa-folder folder-icon"></i>
+                          <span class="folder-name">Privacy & GDPR</span>
+                          <span class="folder-count">22</span>
+                        </div>
+                      </div>
+                      <div class="folder-node">
+                        <div
+                          class="folder-item"
+                          onclick="selectFolder(this, 'ai-governance')"
+                        >
+                          <div class="folder-toggle"></div>
+                          <i class="fas fa-folder folder-icon"></i>
+                          <span class="folder-name">AI Governance</span>
+                          <span class="folder-count">11</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="folder-node">
+                    <div
+                      class="folder-item"
+                      onclick="selectFolder(this, 'assessments')"
+                    >
+                      <div class="folder-toggle" onclick="toggleFolder(this)">
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                      <i class="fas fa-folder folder-icon"></i>
+                      <span class="folder-name">Assessments</span>
+                      <span class="folder-count">89</span>
+                    </div>
+                  </div>
+
+                  <div class="folder-node">
+                    <div
+                      class="folder-item"
+                      onclick="selectFolder(this, 'audits')"
+                    >
+                      <div class="folder-toggle" onclick="toggleFolder(this)">
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                      <i class="fas fa-folder folder-icon"></i>
+                      <span class="folder-name">Audit Reports</span>
+                      <span class="folder-count">34</span>
+                    </div>
+                  </div>
+
+                  <div class="folder-node">
+                    <div
+                      class="folder-item"
+                      onclick="selectFolder(this, 'training')"
+                    >
+                      <div class="folder-toggle" onclick="toggleFolder(this)">
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                      <i class="fas fa-folder folder-icon"></i>
+                      <span class="folder-name">Training Materials</span>
+                      <span class="folder-count">76</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- File Browser -->
+            <div class="file-browser">
+              <!-- Browser Header -->
+              <div class="browser-header">
+                <div class="breadcrumb-nav">
+                  <span class="breadcrumb-item" onclick="navigateTo('root')"
+                    >Document Root</span
+                  >
+                  <span class="breadcrumb-separator">/</span>
+                  <span class="breadcrumb-item current">All Files</span>
+                </div>
+                <div class="browser-actions">
+                  <div class="view-mode-toggle">
+                    <button
+                      class="view-mode-btn active"
+                      onclick="switchView('grid')"
+                      title="Grid View"
+                    >
+                      <i class="fas fa-th"></i>
+                    </button>
+                    <button
+                      class="view-mode-btn"
+                      onclick="switchView('list')"
+                      title="List View"
+                    >
+                      <i class="fas fa-list"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Browser Toolbar -->
+              <div class="browser-toolbar">
+                <div class="search-files">
+                  <i class="fas fa-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Search in current folder..."
+                    oninput="searchFiles(this.value)"
+                  />
+                </div>
+                <select class="sort-dropdown" onchange="sortFiles(this.value)">
+                  <option value="name">Sort by Name</option>
+                  <option value="date">Sort by Date</option>
+                  <option value="size">Sort by Size</option>
+                  <option value="type">Sort by Type</option>
+                </select>
+              </div>
+
+              <!-- File Content -->
+              <div class="file-content">
+                <!-- Upload Zone -->
+                <div
+                  class="upload-zone"
+                  onclick="uploadFile()"
+                  ondrop="handleDrop(event)"
+                  ondragover="handleDragOver(event)"
+                >
+                  <i
+                    class="fas fa-cloud-upload-alt"
+                    style="
+                      font-size: 2rem;
+                      color: var(--primary-blue);
+                      margin-bottom: 0.5rem;
+                    "
+                  ></i>
+                  <p style="margin-bottom: 0.5rem">Drop files here to upload</p>
+                  <p style="font-size: 0.875rem; color: var(--text-gray)">
+                    or click to browse
+                  </p>
+                </div>
+
+                <!-- Grid View -->
+                <div class="file-grid active" id="grid-view">
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'gdpr-policy.pdf')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-pdf file-icon pdf"></i>
+                    <div class="file-name">GDPR Data Protection Policy</div>
+                    <div class="file-size">2.4 MB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'ai-management.docx')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-word file-icon doc"></i>
+                    <div class="file-name">AI Management System Policy</div>
+                    <div class="file-size">1.8 MB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'risk-register.xlsx')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-excel file-icon xls"></i>
+                    <div class="file-name">Risk Register Q4 2024</div>
+                    <div class="file-size">856 KB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'audit-report.pdf')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-pdf file-icon pdf"></i>
+                    <div class="file-name">ISO 27001 Audit Report</div>
+                    <div class="file-size">3.2 MB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'training-slides.pptx')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-powerpoint file-icon doc"></i>
+                    <div class="file-name">Security Training Presentation</div>
+                    <div class="file-size">12.5 MB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'network-diagram.png')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-image file-icon img"></i>
+                    <div class="file-name">Network Architecture Diagram</div>
+                    <div class="file-size">1.1 MB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'compliance-checklist.pdf')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-pdf file-icon pdf"></i>
+                    <div class="file-name">Compliance Checklist 2024</div>
+                    <div class="file-size">754 KB</div>
+                  </div>
+
+                  <div
+                    class="file-item"
+                    onclick="selectFile(this, 'incident-log.csv')"
+                  >
+                    <input type="checkbox" class="file-checkbox" />
+                    <i class="fas fa-file-csv file-icon xls"></i>
+                    <div class="file-name">Security Incident Log</div>
+                    <div class="file-size">234 KB</div>
+                  </div>
+                </div>
+
+                <!-- List View -->
+                <div class="file-list" id="list-view">
+                  <div
+                    class="file-row"
+                    onclick="selectFile(this, 'gdpr-policy.pdf')"
+                  >
+                    <input type="checkbox" class="file-row-checkbox" />
+                    <i class="fas fa-file-pdf file-row-icon pdf"></i>
+                    <div class="file-row-name">
+                      GDPR Data Protection Policy.pdf
+                    </div>
+                    <div class="file-row-size">2.4 MB</div>
+                    <div class="file-row-date">Dec 15, 2024</div>
+                    <div class="file-row-actions">
+                      <button
+                        class="file-action-btn"
+                        onclick="downloadFile(event, 'gdpr-policy.pdf')"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                      <button
+                        class="file-action-btn"
+                        onclick="shareFile(event, 'gdpr-policy.pdf')"
+                        title="Share"
+                      >
+                        <i class="fas fa-share"></i>
+                      </button>
+                      <button
+                        class="file-action-btn"
+                        onclick="deleteFile(event, 'gdpr-policy.pdf')"
+                        title="Delete"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="file-row"
+                    onclick="selectFile(this, 'ai-management.docx')"
+                  >
+                    <input type="checkbox" class="file-row-checkbox" />
+                    <i class="fas fa-file-word file-row-icon doc"></i>
+                    <div class="file-row-name">
+                      AI Management System Policy.docx
+                    </div>
+                    <div class="file-row-size">1.8 MB</div>
+                    <div class="file-row-date">Dec 12, 2024</div>
+                    <div class="file-row-actions">
+                      <button
+                        class="file-action-btn"
+                        onclick="downloadFile(event, 'ai-management.docx')"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                      <button
+                        class="file-action-btn"
+                        onclick="shareFile(event, 'ai-management.docx')"
+                        title="Share"
+                      >
+                        <i class="fas fa-share"></i>
+                      </button>
+                      <button
+                        class="file-action-btn"
+                        onclick="deleteFile(event, 'ai-management.docx')"
+                        title="Delete"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- More file rows would be here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- File Details -->
+            <div class="file-details">
+              <div class="details-header">
+                <div class="details-title">File Details</div>
+                <div class="details-subtitle">
+                  Select a file to view details
+                </div>
+              </div>
+
+              <div id="no-file-selected">
+                <div class="file-preview">
+                  <i class="fas fa-file preview-icon"></i>
+                  <p class="preview-text">No file selected</p>
+                </div>
+              </div>
+
+              <div id="file-details-content" style="display: none">
+                <div class="file-preview">
+                  <i class="fas fa-file-pdf preview-icon" id="preview-icon"></i>
+                  <p class="preview-text" id="preview-text">PDF Preview</p>
+                </div>
+
+                <div class="details-section">
+                  <div class="section-title">Properties</div>
+                  <div class="detail-item">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value" id="detail-name">-</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Size</span>
+                    <span class="detail-value" id="detail-size">-</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value" id="detail-type">-</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Created</span>
+                    <span class="detail-value" id="detail-created">-</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Modified</span>
+                    <span class="detail-value" id="detail-modified">-</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Owner</span>
+                    <span class="detail-value" id="detail-owner">-</span>
+                  </div>
+                </div>
+
+                <div class="details-section">
+                  <div class="section-title">Tags</div>
+                  <div class="tag-list" id="detail-tags">
+                    <span class="tag">GDPR</span>
+                    <span class="tag">Policy</span>
+                    <span class="tag">Active</span>
+                  </div>
+                </div>
+
+                <div class="details-section">
+                  <div class="section-title">Version History</div>
+                  <div class="version-item">
+                    <div class="version-header">
+                      <span class="version-number">v3.2</span>
+                      <span class="version-date">Dec 15, 2024</span>
+                    </div>
+                    <div class="version-description">
+                      Updated GDPR compliance requirements
+                    </div>
+                  </div>
+                  <div class="version-item">
+                    <div class="version-header">
+                      <span class="version-number">v3.1</span>
+                      <span class="version-date">Nov 28, 2024</span>
+                    </div>
+                    <div class="version-description">
+                      Minor formatting improvements
+                    </div>
+                  </div>
+                  <div class="version-item">
+                    <div class="version-header">
+                      <span class="version-number">v3.0</span>
+                      <span class="version-date">Oct 15, 2024</span>
+                    </div>
+                    <div class="version-description">
+                      Major policy revision for EU AI Act
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Document%20Management&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Load the new modular system -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+
+    <script>
+// =============================================================================
+// fileManager.html - Seed Data Integration Script
+// =============================================================================
+// FIND the <script> section in fileManager.html and REPLACE it with this code
+
+let currentPath = '/';
+let selectedFiles = [];
+let viewMode = 'grid'; // 'grid' or 'list'
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout system
+  LayoutManager.initializePage("fileManager.html");
+  
+  // Initialize file manager with seed data
+  loadFileStructure();
+  
+  // Set up file manager interactions
+  setupFileManagerInteractions();
+  
+  // Page-specific initialization
+  updateChatContext("File Management");
+  
+  console.log("✅ File manager initialized with seed data");
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadFileStructure() {
+  console.log("Loading file structure from seed data...");
+  
+  const files = getFiles();
+  
+  if (files.length === 0) {
+    console.warn("No files found in seed data");
+    createDefaultFiles();
+    return;
+  }
+  
+  // Render file tree
+  renderFileTree(files);
+  
+  // Render file grid/list
+  renderFileGrid(files);
+  
+  // Update breadcrumb
+  updateBreadcrumb(currentPath);
+  
+  // Update file count
+  updateFileCount(files.length);
+  
+  console.log(`✅ Loaded ${files.length} files from seed data`);
+}
+
+function renderFileTree(files) {
+  const fileTree = document.getElementById('file-tree') || 
+                   document.querySelector('.file-tree');
+  
+  if (!fileTree) {
+    console.warn("File tree container not found");
+    return;
+  }
+  
+  // Group files by path
+  const filesByPath = groupFilesByPath(files);
+  
+  fileTree.innerHTML = '';
+  
+  // Create tree structure
+  Object.keys(filesByPath).sort().forEach(path => {
+    const folderElement = createFolderTreeItem(path, filesByPath[path]);
+    fileTree.appendChild(folderElement);
+  });
+}
+
+function renderFileGrid(files) {
+  const fileGrid = document.getElementById('file-grid') || 
+                   document.querySelector('.file-grid');
+  
+  if (!fileGrid) {
+    console.warn("File grid container not found");
+    return;
+  }
+  
+  // Filter files for current path
+  const currentFiles = files.filter(file => {
+    const filePath = file.path || '/';
+    return filePath.startsWith(currentPath);
+  });
+  
+  fileGrid.innerHTML = '';
+  
+  // Add parent directory navigation if not at root
+  if (currentPath !== '/') {
+    const parentItem = createParentDirectoryItem();
+    fileGrid.appendChild(parentItem);
+  }
+  
+  // Create file items
+  currentFiles.forEach(file => {
+    const fileItem = createFileGridItem(file);
+    fileGrid.appendChild(fileItem);
+  });
+}
+
+function createFolderTreeItem(path, files) {
+  const folderDiv = document.createElement('div');
+  folderDiv.className = 'tree-folder';
+  
+  const folderName = path === '/' ? 'Root' : path.split('/').pop();
+  const fileCount = files.length;
+  
+  folderDiv.innerHTML = `
+    <div class="tree-folder-header" onclick="toggleFolder(this)">
+      <i class="fas fa-folder tree-folder-icon"></i>
+      <span class="tree-folder-name">${folderName}</span>
+      <span class="tree-file-count">(${fileCount})</span>
+      <i class="fas fa-chevron-right tree-expand-icon"></i>
+    </div>
+    <div class="tree-folder-content">
+      ${files.map(file => `
+        <div class="tree-file-item" onclick="selectFile('${file.id}')">
+          <i class="${getFileIcon(file.type, file.name)}"></i>
+          <span class="tree-file-name">${file.name}</span>
+          <span class="tree-file-size">${file.size}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  return folderDiv;
+}
+
+function createFileGridItem(file) {
+  const fileDiv = document.createElement('div');
+  fileDiv.className = `file-item ${file.type}`;
+  fileDiv.dataset.fileId = file.id;
+  fileDiv.dataset.fileName = file.name;
+  fileDiv.dataset.fileType = file.type;
+  
+  const icon = getFileIcon(file.type, file.name);
+  const color = getFileColor(file.category);
+  
+  fileDiv.innerHTML = `
+    <div class="file-icon" style="color: ${color}">
+      <i class="${icon}"></i>
+    </div>
+    <div class="file-info">
+      <div class="file-name">${file.name}</div>
+      <div class="file-meta">
+        <span class="file-size">${file.size}</span>
+        <span class="file-date">${formatDate(file.lastModified)}</span>
+      </div>
+    </div>
+    <div class="file-actions">
+      <button onclick="downloadFile('${file.id}')" class="btn btn-sm btn-secondary" title="Download">
+        <i class="fas fa-download"></i>
+      </button>
+      <button onclick="shareFile('${file.id}')" class="btn btn-sm btn-primary" title="Share">
+        <i class="fas fa-share"></i>
+      </button>
+      <button onclick="deleteFile('${file.id}')" class="btn btn-sm btn-
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2804 @@
+fƒ<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Standard HTML5 document declaration -->
+    <meta charset="UTF-8" />
+    <!-- Ensures proper responsive behavior on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Page title shown in browser tab -->
+    <title>ArionComply - Compliance Assessment Wizard</title>
+
+    <!-- External CSS Dependencies -->
+    <!-- Font Awesome icons library for professional iconography throughout the interface -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Main application stylesheet containing base styles and CSS variables -->
+    <link href="mystyles.css" rel="stylesheet" />
+
+    <style>
+      /* ==========================================================================
+         FRAMEWORK SELECTION SCREEN STYLES
+         Full-screen interface for choosing compliance framework (EU AI Act, ISO 27001, etc.)
+         This is the first screen users see when starting an assessment
+         ========================================================================== */
+
+      /* Main container for framework selection - takes full viewport height */
+      .framework-selection {
+        min-height: 100vh; /* Full screen height */
+        display: flex; /* Flexbox for centering content */
+        align-items: center; /* Vertically center content */
+        justify-content: center; /* Horizontally center content */
+        /* Professional gradient background for visual impact */
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem; /* Space around edges for mobile */
+      }
+
+      /* Central content container with card-style design */
+      .framework-selector {
+        background: var(--bg-white); /* White background for contrast */
+        border-radius: var(
+          --border-radius
+        ); /* Rounded corners for modern look */
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15); /* Dramatic shadow for depth */
+        padding: 3rem; /* Generous internal spacing */
+        max-width: 1200px; /* Maximum width for large screens */
+        width: 100%; /* Full width on smaller screens */
+        /* Entrance animation - slides up smoothly when page loads */
+        animation: slideInUp 0.8s ease-out;
+      }
+
+      /* Keyframe animation for smooth entrance effect */
+      @keyframes slideInUp {
+        from {
+          opacity: 0; /* Start invisible */
+          transform: translateY(30px); /* Start 30px below final position */
+        }
+        to {
+          opacity: 1; /* End fully visible */
+          transform: translateY(0); /* End at final position */
+        }
+      }
+
+      /* Header section with title and description */
+      .selector-header {
+        text-align: center; /* Center-align all header content */
+        margin-bottom: 3rem; /* Space below header before framework cards */
+      }
+
+      /* Main title with gradient text effect for visual impact */
+      .selector-title {
+        font-size: 2.5rem; /* Large, prominent title */
+        font-weight: 700; /* Extra bold for emphasis */
+        color: var(--text-dark); /* Dark text color */
+        margin-bottom: 1rem; /* Space below title */
+        /* Gradient text effect - creates blue-to-purple gradient on text */
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        -webkit-background-clip: text; /* Clip background to text shape (WebKit) */
+        -webkit-text-fill-color: transparent; /* Make text transparent to show gradient */
+        background-clip: text; /* Clip background to text shape (standard) */
+      }
+
+      /* Subtitle with professional description */
+      .selector-subtitle {
+        font-size: 1.2rem; /* Larger than body text but smaller than title */
+        color: var(--text-gray); /* Gray color for hierarchy */
+        max-width: 600px; /* Limit width for readability */
+        margin: 0 auto; /* Center horizontally */
+        line-height: 1.6; /* Generous line height for readability */
+      }
+
+      /* Grid layout for framework selection cards */
+      .frameworks-grid {
+        display: grid; /* CSS Grid for responsive layout */
+        /* Responsive columns: minimum 350px, maximum 1 equal column per available space */
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem; /* Space between cards */
+        margin-bottom: 3rem; /* Space below grid before action buttons */
+      }
+
+      /* Individual framework selection card */
+      .framework-card {
+        background: var(--bg-white); /* White background */
+        border: 2px solid var(--border-light); /* Light border by default */
+        border-radius: var(--border-radius); /* Rounded corners */
+        padding: 2rem; /* Internal spacing */
+        cursor: pointer; /* Pointer cursor indicates clickable */
+        transition: all 0.3s ease; /* Smooth animation for all property changes */
+        position: relative; /* Needed for pseudo-element positioning */
+        overflow: hidden; /* Hide overflow for top border effect */
+      }
+
+      /* Top border accent effect - hidden by default, shown on hover/selection */
+      .framework-card::before {
+        content: ""; /* Empty content for visual effect */
+        position: absolute; /* Position relative to card */
+        top: 0; /* Align to top edge */
+        left: 0; /* Align to left edge */
+        right: 0; /* Extend to right edge */
+        height: 4px; /* Thin colored line */
+        /* Gradient accent color matching brand colors */
+        background: linear-gradient(
+          90deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        transform: scaleX(0); /* Start hidden (scaled to 0 width) */
+        transition: transform 0.3s ease; /* Smooth reveal animation */
+      }
+
+      /* Hover effects for framework cards */
+      .framework-card:hover {
+        border-color: var(--primary-blue); /* Blue border on hover */
+        transform: translateY(-5px); /* Lift card slightly */
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.15); /* Add shadow for depth */
+      }
+
+      /* Show top accent border on hover */
+      .framework-card:hover::before {
+        transform: scaleX(1); /* Reveal accent border (scale to full width) */
+      }
+
+      /* Selected state for framework cards */
+      .framework-card.selected {
+        border-color: var(--primary-blue); /* Blue border when selected */
+        /* Light blue background tint to indicate selection */
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        transform: translateY(-5px); /* Lift card to show selection */
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.2); /* Enhanced shadow */
+      }
+
+      /* Show accent border on selected cards */
+      .framework-card.selected::before {
+        transform: scaleX(1); /* Show full accent border */
+      }
+
+      /* Icon container for each framework */
+      .framework-icon {
+        width: 60px; /* Fixed size for consistency */
+        height: 60px;
+        border-radius: 50%; /* Circular shape */
+        /* Gradient background matching brand colors */
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        display: flex; /* Flexbox for centering icon */
+        align-items: center; /* Vertically center icon */
+        justify-content: center; /* Horizontally center icon */
+        color: white; /* White icon color for contrast */
+        font-size: 1.5rem; /* Large icon size */
+        margin-bottom: 1.5rem; /* Space below icon */
+        transition: transform 0.3s ease; /* Smooth scale animation */
+      }
+
+      /* Scale icon slightly on card hover for interactive feedback */
+      .framework-card:hover .framework-icon {
+        transform: scale(1.1); /* 10% larger on hover */
+      }
+
+      /* Framework name/title styling */
+      .framework-title {
+        font-size: 1.3rem; /* Prominent but not overwhelming */
+        font-weight: 600; /* Semi-bold for emphasis */
+        color: var(--text-dark); /* Dark color for contrast */
+        margin-bottom: 0.5rem; /* Small space below title */
+      }
+
+      /* Framework description text */
+      .framework-description {
+        color: var(--text-gray); /* Gray color for secondary text */
+        font-size: 0.9rem; /* Slightly smaller than body text */
+        line-height: 1.5; /* Good readability */
+        margin-bottom: 1rem; /* Space below description */
+      }
+
+      /* Statistics row (questions count, estimated time, etc.) */
+      .framework-stats {
+        display: flex; /* Horizontal layout */
+        gap: 1rem; /* Space between stat items */
+        font-size: 0.8rem; /* Small, unobtrusive text */
+        color: var(--text-gray); /* Gray color for secondary info */
+      }
+
+      /* Individual statistic item */
+      .framework-stat {
+        display: flex; /* Horizontal layout for icon + text */
+        align-items: center; /* Vertically center icon and text */
+        gap: 0.3rem; /* Small space between icon and text */
+      }
+
+      /* Action area with continue button */
+      .selector-actions {
+        text-align: center; /* Center the action button */
+        padding-top: 2rem; /* Space above actions */
+        border-top: 1px solid var(--border-light); /* Visual separator line */
+      }
+
+      /* Main call-to-action button */
+      .continue-btn {
+        /* Gradient background for visual impact */
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        color: white; /* White text for contrast */
+        border: none; /* Remove default button border */
+        padding: 1rem 3rem; /* Generous padding for prominence */
+        border-radius: var(--border-radius); /* Rounded corners */
+        font-size: 1.1rem; /* Slightly larger text */
+        font-weight: 600; /* Semi-bold for emphasis */
+        cursor: pointer; /* Pointer cursor */
+        transition: all 0.3s ease; /* Smooth hover animations */
+        min-width: 200px; /* Minimum width for consistency */
+      }
+
+      /* Hover effects for continue button */
+      .continue-btn:hover {
+        transform: translateY(-2px); /* Lift button slightly */
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3); /* Add shadow for depth */
+      }
+
+      /* Disabled state for continue button */
+      .continue-btn:disabled {
+        opacity: 0.5; /* Fade out when disabled */
+        cursor: not-allowed; /* Show disabled cursor */
+        transform: none; /* Remove hover transform */
+        box-shadow: none; /* Remove hover shadow */
+      }
+
+      /* ==========================================================================
+         WIZARD CONTAINER STYLES
+         Main wizard interface shown after framework selection
+         ========================================================================== */
+
+      /* Main wizard container - hidden until framework is selected */
+      .wizard-container {
+        max-width: 1200px; /* Maximum width for large screens */
+        margin: 0 auto; /* Center horizontally */
+        display: none; /* Hidden by default */
+        animation: fadeIn 0.6s ease-out; /* Smooth entrance animation */
+      }
+
+      /* Show wizard when active class is added */
+      .wizard-container.active {
+        display: block; /* Make visible */
+      }
+
+      /* Fade-in animation for wizard appearance */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        } /* Start invisible */
+        to {
+          opacity: 1;
+        } /* End fully visible */
+      }
+
+      /* ==========================================================================
+         ENHANCED PROGRESS INDICATOR
+         Visual progress bar showing completion through assessment steps
+         ========================================================================== */
+
+      /* Main progress container */
+      .wizard-progress {
+        display: flex; /* Horizontal layout for steps */
+        align-items: center; /* Vertically center all content */
+        margin-bottom: 2rem; /* Space below progress bar */
+        padding: 2rem; /* Internal spacing */
+        background: var(--bg-white); /* White background */
+        border-radius: var(--border-radius); /* Rounded corners */
+        box-shadow: var(--shadow-subtle); /* Subtle shadow for depth */
+        position: relative; /* For absolute positioned elements */
+        overflow: hidden; /* Hide overflow for accent border */
+      }
+
+      /* Top accent border for progress container */
+      .wizard-progress::before {
+        content: ""; /* Empty content for visual effect */
+        position: absolute; /* Position relative to container */
+        top: 0; /* Align to top */
+        left: 0; /* Align to left */
+        right: 0; /* Extend to right */
+        height: 4px; /* Thin accent line */
+        /* Gradient accent matching brand colors */
+        background: linear-gradient(
+          90deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+      }
+
+      /* Individual progress step container */
+      .progress-step {
+        flex: 1; /* Equal width for all steps */
+        display: flex; /* Horizontal layout */
+        align-items: center; /* Vertically center content */
+        position: relative; /* For connecting line positioning */
+        padding: 0.5rem; /* Small internal padding */
+      }
+
+      /* Connecting lines between progress steps */
+      .progress-step:not(:last-child)::after {
+        content: ""; /* Empty content for line */
+        position: absolute; /* Position relative to step */
+        right: -2%; /* Position in gap between steps */
+        top: 50%; /* Vertically center */
+        width: 4%; /* Small width for line */
+        height: 3px; /* Thin line */
+        background: var(--border-light); /* Light gray default color */
+        z-index: 1; /* Behind step indicators */
+        border-radius: 2px; /* Slightly rounded */
+        transition: background 0.3s ease; /* Smooth color changes */
+      }
+
+      /* Green connecting line for completed steps */
+      .progress-step.completed::after {
+        background: linear-gradient(
+          90deg,
+          var(--success-green),
+          var(--primary-blue)
+        );
+      }
+
+      /* Partial completion line for active step */
+      .progress-step.active::after {
+        background: linear-gradient(
+          to right,
+          var(--primary-blue) 50%,
+          /* Blue for completed portion */ var(--border-light) 50%
+            /* Gray for remaining portion */
+        );
+      }
+
+      /* Circular step indicator (numbers/checkmarks) */
+      .step-indicator {
+        width: 50px; /* Larger than basic version */
+        height: 50px;
+        border-radius: 50%; /* Perfect circle */
+        background: var(--border-light); /* Light gray default */
+        color: var(--text-gray); /* Gray text */
+        display: flex; /* Flexbox for centering */
+        align-items: center; /* Vertically center */
+        justify-content: center; /* Horizontally center */
+        font-weight: 600; /* Bold text */
+        position: relative; /* For z-index layering */
+        z-index: 2; /* Above connecting lines */
+        margin-right: 1rem; /* Space between indicator and text */
+        transition: all 0.4s ease; /* Smooth animations */
+        font-size: 1.1rem; /* Larger text */
+      }
+
+      /* Completed step styling */
+      .progress-step.completed .step-indicator {
+        /* Green-to-blue gradient for completed steps */
+        background: linear-gradient(
+          135deg,
+          var(--success-green),
+          var(--primary-blue)
+        );
+        color: white; /* White text/icon */
+        transform: scale(1.1); /* Slightly larger */
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); /* Green shadow */
+      }
+
+      /* Active step styling */
+      .progress-step.active .step-indicator {
+        /* Blue-to-purple gradient for active step */
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        color: white; /* White text */
+        transform: scale(1.15); /* Larger than completed */
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); /* Blue shadow */
+        animation: pulse 2s infinite; /* Pulsing animation */
+      }
+
+      /* Pulse animation for active step */
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        50% {
+          box-shadow: 0 4px 25px rgba(37, 99, 235, 0.6);
+        }
+      }
+
+      /* Step information text */
+      .step-info h4 {
+        margin: 0; /* Remove default margins */
+        font-size: 1rem; /* Standard text size */
+        color: var(--text-dark); /* Dark text for readability */
+        font-weight: 600; /* Semi-bold */
+      }
+
+      .step-info p {
+        margin: 0; /* Remove default margins */
+        font-size: 0.85rem; /* Slightly smaller descriptive text */
+        color: var(--text-gray); /* Gray color for secondary text */
+      }
+
+      /* ==========================================================================
+         ENHANCED QUESTION STYLING
+         Individual question containers with professional styling
+         ========================================================================== */
+
+      /* Main question container */
+      .question-group {
+        margin-bottom: 2.5rem; /* Generous spacing between questions */
+        padding: 2rem; /* Internal padding */
+        background: var(--bg-white); /* White background */
+        border-radius: var(--border-radius); /* Rounded corners */
+        border: 1px solid var(--border-light); /* Light border */
+        transition: all 0.3s ease; /* Smooth hover effects */
+        position: relative; /* For absolute positioned elements */
+        /* Slide-in animation when question appears */
+        animation: slideInLeft 0.5s ease-out;
+      }
+
+      /* Slide-in animation for questions */
+      @keyframes slideInLeft {
+        from {
+          opacity: 0; /* Start invisible */
+          transform: translateX(-20px); /* Start 20px to the left */
+        }
+        to {
+          opacity: 1; /* End fully visible */
+          transform: translateX(0); /* End at final position */
+        }
+      }
+
+      /* Hover effects for question containers */
+      .question-group:hover {
+        border-color: var(--primary-blue); /* Blue border on hover */
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1); /* Add shadow */
+        transform: translateY(-2px); /* Lift slightly */
+      }
+
+      /* Question title with numbering */
+      .question-title {
+        font-size: 1.2rem; /* Prominent text size */
+        font-weight: 600; /* Semi-bold */
+        margin-bottom: 0.75rem; /* Space below title */
+        color: var(--text-dark); /* Dark text for readability */
+        display: flex; /* Horizontal layout */
+        align-items: center; /* Vertically center */
+        gap: 0.5rem; /* Space between number and text */
+      }
+
+      /* Circular question number indicator */
+      .question-number {
+        /* Gradient background matching brand colors */
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue),
+          var(--ai-purple)
+        );
+        color: white; /* White text for contrast */
+        border-radius: 50%; /* Circular shape */
+        width: 28px; /* Fixed size */
+        height: 28px;
+        display: flex; /* Flexbox for centering */
+        align-items: center; /* Vertically center */
+        justify-content: center; /* Horizontally center */
+        font-size: 0.8rem; /* Smaller text for number */
+        font-weight: 600; /* Bold number */
+        flex-shrink: 0; /* Don't shrink in flex layout */
+      }
+
+      /* ==========================================================================
+         RESPONSIVE DESIGN BREAKPOINTS
+         Styles for different screen sizes (mobile, tablet, desktop)
+         ========================================================================== */
+
+      /* Tablet and small desktop screens */
+      @media (max-width: 1024px) {
+        /* Reduce padding on framework selector */
+        .framework-selector {
+          padding: 2rem; /* Less padding on smaller screens */
+        }
+
+        /* Smaller title on medium screens */
+        .selector-title {
+          font-size: 2rem; /* Smaller title */
+        }
+
+        /* Adjust framework grid for medium screens */
+        .frameworks-grid {
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+      }
+
+      /* Mobile devices */
+      @media (max-width: 768px) {
+        /* Adjust framework selection for mobile */
+        .framework-selection {
+          padding: 1rem; /* Less padding around edges */
+        }
+
+        .framework-selector {
+          padding: 1.5rem; /* Reduce internal padding */
+        }
+
+        /* Smaller title for mobile */
+        .selector-title {
+          font-size: 1.8rem; /* Mobile-appropriate title size */
+        }
+
+        /* Single column layout for mobile */
+        .frameworks-grid {
+          grid-template-columns: 1fr; /* Single column on mobile */
+          gap: 1rem; /* Smaller gaps */
+        }
+
+        /* Adjust wizard progress for mobile */
+        .wizard-progress {
+          padding: 1rem; /* Less padding */
+          flex-direction: column; /* Stack progress steps vertically */
+          gap: 1rem; /* Space between stacked items */
+        }
+
+        .progress-step {
+          flex-direction: column; /* Stack indicator and text */
+          text-align: center; /* Center-align text */
+        }
+
+        .progress-step::after {
+          display: none; /* Hide connecting lines on mobile */
+        }
+
+        /* Adjust question styling for mobile */
+        .question-group {
+          padding: 1.5rem; /* Less padding */
+          margin-bottom: 1.5rem; /* Less space between questions */
+        }
+      }
+
+      /* Very small mobile devices */
+      @media (max-width: 480px) {
+        /* Further reduce spacing for very small screens */
+        .framework-selector {
+          padding: 1rem; /* Minimal padding */
+        }
+
+        .selector-title {
+          font-size: 1.5rem; /* Smaller title for tiny screens */
+        }
+
+        .framework-card {
+          padding: 1.5rem; /* Less padding in cards */
+        }
+
+        .continue-btn {
+          width: 100%; /* Full-width button on tiny screens */
+          padding: 1rem; /* Adjust padding */
+        }
+      }
+
+      /* ==========================================================================
+         WIZARD CONTENT AREA STYLES
+         Main content container with header, body, and footer
+         ========================================================================== */
+
+      .wizard-content {
+        background: var(--bg-white); /* White background */
+        border-radius: var(--border-radius); /* Rounded corners */
+        box-shadow: var(--shadow-subtle); /* Subtle shadow */
+        overflow: hidden; /* Prevent content overflow */
+      }
+
+      /* Header section with title and confidence display */
+      .wizard-header {
+        padding: 1.5rem; /* Internal spacing */
+        border-bottom: 1px solid var(--border-light); /* Separator line */
+        display: flex; /* Horizontal layout */
+        align-items: center; /* Vertically center */
+        justify-content: space-between; /* Space between title and confidence */
+      }
+
+      /* Main content area for questions */
+      .wizard-body {
+        padding: 2rem; /* Generous internal spacing */
+      }
+
+      /* Footer with navigation buttons */
+      .wizard-footer {
+        padding: 1.5rem; /* Internal spacing */
+        border-top: 1px solid var(--border-light); /* Separator line */
+        display: flex; /* Horizontal layout */
+        justify-content: space-between; /* Space between left and right sections */
+        align-items: center; /* Vertically center buttons */
+      }
+
+      /* ==========================================================================
+         QUESTION INPUT STYLES
+         Different input types for various question formats
+         ========================================================================== */
+
+      .question-input {
+        width: 100%; /* Full width of container */
+        padding: 0.75rem; /* Internal spacing */
+        border: 1px solid var(--border-light); /* Subtle border */
+        border-radius: var(--border-radius-sm); /* Slightly rounded corners */
+        font-size: 0.875rem; /* Readable text size */
+        box-sizing: border-box; /* Include padding in width calculation */
+        font-family: inherit; /* Use same font as parent */
+        line-height: 1.4; /* Good readability */
+      }
+
+      /* Focus state for inputs */
+      .question-input:focus {
+        outline: none; /* Remove default browser outline */
+        border-color: var(--primary-blue); /* Blue border when focused */
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); /* Subtle focus shadow */
+      }
+
+      /* Radio button groups */
+      .radio-group {
+        display: flex; /* Vertical stack layout */
+        flex-direction: column; /* Stack options vertically */
+        gap: 0.75rem; /* Space between options */
+      }
+
+      .radio-option {
+        display: flex; /* Horizontal layout for radio + text */
+        align-items: center; /* Vertically center content */
+        padding: 0.75rem; /* Internal spacing */
+        border: 1px solid var(--border-light); /* Subtle border */
+        border-radius: var(--border-radius-sm); /* Rounded corners */
+        cursor: pointer; /* Indicate clickable */
+        transition: all 0.15s ease; /* Smooth hover effects */
+      }
+
+      /* Hover effects for radio options */
+      .radio-option:hover {
+        background: var(--bg-light); /* Light background on hover */
+      }
+
+      /* Selected radio option styling */
+      .radio-option.selected {
+        border-color: var(--primary-blue); /* Blue border when selected */
+        background: #dbeafe; /* Light blue background */
+      }
+
+      /* Space between radio input and label */
+      .radio-option input[type="radio"] {
+        margin-right: 0.75rem; /* Space between radio and text */
+      }
+
+      /* Rating scales */
+      .rating-scale {
+        display: flex; /* Horizontal layout */
+        gap: 0.5rem; /* Space between rating options */
+        margin-top: 0.5rem; /* Space above rating scale */
+      }
+
+      .rating-option {
+        display: flex; /* Vertical layout for number + label */
+        flex-direction: column; /* Stack number above label */
+        align-items: center; /* Center content horizontally */
+        padding: 0.75rem; /* Internal spacing */
+        border: 1px solid var(--border-light); /* Subtle border */
+        border-radius: var(--border-radius-sm); /* Rounded corners */
+        cursor: pointer; /* Indicate clickable */
+        min-width: 60px; /* Minimum width for consistency */
+        transition: all 0.15s ease; /* Smooth hover effects */
+      }
+
+      /* Hover effects for rating options */
+      .rating-option:hover {
+        background: var(--bg-light); /* Light background on hover */
+      }
+
+      /* Selected rating option styling */
+      .rating-option.selected {
+        border-color: var(--primary-blue); /* Blue border */
+        background: var(--primary-blue); /* Blue background */
+        color: white; /* White text for contrast */
+      }
+
+      /* Rating number styling */
+      .rating-number {
+        font-weight: 600; /* Bold number */
+        font-size: 1.2rem; /* Larger than normal text */
+      }
+
+      /* Rating label styling */
+      .rating-label {
+        font-size: 0.75rem; /* Small label text */
+        text-align: center; /* Center the label */
+        margin-top: 0.25rem; /* Small space above label */
+      }
+
+      /* Checkbox groups for multiselect */
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .checkbox-option {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .checkbox-option:hover {
+        background: var(--bg-light);
+      }
+
+      .checkbox-option input[type="checkbox"] {
+        margin-right: 0.75rem;
+      }
+
+      .checkbox-option label {
+        cursor: pointer;
+        flex: 1;
+      }
+
+      /* Loading state styles */
+      .loading-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-gray);
+      }
+
+      .loading-spinner {
+        border: 4px solid var(--bg-gray);
+        border-top: 4px solid var(--primary-blue);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      .loading-spinner.large {
+        width: 60px;
+        height: 60px;
+        border-width: 6px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Confidence display */
+      .confidence-display {
+        display: flex; /* Horizontal layout */
+        align-items: center; /* Vertically center all elements */
+        gap: 1rem; /* Space between elements */
+        padding: 1rem; /* Internal spacing */
+        background: var(--bg-light); /* Light background */
+        border-radius: var(--border-radius-sm); /* Rounded corners */
+      }
+
+      /* Progress bar container */
+      .confidence-bar {
+        width: 100px; /* Fixed width for consistency */
+        height: 8px; /* Thin progress bar */
+        background: #e5e7eb; /* Light gray background */
+        border-radius: 4px; /* Rounded corners */
+        overflow: hidden; /* Hide overflow for smooth fill */
+      }
+
+      /* Progress bar fill indicator */
+      .confidence-fill {
+        height: 100%; /* Full height of container */
+        background: var(--primary-blue); /* Blue fill color */
+        transition: width 0.3s ease; /* Smooth width transitions */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main application container -->
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Assessment Wizard Widget -->
+        <div class="content">
+          <!-- =================================================================
+               FRAMEWORK SELECTION SCREEN
+               Initial screen where users choose their compliance framework
+               (EU AI Act, ISO 27001, ISO 42001, GDPR, etc.)
+               ================================================================= -->
+
+          <!-- Full-screen framework selection interface -->
+          <div class="framework-selection" id="frameworkSelection">
+            <!-- Central content container with professional card design -->
+            <div class="framework-selector">
+              <!-- Header section with title and description -->
+              <div class="selector-header">
+                <!-- Main title with gradient text effect -->
+                <h1 class="selector-title">Compliance Assessment Wizard</h1>
+                <!-- Descriptive subtitle explaining the purpose -->
+                <p class="selector-subtitle">
+                  Choose your compliance framework to begin a comprehensive
+                  assessment. Our AI assistant will guide you through each step
+                  with voice prompts and contextual help tailored to your
+                  selected standard.
+                </p>
+              </div>
+
+              <!-- Grid layout for framework selection cards -->
+              <div class="frameworks-grid" id="frameworksGrid">
+                <!-- EU AI Act Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="eu_ai_act"
+                  onclick="selectFramework('eu_ai_act')"
+                >
+                  <!-- Icon representing the framework -->
+                  <div class="framework-icon">
+                    <i class="fas fa-robot"></i>
+                  </div>
+                  <!-- Framework name/title -->
+                  <h3 class="framework-title">EU AI Act Compliance</h3>
+                  <!-- Description of what this framework covers -->
+                  <p class="framework-description">
+                    Comprehensive AI system risk assessment and classification
+                    according to the European Union Artificial Intelligence Act.
+                    Determine if your AI system is prohibited, high-risk,
+                    limited-risk, or minimal-risk.
+                  </p>
+                  <!-- Statistics about the assessment -->
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>42 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>30-45 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>10 Steps</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ISO 27001 Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="iso_27001"
+                  onclick="selectFramework('iso_27001')"
+                >
+                  <div class="framework-icon">
+                    <i class="fas fa-shield-alt"></i>
+                  </div>
+                  <h3 class="framework-title">
+                    ISO 27001 Information Security
+                  </h3>
+                  <p class="framework-description">
+                    Information Security Management System (ISMS) assessment
+                    covering all Annex A controls. Evaluate your organization's
+                    security posture and readiness for ISO 27001 certification.
+                  </p>
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>78 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>45-60 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>14 Steps</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ISO 42001 AI Management Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="iso_42001"
+                  onclick="selectFramework('iso_42001')"
+                >
+                  <div class="framework-icon">
+                    <i class="fas fa-brain"></i>
+                  </div>
+                  <h3 class="framework-title">ISO 42001 AI Management</h3>
+                  <p class="framework-description">
+                    Artificial Intelligence Management System assessment based
+                    on the new ISO/IEC 42001:2023 standard. Establish
+                    comprehensive AI governance and management practices.
+                  </p>
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>36 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>25-35 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>10 Steps</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- GDPR & Privacy Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="gdpr"
+                  onclick="selectFramework('gdpr')"
+                >
+                  <div class="framework-icon">
+                    <i class="fas fa-user-shield"></i>
+                  </div>
+                  <h3 class="framework-title">GDPR & Privacy Compliance</h3>
+                  <p class="framework-description">
+                    General Data Protection Regulation compliance assessment
+                    with advanced data protection measures. Evaluate privacy
+                    governance, data processing activities, and individual
+                    rights protection.
+                  </p>
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>89 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>50-70 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>8 Steps</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ISO 27701 Privacy Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="iso_27701"
+                  onclick="selectFramework('iso_27701')"
+                >
+                  <div class="framework-icon">
+                    <i class="fas fa-lock"></i>
+                  </div>
+                  <h3 class="framework-title">ISO 27701 Privacy Management</h3>
+                  <p class="framework-description">
+                    Privacy Information Management System (PIMS) based on
+                    ISO/IEC 27701. Extend your ISMS with comprehensive privacy
+                    management controls and data protection measures.
+                  </p>
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>52 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>35-45 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>13 Steps</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cloud Security Framework Card -->
+                <div
+                  class="framework-card"
+                  data-framework="cloud_security"
+                  onclick="selectFramework('cloud_security')"
+                >
+                  <div class="framework-icon">
+                    <i class="fas fa-cloud"></i>
+                  </div>
+                  <h3 class="framework-title">
+                    Cloud Security (ISO 27017/27018)
+                  </h3>
+                  <p class="framework-description">
+                    Cloud security and privacy assessment based on ISO/IEC 27017
+                    and 27018. Evaluate cloud service security controls and
+                    personally identifiable information (PII) protection
+                    measures.
+                  </p>
+                  <div class="framework-stats">
+                    <div class="framework-stat">
+                      <i class="fas fa-list"></i>
+                      <span>29 Questions</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-clock"></i>
+                      <span>20-30 min</span>
+                    </div>
+                    <div class="framework-stat">
+                      <i class="fas fa-layer-group"></i>
+                      <span>7 Steps</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action area with continue button -->
+              <div class="selector-actions">
+                <!-- Main call-to-action button - disabled until framework is selected -->
+                <button
+                  class="continue-btn"
+                  id="continueBtn"
+                  disabled
+                  onclick="startAssessment()"
+                >
+                  <i class="fas fa-arrow-right"></i>
+                  Start Assessment
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- =================================================================
+               WIZARD INTERFACE
+               Main assessment interface shown after framework selection
+               Hidden initially, becomes visible when framework is chosen
+               ================================================================= -->
+
+          <!-- Main wizard container - hidden by default -->
+          <div class="wizard-container" id="wizardContainer">
+            <!-- Enhanced progress indicator showing assessment progress -->
+            <div class="wizard-progress" id="wizardProgress">
+              <!-- Progress steps will be dynamically generated based on selected framework -->
+              <!-- Example structure (will be replaced by JavaScript):
+              <div class="progress-step active">
+                <div class="step-indicator">1</div>
+                <div class="step-info">
+                  <h4>Basic Information</h4>
+                  <p>System details and context</p>
+                </div>
+              </div>
+              -->
+            </div>
+
+            <!-- Main wizard content area -->
+            <div class="wizard-content">
+              <!-- Header section with step title and progress display -->
+              <div class="wizard-header">
+                <div>
+                  <!-- Dynamic step title - updated by JavaScript -->
+                  <h3 id="wizardTitle">Loading Assessment...</h3>
+                  <!-- Dynamic step description - updated by JavaScript -->
+                  <p
+                    id="wizardDescription"
+                    style="color: var(--text-gray); margin: 0"
+                  >
+                    Preparing your personalized assessment experience...
+                  </p>
+                </div>
+
+                <!-- Assessment Progress display showing completion percentage -->
+                <div class="confidence-display">
+                  <span style="font-weight: 600">Assessment Progress:</span>
+                  <div class="confidence-bar">
+                    <div
+                      class="confidence-fill"
+                      style="width: 0%"
+                      id="confidenceFill"
+                    ></div>
+                  </div>
+                  <span style="font-weight: 600" id="confidenceText">0%</span>
+                </div>
+              </div>
+
+              <!-- Main content area for questions -->
+              <div class="wizard-body" id="wizardBody">
+                <!-- Questions will be dynamically loaded here based on:
+                     1. Selected framework (EU AI Act, ISO 27001, etc.)
+                     2. Current step in the assessment
+                     3. Previous answers that may affect subsequent questions
+                -->
+
+                <!-- Loading state shown while questions are being prepared -->
+                <div class="loading-state" id="loadingState">
+                  <div class="loading-spinner large"></div>
+                  <h3 style="margin-top: 1rem; color: var(--text-gray)">
+                    Preparing Your Assessment
+                  </h3>
+                  <p style="color: var(--text-gray); margin-top: 0.5rem">
+                    Loading questions tailored to your selected framework...
+                  </p>
+                </div>
+              </div>
+
+              <!-- Navigation footer with previous/next buttons -->
+              <div class="wizard-footer">
+                <!-- Previous step button - hidden on first step -->
+                <button
+                  class="btn btn-secondary"
+                  onclick="previousStep()"
+                  id="previousBtn"
+                  style="visibility: hidden"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                  Previous
+                </button>
+
+                <!-- Right side action buttons -->
+                <div style="display: flex; gap: 1rem">
+                  <!-- Save draft button - saves current progress -->
+                  <button
+                    class="btn btn-secondary"
+                    onclick="saveDraft()"
+                    id="saveDraftBtn"
+                  >
+                    <i class="fas fa-save"></i>
+                    Save Progress
+                  </button>
+
+                  <!-- Next/Complete button - text changes on final step -->
+                  <button
+                    class="btn btn-primary"
+                    onclick="nextStep()"
+                    id="nextBtn"
+                  >
+                    Continue
+                    <i class="fas fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- =================================================================
+           AI CHAT INTEGRATION
+           Embedded chat interface for contextual guidance during assessment
+           ================================================================= -->
+
+      <!-- AI Chat trigger button - opens chat interface -->
+      <button class="chat-trigger" onclick="toggleChat()" id="chatTrigger">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <!-- AI Chat popup container -->
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <!-- Chat title showing current context -->
+          <div class="chat-title" id="chatTitle">ArionComply AI Assistant</div>
+          <!-- Close chat button -->
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Embedded chat interface - loads the full-featured chat system -->
+        <!-- The 'embed=1' parameter tells the chat interface to use embedded mode -->
+        <!-- The 'context' parameter provides the current assessment context -->
+        <iframe
+          src="chatInterface.html?context=Compliance%20Assessment&embed=1"
+          class="chat-iframe"
+          id="chatIframe"
+          title="AI Assistant Chat Interface"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         JAVASCRIPT DEPENDENCIES
+         External script files providing functionality
+         Order is important for proper initialization
+         ================================================================= -->
+
+    <!-- Navigation configuration - defines menu structure and navigation items -->
+    <script src="navigation-config.js"></script>
+    <!-- Sidebar component - handles sidebar rendering and interactions -->
+    <script src="sidebar-component.js"></script>
+    <!-- Layout manager - manages page layouts and responsive behavior -->
+    <script src="layout-manager.js"></script>
+    <!-- Seed data - provides sample data for demonstrations -->
+    <script src="seedData.js"></script>
+    <!-- Core utility functions - basic app functionality and helpers -->
+    <script src="scripts.js"></script>
+    <!-- Chat logic - handles chat interface and AI communication -->
+    <script src="chatLogic.js"></script>
+    <!-- Question loader - loads and manages assessment questions -->
+    <script src="questionLoader.js"></script>
+    <!-- FIXED: Now importing wizard-engine.js after questionLoader.js for proper dependency order -->
+    <script src="wizard-engine.js"></script>
+    <script>
+      /* ==========================================================================
+         GLOBAL VARIABLES AND STATE MANAGEMENT
+         Variables that track wizard state and user selections
+         ========================================================================== */
+
+      // Current selected framework (null until user makes selection)
+      let selectedFramework = null;
+
+      // Current step in the assessment process (1-based indexing)
+      let currentStep = 1;
+
+      // Total number of steps for the selected framework
+      let totalSteps = 0;
+
+      // Framework configuration object containing metadata for each framework
+      let frameworkConfig = {};
+
+      // Current questions data for the selected framework
+      let currentQuestions = [];
+
+      // User answers storage - maps question IDs to answer values
+      let userAnswers = {};
+
+      // Chat context for AI assistant integration
+      let chatContext = "Compliance Assessment";
+
+      // Assessment session metadata
+      let assessmentSession = {
+        sessionId: null, // Unique session identifier
+        startTime: null, // When assessment was started
+        lastSaved: null, // Last save timestamp
+        framework: null, // Selected framework
+        step: 1, // Current step
+        progress: 0, // Completion percentage
+      };
+
+      /* ==========================================================================
+         FRAMEWORK CONFIGURATION
+         Metadata for each available compliance framework
+         ========================================================================== */
+
+      // Framework definitions with metadata, styling, and configuration
+      // PRESERVED: All existing framework definitions as fallback
+
+      // Framework configurations now loaded from navigation-config.js (single source of truth)
+      // No local duplication needed
+
+      /**
+       * FIXED: Get framework configurations with proper fallback to existing frameworks
+       * This eliminates duplication while preserving all your framework definitions
+       * @returns {Object} Framework configurations object
+       */
+      /**
+       * Get framework configurations from navigation-config.js (single source of truth)
+       * @returns {Object} Framework configurations object
+       */
+      /**
+       * Get framework configurations from navigation-config.js (single source of truth)
+       * @returns {Object} Framework configurations object
+       */
+      function getFrameworkConfigs() {
+        return window.COMPLIANCE_FRAMEWORKS || {};
+      }
+
+      window.FRAMEWORK_CONFIGS = getFrameworkConfigs();
+
+      /**
+       * Starts the assessment after framework selection
+       */
+      function startAssessment() {
+        try {
+          if (!selectedFramework || !frameworkConfig) {
+            showNotification("Please select a framework first", "warning");
+            return;
+          }
+
+          console.log(`🚀 Starting ${frameworkConfig.name} assessment...`);
+
+          // Create new assessment session
+          assessmentSession = {
+            sessionId: generateSessionId(),
+            startTime: new Date().toISOString(),
+            lastSaved: null,
+            framework: selectedFramework,
+            step: 1,
+            progress: 0,
+          };
+
+          // Show loading state
+          showLoading("Preparing your assessment...");
+
+          // Load questions for the selected framework
+          loadFrameworkQuestions(selectedFramework)
+            .then(() => {
+              // Hide framework selection screen
+              const frameworkSelection =
+                document.getElementById("frameworkSelection");
+              if (frameworkSelection) {
+                frameworkSelection.style.display = "none";
+              }
+
+              // Show wizard interface
+              const wizardContainer =
+                document.getElementById("wizardContainer");
+              if (wizardContainer) {
+                wizardContainer.classList.add("active");
+              }
+
+              // Initialize wizard with first step
+              initializeWizard();
+
+              // Hide loading state
+              hideLoading();
+
+              // Announce start via voice
+              if (typeof speakText === "function") {
+                speakText(
+                  `Welcome to the ${frameworkConfig.name} assessment. Let's begin with the first step.`,
+                );
+              }
+
+              console.log("✅ Assessment started successfully");
+            })
+            .catch((error) => {
+              console.error("❌ Error starting assessment:", error);
+              hideLoading();
+              showError("Failed to start assessment. Please try again.");
+            });
+        } catch (error) {
+          console.error("❌ Error starting assessment:", error);
+          showError("Failed to start assessment. Please refresh the page.");
+        }
+      }
+
+      /**
+       * Navigation functions - also need to be global for onclick handlers
+       */
+      function nextStep() {
+        try {
+          console.log("▶️ Moving to next step from", currentStep);
+
+          if (validateCurrentStep()) {
+            if (currentStep < totalSteps) {
+              currentStep++;
+              showStep(currentStep);
+              updateStepDisplay();
+              loadStepQuestions(currentStep);
+              updateProgressDisplay();
+
+              console.log("✅ Advanced to step", currentStep);
+
+              if (typeof addChatMessage === "function") {
+                try {
+                  const steps = getFrameworkSteps();
+                  const stepInfo = steps[currentStep - 1];
+                  const stepTitle = stepInfo
+                    ? stepInfo.title
+                    : `Step ${currentStep}`;
+
+                  addChatMessage(
+                    frameworkConfig.chatContext,
+                    "ai",
+                    `Great progress! Now let's work on ${stepTitle}. I'm here to help if you have any questions.`,
+                  );
+                } catch (e) {
+                  console.warn("Chat message failed", e);
+                }
+              }
+            } else {
+              completeAssessment();
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error in nextStep:", error);
+          showError("Error moving to next step");
+        }
+      }
+
+      function previousStep() {
+        try {
+          if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+            updateStepDisplay();
+            loadStepQuestions(currentStep);
+            updateProgressDisplay();
+
+            console.log("◀️ Moved back to step", currentStep);
+
+            if (typeof addChatMessage === "function") {
+              try {
+                const steps = getFrameworkSteps();
+                const stepInfo = steps[currentStep - 1];
+                const stepTitle = stepInfo
+                  ? stepInfo.title
+                  : `Step ${currentStep}`;
+
+                addChatMessage(
+                  frameworkConfig.chatContext,
+                  "ai",
+                  `Going back to ${stepTitle}. Let me know if you need to review anything.`,
+                );
+              } catch (e) {
+                console.warn("Chat message failed", e);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error in previousStep:", error);
+          showError("Error moving to previous step");
+        }
+      }
+
+      function saveDraft() {
+        try {
+          if (typeof saveAllAnswers === "function") {
+            saveAllAnswers();
+          }
+
+          if (typeof showNotification === "function") {
+            showNotification("Assessment progress saved", "success");
+          } else {
+            alert("Assessment progress saved");
+          }
+        } catch (error) {
+          console.error("Error saving draft:", error);
+          showError("Error saving progress. Please try again.");
+        }
+      }
+
+      // Export functions to global scope immediately
+      if (typeof window !== "undefined") {
+        window.selectFramework = selectFramework;
+        window.startAssessment = startAssessment;
+        window.nextStep = nextStep;
+        window.previousStep = previousStep;
+        window.saveDraft = saveDraft;
+      }
+
+      /* ==========================================================================
+         PAGE INITIALIZATION - MOVED TO DOMContentLoaded
+         ========================================================================== */
+
+      document.addEventListener("DOMContentLoaded", function () {
+        try {
+          console.log("🚀 Initializing Compliance Assessment Wizard...");
+
+          // Initialize the layout management system
+          if (
+            typeof LayoutManager !== "undefined" &&
+            LayoutManager.initializePage
+          ) {
+            LayoutManager.initializePage("wizard.html");
+            console.log("✅ Layout manager initialized");
+          } else {
+            console.warn("⚠️ LayoutManager not available, using basic layout");
+          }
+
+          updateChatContext(chatContext);
+
+          // Load question data from JSON file and initialize frameworks
+          loadQuestionData()
+            .then(() => {
+              console.log("✅ Question data loaded successfully");
+              checkForExistingSession();
+              initializeFrameworkSelection();
+              console.log("✅ Wizard initialization complete");
+            })
+            .catch((error) => {
+              console.error("❌ Failed to load question data:", error);
+              showError(
+                "Failed to load assessment data. Please refresh the page to try again.",
+              );
+            });
+
+          initializeChatIntegration();
+          setupKeyboardShortcuts();
+          setupAutoSave();
+        } catch (error) {
+          console.error("❌ Error during wizard initialization:", error);
+          showError(
+            "Failed to initialize the assessment wizard. Please refresh the page.",
+          );
+        }
+      });
+
+      /* ==========================================================================
+         QUESTION DATA LOADING FUNCTIONS
+         ========================================================================== */
+      /* ==========================================================================
+         QUESTION DATA LOADING FUNCTIONS
+         Functions for loading and managing question data from JSON
+         ========================================================================== */
+
+      /**
+       * Loads question data from the JSON file and processes it for use
+       * This function connects to the existing questionLoader system
+       * @returns {Promise} Promise that resolves when questions are loaded
+       */
+      function loadQuestionData() {
+        return new Promise((resolve, reject) => {
+          fetch("onboarding_questions.json")
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log("📋 Raw question data loaded:", Object.keys(data));
+
+              // Process each framework's questions and extract step information
+              const frameworks = getFrameworkConfigs();
+              Object.keys(frameworks).forEach((frameworkKey) => {
+                const config = frameworks[frameworkKey];
+                const questionsArray = data[config.jsonKey];
+
+                if (questionsArray && Array.isArray(questionsArray)) {
+                  // Extract unique steps from questions using wizard engine
+                  const engine = getWizardEngine();
+                  const steps =
+                    engine.extractStepsFromQuestions(questionsArray);
+                  config.steps = steps;
+                  config.questionCount = questionsArray.length;
+
+                  console.log(
+                    `✅ Processed ${config.name}: ${steps.length} steps, ${questionsArray.length} questions`,
+                  );
+                } else {
+                  console.warn(
+                    `⚠️ No questions found for framework: ${config.name} (key: ${config.jsonKey})`,
+                  );
+                  config.steps = [];
+                  config.questionCount = 0;
+                }
+              });
+
+              // Store the question data globally for other functions to use
+              window.globalQuestionData = data;
+
+              // Initialize wizard engine with question data
+              const engine = getWizardEngine();
+              engine
+                .initialize(data)
+                .then(() => {
+                  console.log(
+                    "✅ Wizard engine initialized with question data",
+                  );
+                  resolve(data);
+                })
+                .catch((error) => {
+                  console.error("❌ Error initializing wizard engine:", error);
+                  resolve(data); // Continue even if wizard engine init fails
+                });
+            })
+            .catch((error) => {
+              console.error("❌ Error loading questions:", error);
+              reject(error);
+            });
+        });
+      }
+
+      /**
+       * Extracts step information from questions array
+       * Creates step objects with titles and descriptions
+       * This is implemented in wizard-engine.js
+       */
+
+      /**
+       * Generates a user-friendly description for a step based on its title
+       * This is now implemented in wizard-engine.js
+       */
+
+      /* ==========================================================================
+         FRAMEWORK INTEGRATION FUNCTIONS
+         Missing functions that connect framework selection to question loading
+         ========================================================================== */
+
+      /**
+       * MISSING FUNCTION: Loads questions for the selected framework
+       * This is implemented in wizard-engine.js
+       */
+
+      /**
+       * MISSING FUNCTION: Gets step structure from loaded questions
+
+       * This is implemented in wizard-engine.js
+       */
+
+      /**
+       * MISSING FUNCTION: Gets questions for a specific step
+       * This is implemented in wizard-engine.js
+       */
+
+      /* ==========================================================================
+         FRAMEWORK SELECTION FUNCTIONS
+         Functions for handling framework selection interface
+         ========================================================================== */
+
+      /**
+       * Handles framework selection when user clicks on a framework card
+       * Updates UI state and prepares for assessment start
+       * @param {string} frameworkId - The ID of the selected framework
+       */
+      function selectFramework(frameworkId) {
+        try {
+          console.log(`🎯 Framework selected: ${frameworkId}`);
+
+          // Store the selected framework
+          selectedFramework = frameworkId;
+          frameworkConfig = FRAMEWORK_CONFIGS[frameworkId];
+
+          if (!frameworkConfig) {
+            throw new Error(`Unknown framework: ${frameworkId}`);
+          }
+
+          // Update visual selection state
+          updateFrameworkSelection(frameworkId);
+
+          // Enable the continue button
+          const continueBtn = document.getElementById("continueBtn");
+          if (continueBtn) {
+            continueBtn.disabled = false;
+            continueBtn.innerHTML = `
+              <i class="fas fa-arrow-right"></i>
+              Start ${frameworkConfig.shortName} Assessment
+            `;
+          }
+          // ✅ ADD THIS: Scroll to the Start Assessment button
+          setTimeout(() => {
+            const continueBtn = document.getElementById("continueBtn");
+            if (continueBtn) {
+              continueBtn.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }
+          }, 300); // Small delay to let UI update first
+          // Update chat context to the specific framework
+          updateChatContext(frameworkConfig.chatContext);
+
+          // Notify chat interface about framework selection
+          notifyChatFrameworkSelection(frameworkConfig);
+
+          // Show success notification
+          showNotification(`${frameworkConfig.name} selected`, "success");
+
+          // Announce selection via voice if avatar is enabled
+          if (typeof speakText === "function") {
+            speakText(
+              `You have selected the ${frameworkConfig.name} assessment. This will take approximately ${frameworkConfig.estimatedTime} to complete.`,
+            );
+          }
+        } catch (error) {
+          console.error("❌ Error selecting framework:", error);
+          showNotification("Error selecting framework", "error");
+        }
+      }
+
+      /**
+       * Updates the visual state of framework cards to show selection
+       * @param {string} selectedId - The ID of the selected framework
+       */
+      function updateFrameworkSelection(selectedId) {
+        try {
+          // Remove selection from all cards
+          document.querySelectorAll(".framework-card").forEach((card) => {
+            card.classList.remove("selected");
+          });
+
+          // Add selection to the chosen card
+          const selectedCard = document.querySelector(
+            `[data-framework="${selectedId}"]`,
+          );
+          if (selectedCard) {
+            selectedCard.classList.add("selected");
+
+            // Smooth scroll to ensure selected card is visible
+            selectedCard.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        } catch (error) {
+          console.error("❌ Error updating framework selection:", error);
+        }
+      }
+
+      /**
+       * Loads questions for the selected framework using wizard engine
+       * @param {string} frameworkId - The framework identifier
+       * @returns {Promise} Promise that resolves when questions are loaded
+       */
+      function loadFrameworkQuestions(frameworkId) {
+        return new Promise((resolve, reject) => {
+          try {
+            console.log(`📋 Loading questions for framework: ${frameworkId}`);
+
+            const engine = getWizardEngine();
+
+            // Initialize engine with question data if needed
+            if (!engine.questionData && window.globalQuestionData) {
+              engine.initialize(window.globalQuestionData);
+            }
+
+            // Use wizard engine to select framework
+            const success = engine.selectFramework(frameworkId);
+            if (!success) {
+              throw new Error(`Failed to select framework: ${frameworkId}`);
+            }
+
+            // Update local variables for backward compatibility
+            currentQuestions = engine.getQuestionsForCurrentStep();
+            totalSteps = engine.totalSteps;
+            frameworkConfig = engine.frameworkConfig;
+
+            console.log(
+              `✅ Framework questions loaded: ${currentQuestions.length} questions, ${totalSteps} steps`,
+            );
+            resolve(currentQuestions);
+          } catch (error) {
+            console.error("❌ Error loading framework questions:", error);
+            reject(error);
+          }
+        });
+      }
+
+      /**
+       * Starts the assessment after framework selection
+       * Transitions from framework selection to wizard interface
+       */
+      function startAssessment() {
+        try {
+          if (!selectedFramework || !frameworkConfig) {
+            showNotification("Please select a framework first", "warning");
+            return;
+          }
+
+          console.log(`🚀 Starting ${frameworkConfig.name} assessment...`);
+
+          // Create new assessment session
+          assessmentSession = {
+            sessionId: generateSessionId(),
+            startTime: new Date().toISOString(),
+            lastSaved: null,
+            framework: selectedFramework,
+            step: 1,
+            progress: 0,
+          };
+
+          // Show loading state
+          showLoading("Preparing your assessment...");
+
+          // Load questions for the selected framework
+          loadFrameworkQuestions(selectedFramework)
+            .then(() => {
+              // Hide framework selection screen
+              const frameworkSelection =
+                document.getElementById("frameworkSelection");
+              if (frameworkSelection) {
+                frameworkSelection.style.display = "none";
+              }
+
+              // Show wizard interface
+              const wizardContainer =
+                document.getElementById("wizardContainer");
+              if (wizardContainer) {
+                wizardContainer.classList.add("active");
+              }
+
+              // Initialize wizard with first step
+              initializeWizard();
+
+              // Hide loading state
+              hideLoading();
+
+              // Announce start via voice
+              if (typeof speakText === "function") {
+                speakText(
+                  `Welcome to the ${frameworkConfig.name} assessment. Let's begin with the first step.`,
+                );
+              }
+
+              console.log("✅ Assessment started successfully");
+            })
+            .catch((error) => {
+              console.error("❌ Error starting assessment:", error);
+              hideLoading();
+              showError("Failed to start assessment. Please try again.");
+            });
+        } catch (error) {
+          console.error("❌ Error starting assessment:", error);
+          showError("Failed to start assessment. Please refresh the page.");
+        }
+      }
+
+      /* ==========================================================================
+         WIZARD INTERFACE FUNCTIONS
+         Functions for managing the main assessment interface
+         ========================================================================== */
+
+      /**
+       * Initializes the wizard interface with the first step
+       * Sets up progress indicators, loads questions, and prepares UI
+       */
+      function initializeWizard() {
+        try {
+          console.log("🎮 Initializing wizard interface...");
+
+          // Initialize wizard state
+          currentStep = 1;
+          userAnswers = {};
+
+          // Generate progress indicators based on framework steps
+          generateProgressIndicators();
+
+          // Load questions for the first step
+          loadStepQuestions(currentStep);
+
+          // Update UI elements
+          updateWizardHeader();
+          updateNavigationButtons();
+          updateProgressDisplay();
+
+          // Save initial state
+          saveAssessmentProgress();
+
+          console.log("✅ Wizard interface initialized");
+        } catch (error) {
+          console.error("❌ Error initializing wizard:", error);
+          showError("Failed to initialize assessment interface");
+        }
+      }
+
+      /**
+       * Generates progress indicator steps based on framework configuration
+       * Creates visual progress bar showing all steps in the assessment
+       */
+      function generateProgressIndicators() {
+        try {
+          const progressContainer = document.getElementById("wizardProgress");
+          if (!progressContainer) return;
+
+          // Get unique steps from current framework
+          const steps = getFrameworkSteps();
+          totalSteps = steps.length;
+
+          // Clear existing progress indicators
+          progressContainer.innerHTML = "";
+
+          // Generate progress step elements
+          steps.forEach((step, index) => {
+            const stepNumber = index + 1;
+            const isActive = stepNumber === currentStep;
+            const isCompleted = stepNumber < currentStep;
+
+            const stepElement = document.createElement("div");
+            stepElement.className = `progress-step ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`;
+            stepElement.innerHTML = `
+              <div class="step-indicator">
+                ${isCompleted ? '<i class="fas fa-check"></i>' : stepNumber}
+              </div>
+              <div class="step-info">
+                <h4>${step.title}</h4>
+                <p>${step.description}</p>
+              </div>
+            `;
+
+            progressContainer.appendChild(stepElement);
+          });
+
+          console.log(`✅ Generated ${totalSteps} progress indicators`);
+        } catch (error) {
+          console.error("❌ Error generating progress indicators:", error);
+        }
+      }
+
+      /**
+       * Loads questions for a specific step in the assessment
+       * @param {number} stepNumber - The step number to load (1-based)
+       */
+      function loadStepQuestions(stepNumber) {
+        try {
+          console.log(`📋 Loading questions for step ${stepNumber}...`);
+
+          // Get questions for the current step
+          const stepQuestions = getQuestionsForStep(stepNumber);
+
+          if (stepQuestions.length === 0) {
+            console.warn(`⚠️ No questions found for step ${stepNumber}`);
+            showNotification("No questions available for this step", "warning");
+            return;
+          }
+
+          // Render questions in the wizard body
+          renderQuestions(stepQuestions);
+
+          // Restore saved answers if available
+          restoreStepAnswers(stepNumber);
+
+          // Update progress
+          updateProgressDisplay();
+
+          console.log(
+            `✅ Loaded ${stepQuestions.length} questions for step ${stepNumber}`,
+          );
+        } catch (error) {
+          console.error("❌ Error loading step questions:", error);
+          showError("Failed to load questions for this step");
+        }
+      }
+
+      /* ==========================================================================
+         QUESTION RENDERING FUNCTIONS
+         Functions for displaying questions and handling user input
+         ========================================================================== */
+
+      /**
+       * Renders questions in the wizard interface
+       * @param {Array} questions - Array of question objects to render
+       */
+      function renderQuestions(questions) {
+        try {
+          const wizardBody = document.getElementById("wizardBody");
+          if (!wizardBody) return;
+
+          // Clear existing content
+          wizardBody.innerHTML = "";
+
+          // Render each question
+          questions.forEach((question, index) => {
+            const questionElement = createQuestionElement(question, index + 1);
+            wizardBody.appendChild(questionElement);
+          });
+
+          // Add entrance animation to questions
+          setTimeout(() => {
+            document
+              .querySelectorAll(".question-group")
+              .forEach((el, index) => {
+                setTimeout(() => {
+                  el.style.opacity = "1";
+                  el.style.transform = "translateX(0)";
+                }, index * 100); // Stagger animations
+              });
+          }, 50);
+        } catch (error) {
+          console.error("❌ Error rendering questions:", error);
+        }
+      }
+
+      /**
+       * Creates a DOM element for a single question
+       * @param {Object} question - Question data object
+       * @param {number} questionNumber - Display number for the question
+       * @returns {HTMLElement} The created question element
+       */
+      function createQuestionElement(question, questionNumber) {
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question-group";
+        questionDiv.style.opacity = "0";
+        questionDiv.style.transform = "translateX(-20px)";
+        questionDiv.style.transition = "all 0.3s ease";
+
+        // Generate unique question ID
+        const questionId = generateQuestionId(question, questionNumber);
+
+        // Create question HTML structure
+        questionDiv.innerHTML = `
+          <!-- Question title with number -->
+          <div class="question-title">
+            <div class="question-number">${questionNumber}</div>
+            <span>${question.question}</span>
+          </div>
+          
+          <!-- Question description/context if available -->
+          ${
+            question.description
+              ? `
+            <div class="question-description">${question.description}</div>
+          `
+              : ""
+          }
+          
+          <!-- Question input based on type -->
+          <div class="question-input-container">
+            ${createQuestionInput(question, questionId)}
+          </div>
+        `;
+
+        return questionDiv;
+      }
+
+      /**
+       * Creates the input element for a question based on its type
+       * @param {Object} question - Question data object
+       * @param {string} questionId - Unique question identifier
+       * @returns {string} HTML string for the question input
+       */
+      function createQuestionInput(question, questionId) {
+        // For now, create textarea inputs for all questions
+        // This can be enhanced later to support different input types
+        return `
+          <textarea 
+            class="question-input" 
+            data-question-id="${questionId}"
+            rows="3" 
+            placeholder="${question.sample || "Please provide your answer..."}"
+            onchange="saveAnswer('${questionId}', this.value)"
+            oninput="updateProgress()"
+          ></textarea>
+        `;
+      }
+
+      /* ==========================================================================
+         UTILITY FUNCTIONS
+         Helper functions used throughout the wizard
+         ========================================================================== */
+
+      /**
+       * Generates a unique session ID for the assessment
+       * @returns {string} Unique session identifier
+       */
+      function generateSessionId() {
+        return (
+          "wizard_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
+        );
+      }
+
+      /**
+       * Generates a unique question ID based on question content and position
+       * @param {Object} question - Question data object
+       * @param {number} questionNumber - Position number of the question
+       * @returns {string} Unique question identifier
+       */
+      function generateQuestionId(question, questionNumber) {
+        // Create ID from step and question number
+        return `step${currentStep}_q${questionNumber}`;
+      }
+
+      /**
+       * Shows error message to user
+       * @param {string} message - Error message to display
+       */
+      function showError(message) {
+        if (typeof showNotification === "function") {
+          showNotification(message, "error");
+        } else {
+          alert("Error: " + message);
+        }
+      }
+
+      /**
+       * Shows loading state with message
+       * @param {string} message - Loading message to display
+       */
+      function showLoading(message) {
+        const loadingState = document.getElementById("loadingState");
+        if (loadingState) {
+          loadingState.style.display = "block";
+          const messageEl = loadingState.querySelector("p");
+          if (messageEl) {
+            messageEl.textContent = message;
+          }
+        }
+      }
+
+      /**
+       * Hides loading state
+       */
+      function hideLoading() {
+        const loadingState = document.getElementById("loadingState");
+        if (loadingState) {
+          loadingState.style.display = "none";
+        }
+      }
+
+      /* ==========================================================================
+         NAVIGATION FUNCTIONS
+         Functions for moving between wizard steps
+         ========================================================================== */
+
+      /**
+       * Advances to the next step in the wizard
+       * Validates current step before advancing
+       * Handles completion of final step
+       */
+      function nextStep() {
+        try {
+          console.log("▶️ Moving to next step from", currentStep);
+
+          // Validate current step before advancing
+          if (validateCurrentStep()) {
+            if (currentStep < totalSteps) {
+              // Advance to next step
+              currentStep++;
+              showStep(currentStep);
+              updateStepDisplay();
+
+              // Load questions for the new step
+              loadStepQuestions(currentStep);
+
+              // Update progress
+              updateProgressDisplay();
+
+              console.log("✅ Advanced to step", currentStep);
+
+              // Send progress message to AI chat
+              if (typeof addChatMessage === "function") {
+                try {
+                  const steps = getFrameworkSteps();
+                  const stepInfo = steps[currentStep - 1];
+                  const stepTitle = stepInfo
+                    ? stepInfo.title
+                    : `Step ${currentStep}`;
+
+                  addChatMessage(
+                    frameworkConfig.chatContext,
+                    "ai",
+                    `Great progress! Now let's work on ${stepTitle}. I'm here to help if you have any questions.`,
+                  );
+                } catch (e) {
+                  console.warn("Chat message failed", e);
+                }
+              }
+            } else {
+              // Complete assessment (final step)
+              completeAssessment();
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error in nextStep:", error);
+          showError("Error moving to next step");
+        }
+      }
+
+      /**
+       * Goes back to the previous step in the wizard
+       * Only works if not on the first step
+       */
+      function previousStep() {
+        try {
+          if (currentStep > 1) {
+            // Go back one step
+            currentStep--;
+            showStep(currentStep);
+            updateStepDisplay();
+
+            // Load questions for previous step
+            loadStepQuestions(currentStep);
+
+            // Update progress
+            updateProgressDisplay();
+
+            console.log("◀️ Moved back to step", currentStep);
+
+            // Send navigation message to AI chat
+            if (typeof addChatMessage === "function") {
+              try {
+                const steps = getFrameworkSteps();
+                const stepInfo = steps[currentStep - 1];
+                const stepTitle = stepInfo
+                  ? stepInfo.title
+                  : `Step ${currentStep}`;
+
+                addChatMessage(
+                  frameworkConfig.chatContext,
+                  "ai",
+                  `Going back to ${stepTitle}. Let me know if you need to review anything.`,
+                );
+              } catch (e) {
+                console.warn("Chat message failed", e);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error in previousStep:", error);
+          showError("Error moving to previous step");
+        }
+      }
+
+      /**
+       * Shows the specified wizard step and hides all others
+       * @param {number} step - The step number to display (1-based)
+       */
+      function showStep(step) {
+        try {
+          // Update step display is handled by loadStepQuestions
+          // This function maintains compatibility with existing code
+          console.log(`👁️ Showing step ${step}`);
+        } catch (error) {
+          console.error("Error showing step:", error);
+        }
+      }
+
+      /* ==========================================================================
+         PROGRESS AND UI UPDATE FUNCTIONS
+         Functions for updating the wizard interface and progress
+         ========================================================================== */
+
+      /**
+       * Updates the visual progress indicators and step information
+       */
+      function updateStepDisplay() {
+        try {
+          // Update progress indicators for each step
+          document.querySelectorAll(".progress-step").forEach((step, index) => {
+            const stepNum = index + 1;
+
+            // Remove all state classes first
+            step.classList.remove("active", "completed");
+
+            if (stepNum < currentStep) {
+              // Steps before current step are marked as completed
+              step.classList.add("completed");
+              // Show checkmark icon instead of number for completed steps
+              step.querySelector(".step-indicator").innerHTML =
+                '<i class="fas fa-check"></i>';
+            } else if (stepNum === currentStep) {
+              // Current step is marked as active
+              step.classList.add("active");
+              // Show step number for active step
+              step.querySelector(".step-indicator").textContent = stepNum;
+            } else {
+              // Future steps just show their number
+              step.querySelector(".step-indicator").textContent = stepNum;
+            }
+          });
+
+          // Update navigation button visibility and text
+          updateNavigationButtons();
+        } catch (error) {
+          console.error("Error updating step display:", error);
+        }
+      }
+
+      /**
+       * Updates the wizard header with current step information
+       */
+      function updateWizardHeader() {
+        try {
+          const steps = getFrameworkSteps();
+          const stepInfo = steps[currentStep - 1];
+
+          if (stepInfo) {
+            const titleElement = document.getElementById("wizardTitle");
+            const descriptionElement =
+              document.getElementById("wizardDescription");
+
+            if (titleElement) {
+              titleElement.textContent = `${stepInfo.title} (Step ${currentStep} of ${totalSteps})`;
+            }
+            if (descriptionElement) {
+              descriptionElement.textContent = stepInfo.description;
+            }
+          }
+        } catch (error) {
+          console.error("Error updating wizard header:", error);
+        }
+      }
+
+      /**
+       * Updates navigation button states and text
+       */
+      function updateNavigationButtons() {
+        try {
+          const prevBtn = document.getElementById("previousBtn");
+          const nextBtn = document.getElementById("nextBtn");
+
+          // Show Previous button only if not on first step
+          if (prevBtn) {
+            prevBtn.style.visibility = currentStep > 1 ? "visible" : "hidden";
+          }
+
+          // Change Next button text on final step
+          if (nextBtn) {
+            if (currentStep === totalSteps) {
+              nextBtn.innerHTML =
+                'Complete Assessment <i class="fas fa-check"></i>';
+            } else {
+              nextBtn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+            }
+          }
+        } catch (error) {
+          console.error("Error updating navigation buttons:", error);
+        }
+      }
+
+      /**
+       * Updates the progress percentage display
+       */
+      function updateProgressDisplay() {
+        try {
+          // Calculate progress based on current step and answered questions
+          const stepProgress = (currentStep - 1) / totalSteps;
+          const currentStepCompletion = getCurrentStepCompletion();
+          const totalProgress = Math.min(
+            95,
+            (stepProgress + currentStepCompletion / totalSteps) * 100,
+          );
+
+          // Update the visual progress display
+          const confidenceFill = document.getElementById("confidenceFill");
+          const confidenceText = document.getElementById("confidenceText");
+
+          if (confidenceFill) confidenceFill.style.width = totalProgress + "%";
+          if (confidenceText)
+            confidenceText.textContent = Math.round(totalProgress) + "%";
+
+          // Update assessment session
+          assessmentSession.progress = totalProgress;
+          assessmentSession.step = currentStep;
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
+      }
+
+      /**
+       * Gets completion percentage for current step
+       * @returns {number} Completion percentage (0-1)
+       */
+      function getCurrentStepCompletion() {
+        try {
+          const questions = getQuestionsForStep(currentStep);
+          if (questions.length === 0) return 1;
+
+          const answeredQuestions =
+            document.querySelectorAll(".question-input").length > 0
+              ? Array.from(document.querySelectorAll(".question-input")).filter(
+                  (input) => input.value && input.value.trim() !== "",
+                ).length
+              : 0;
+
+          return answeredQuestions / questions.length;
+        } catch (error) {
+          console.error("Error calculating step completion:", error);
+          return 0;
+        }
+      }
+
+      /* ==========================================================================
+         ANSWER MANAGEMENT FUNCTIONS
+         Functions for saving and restoring user answers
+         ========================================================================== */
+
+      /**
+       * Saves an answer for a specific question
+       * @param {string} questionId - Unique question identifier
+       * @param {string} value - The answer value
+       */
+      function saveAnswer(questionId, value) {
+        try {
+          userAnswers[questionId] = value;
+
+          // Save to localStorage for persistence
+          const savedData = {
+            sessionId: assessmentSession.sessionId,
+            framework: selectedFramework,
+            step: currentStep,
+            answers: userAnswers,
+            timestamp: new Date().toISOString(),
+          };
+
+          localStorage.setItem(
+            "compliance_assessment_draft",
+            JSON.stringify(savedData),
+          );
+
+          console.log(`💾 Saved answer for ${questionId}:`, value);
+        } catch (error) {
+          console.error("Error saving answer:", error);
+        }
+      }
+
+      /**
+       * Restores saved answers for a specific step
+       * @param {number} stepNumber - The step number to restore answers for
+       */
+      function restoreStepAnswers(stepNumber) {
+        try {
+          const savedData = localStorage.getItem("compliance_assessment_draft");
+          if (!savedData) return;
+
+          const parsed = JSON.parse(savedData);
+          if (parsed.framework !== selectedFramework) return;
+
+          // Restore answers for current step
+          Object.keys(parsed.answers).forEach((questionId) => {
+            if (questionId.startsWith(`step${stepNumber}_`)) {
+              const input = document.querySelector(
+                `[data-question-id="${questionId}"]`,
+              );
+              if (input) {
+                input.value = parsed.answers[questionId];
+                userAnswers[questionId] = parsed.answers[questionId];
+              }
+            }
+          });
+
+          console.log(`🔄 Restored answers for step ${stepNumber}`);
+        } catch (error) {
+          console.error("Error restoring step answers:", error);
+        }
+      }
+
+      /* ==========================================================================
+         VALIDATION AND COMPLETION FUNCTIONS
+         Functions for validating input and completing the assessment
+         ========================================================================== */
+
+      /**
+       * Validates the current step before allowing progression
+       * @returns {boolean} True if validation passes, false otherwise
+       */
+      function validateCurrentStep() {
+        try {
+          // For now, allow progression without strict validation
+          // This can be enhanced to add specific validation rules
+          return true;
+        } catch (error) {
+          console.error("Error validating step:", error);
+          return true; // Allow progression if validation fails
+        }
+      }
+
+      /**
+       * Completes the assessment and shows results
+       */
+      function completeAssessment() {
+        try {
+          console.log("🎉 Assessment completed!");
+
+          // Calculate final results
+          const results = calculateAssessmentResults();
+
+          // Show completion notification
+          if (typeof showNotification === "function") {
+            showNotification("Assessment completed successfully!", "success");
+          } else {
+            alert("Assessment completed successfully!");
+          }
+
+          // Send completion message to AI chat
+          if (typeof addChatMessage === "function") {
+            try {
+              addChatMessage(
+                frameworkConfig.chatContext,
+                "ai",
+                `Congratulations! You've completed the ${frameworkConfig.name} assessment. Your results show ${results.completionPercentage}% completion with ${results.totalAnswers} questions answered.`,
+              );
+            } catch (e) {
+              console.warn("Chat message failed", e);
+            }
+          }
+
+          // TODO: Show results page or redirect to results
+        } catch (error) {
+          console.error("Error completing assessment:", error);
+          showError("Error completing assessment");
+        }
+      }
+
+      /**
+       * Calculates assessment results and completion metrics
+       * @returns {Object} Results object with completion data
+       */
+      function calculateAssessmentResults() {
+        try {
+          const totalQuestions = currentQuestions.length;
+          const answeredQuestions = Object.keys(userAnswers).length;
+          const completionPercentage = Math.round(
+            (answeredQuestions / totalQuestions) * 100,
+          );
+
+          return {
+            framework: frameworkConfig.name,
+            totalQuestions,
+            answeredQuestions,
+            completionPercentage,
+            sessionId: assessmentSession.sessionId,
+            startTime: assessmentSession.startTime,
+            endTime: new Date().toISOString(),
+            answers: userAnswers,
+          };
+        } catch (error) {
+          console.error("Error calculating results:", error);
+          return {
+            framework: frameworkConfig ? frameworkConfig.name : "Unknown",
+            totalQuestions: 0,
+            answeredQuestions: 0,
+            completionPercentage: 0,
+          };
+        }
+      }
+
+      /* ==========================================================================
+         SAVE AND RESTORE FUNCTIONS
+         Functions for saving assessment progress
+         ========================================================================== */
+
+      /**
+       * Saves the current assessment progress as a draft
+       */
+      function saveDraft() {
+        try {
+          // Use existing saveAllAnswers function if available
+          if (typeof saveAllAnswers === "function") {
+            saveAllAnswers();
+          }
+
+          // Show success notification
+          if (typeof showNotification === "function") {
+            showNotification("Assessment progress saved", "success");
+          } else {
+            alert("Assessment progress saved");
+          }
+        } catch (error) {
+          console.error("Error saving draft:", error);
+          showError("Error saving progress. Please try again.");
+        }
+      }
+
+      /**
+       * Saves current assessment progress to session
+       */
+      function saveAssessmentProgress() {
+        try {
+          assessmentSession.lastSaved = new Date().toISOString();
+          assessmentSession.step = currentStep;
+          assessmentSession.progress = getCurrentProgressPercentage();
+
+          localStorage.setItem(
+            "assessment_session",
+            JSON.stringify(assessmentSession),
+          );
+        } catch (error) {
+          console.error("Error saving assessment progress:", error);
+        }
+      }
+
+      /**
+       * Gets current progress percentage
+       * @returns {number} Progress percentage (0-100)
+       */
+      function getCurrentProgressPercentage() {
+        try {
+          const stepProgress = (currentStep - 1) / totalSteps;
+          const currentStepCompletion = getCurrentStepCompletion();
+          return Math.min(
+            95,
+            (stepProgress + currentStepCompletion / totalSteps) * 100,
+          );
+        } catch (error) {
+          console.error("Error getting progress percentage:", error);
+          return 0;
+        }
+      }
+
+      /* ==========================================================================
+         INITIALIZATION HELPER FUNCTIONS
+         Functions for setting up the wizard interface
+         ========================================================================== */
+
+      /**
+       * Checks for existing assessment sessions
+       */
+      function checkForExistingSession() {
+        try {
+          const sessionData = localStorage.getItem("assessment_session");
+          if (sessionData) {
+            const session = JSON.parse(sessionData);
+            console.log("Found existing session:", session);
+            // TODO: Offer to resume session
+          }
+        } catch (error) {
+          console.error("Error checking for existing session:", error);
+        }
+      }
+
+      /**
+       * Initializes framework selection interface
+       */
+      function initializeFrameworkSelection() {
+        try {
+          console.log("🎯 Framework selection interface ready");
+
+          // Update framework statistics with real data
+          updateFrameworkStatistics();
+        } catch (error) {
+          console.error("Error initializing framework selection:", error);
+        }
+      }
+
+      /**
+       * Updates framework statistics with actual question counts
+       */
+      function updateFrameworkStatistics() {
+        try {
+          Object.keys(FRAMEWORK_CONFIGS).forEach((frameworkKey) => {
+            const config = FRAMEWORK_CONFIGS[frameworkKey];
+            const card = document.querySelector(
+              `[data-framework="${frameworkKey}"]`,
+            );
+
+            if (card && config.questionCount !== undefined) {
+              const questionStat = card.querySelector(".framework-stat span");
+              if (
+                questionStat &&
+                questionStat.textContent.includes("Questions")
+              ) {
+                questionStat.textContent = `${config.questionCount} Questions`;
+              }
+
+              const stepStat = card.querySelectorAll(".framework-stat span")[2];
+              if (stepStat && stepStat.textContent.includes("Steps")) {
+                stepStat.textContent = `${config.steps.length} Steps`;
+              }
+            }
+          });
+        } catch (error) {
+          console.error("Error updating framework statistics:", error);
+        }
+      }
+
+      /**
+       * Initializes chat integration
+       */
+      function initializeChatIntegration() {
+        try {
+          console.log("💬 Chat integration initialized");
+
+          // Set up chat context
+          if (typeof updateChatContext === "function") {
+            updateChatContext(chatContext);
+          }
+        } catch (error) {
+          console.error("Error initializing chat integration:", error);
+        }
+      }
+
+      /**
+       * Sets up keyboard shortcuts for better UX
+       */
+      function setupKeyboardShortcuts() {
+        try {
+          document.addEventListener("keydown", function (event) {
+            // Only handle shortcuts when not in input fields
+            if (
+              event.target.tagName === "INPUT" ||
+              event.target.tagName === "TEXTAREA"
+            ) {
+              return;
+            }
+
+            switch (event.key) {
+              case "ArrowRight":
+                if (event.ctrlKey) {
+                  event.preventDefault();
+                  nextStep();
+                }
+                break;
+              case "ArrowLeft":
+                if (event.ctrlKey) {
+                  event.preventDefault();
+                  previousStep();
+                }
+                break;
+              case "s":
+                if (event.ctrlKey) {
+                  event.preventDefault();
+                  saveDraft();
+                }
+                break;
+            }
+          });
+
+          console.log("⌨️ Keyboard shortcuts initialized");
+        } catch (error) {
+          console.error("Error setting up keyboard shortcuts:", error);
+        }
+      }
+
+      /**
+       * Sets up auto-save functionality
+       */
+      function setupAutoSave() {
+        try {
+          // Auto-save every 30 seconds
+          setInterval(() => {
+            if (selectedFramework && currentStep > 0) {
+              saveAssessmentProgress();
+            }
+          }, 30000);
+
+          console.log("💾 Auto-save initialized");
+        } catch (error) {
+          console.error("Error setting up auto-save:", error);
+        }
+      }
+
+      /**
+       * Notifies chat interface about framework selection
+       * @param {Object} config - Framework configuration object
+       */
+      function notifyChatFrameworkSelection(config) {
+        try {
+          if (typeof addChatMessage === "function") {
+            addChatMessage(
+              config.chatContext,
+              "ai",
+              `Perfect! I'll help you with the ${config.name} assessment. This will involve ${config.steps.length} steps and approximately ${config.estimatedTime}. Are you ready to begin?`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Error notifying chat about framework selection:",
+            error,
+          );
+        }
+      }
+
+      /* ==========================================================================
+         GLOBAL EXPORTS AND COMPATIBILITY
+         Export functions and set up global access for onclick handlers
+         ========================================================================== */
+
+      // Export functions to global scope for compatibility with existing code
+      // Additional global exports for other functions
+      if (typeof window !== "undefined") {
+        window.saveAnswer = saveAnswer;
+        window.updateProgress = updateProgressDisplay;
+        window.loadFrameworkQuestions = loadFrameworkQuestions;
+        window.getFrameworkSteps = getFrameworkSteps;
+        window.getQuestionsForStep = getQuestionsForStep;
+      }
+
+      /* ==========================================================================
+         ERROR HANDLING AND FALLBACK FUNCTIONS
+         Global error handlers and fallback implementations
+         ========================================================================== */
+
+      // Global error handler to catch and log unhandled errors
+      window.addEventListener("error", function (event) {
+        console.error("Global error caught:", event.error);
+        showError(
+          "An unexpected error occurred. Please refresh the page if problems persist.",
+        );
+      });
+
+      // Handle unhandled promise rejections
+      window.addEventListener("unhandledrejection", function (event) {
+        console.error("Unhandled promise rejection:", event.reason);
+        event.preventDefault();
+      });
+
+      console.log(
+        "🎯 Enhanced Compliance Assessment Wizard loaded successfully",
+      );
+    </script>
+
+    <!-- Information Modal for help content -->
+    <div id="infoModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Information</h3>
+          <button class="modal-close" onclick="closeInfoModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body" id="infoModalBody"></div>
+      </div>
+    </div>
+  </body>
+</html>

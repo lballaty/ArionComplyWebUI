@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Global Search</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .search-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .search-filters {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .search-results {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .main-search-bar {
+        padding: 2rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .search-input-container {
+        position: relative;
+        margin-bottom: 1rem;
+      }
+
+      .main-search-input {
+        width: 100%;
+        padding: 1rem 3rem 1rem 1rem;
+        border: 2px solid var(--border-light);
+        border-radius: var(--border-radius);
+        font-size: 1.125rem;
+        outline: none;
+        transition: border-color 0.15s ease;
+      }
+
+      .main-search-input:focus {
+        border-color: var(--primary-blue);
+      }
+
+      .search-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-gray);
+        font-size: 1.25rem;
+      }
+
+      .search-suggestions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .suggestion-tag {
+        padding: 0.25rem 0.75rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .suggestion-tag:hover {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .filter-section {
+        margin-bottom: 2rem;
+      }
+
+      .filter-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .filter-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin-bottom: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .filter-item:hover {
+        background: var(--bg-light);
+      }
+
+      .filter-checkbox {
+        margin-right: 0.75rem;
+      }
+
+      .filter-label {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .filter-count {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        background: var(--bg-gray);
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+      }
+
+      .date-range {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .date-input {
+        padding: 0.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+      }
+
+      .results-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .results-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .results-count {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .search-time {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .sort-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .sort-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+      }
+
+      .view-toggle {
+        display: flex;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+      }
+
+      .view-btn {
+        padding: 0.5rem;
+        border: none;
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .view-btn.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .results-content {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .result-item {
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .result-item:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+      }
+
+      .result-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+      }
+
+      .result-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+        color: white;
+      }
+
+      .result-icon.document {
+        background: var(--primary-blue);
+      }
+
+      .result-icon.risk {
+        background: var(--danger-red);
+      }
+
+      .result-icon.ai {
+        background: var(--ai-purple);
+      }
+
+      .result-icon.policy {
+        background: var(--success-green);
+      }
+
+      .result-icon.audit {
+        background: var(--warning-amber);
+      }
+
+      .result-meta {
+        flex: 1;
+      }
+
+      .result-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+      }
+
+      .result-type {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .result-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .result-action {
+        padding: 0.25rem 0.5rem;
+        background: var(--bg-gray);
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.15s ease;
+      }
+
+      .result-action:hover {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .result-content {
+        margin-bottom: 1rem;
+      }
+
+      .result-snippet {
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--text-gray);
+        margin-bottom: 0.75rem;
+      }
+
+      .highlight {
+        background: rgba(255, 235, 59, 0.3);
+        padding: 0.125rem 0.25rem;
+        border-radius: 2px;
+        font-weight: 500;
+      }
+
+      .result-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .result-tag {
+        padding: 0.125rem 0.5rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .result-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+      }
+
+      .result-path {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .result-date {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-gray);
+      }
+
+      .no-results i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+      }
+
+      .search-tips {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .tips-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .tips-list {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        list-style: none;
+      }
+
+      .tips-list li {
+        margin-bottom: 0.25rem;
+      }
+
+      .tips-list li::before {
+        content: "•";
+        margin-right: 0.5rem;
+        color: var(--primary-blue);
+      }
+
+      .pagination {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: between;
+      }
+
+      .pagination-info {
+        flex: 1;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .page-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        background: var(--bg-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .page-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .page-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Search Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Global Search</h1>
+              <p class="page-subtitle">
+                Search across all compliance data, documents, and systems
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="saveSearch()">
+                <i class="fas fa-bookmark"></i>
+                Save Search
+              </button>
+              <button class="btn btn-secondary" onclick="exportResults()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="advancedSearch()">
+                <i class="fas fa-filter"></i>
+                Advanced
+              </button>
+            </div>
+          </div>
+
+          <div class="search-container">
+            <!-- Search Filters -->
+            <div class="search-filters">
+              <div class="filter-section">
+                <div class="filter-title">Content Type</div>
+                <div class="filter-group">
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span class="filter-label">Documents</span>
+                    <span class="filter-count">247</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span class="filter-label">Policies</span>
+                    <span class="filter-count">48</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Risk Assessments</span>
+                    <span class="filter-count">89</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">AI Systems</span>
+                    <span class="filter-count">23</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Audit Reports</span>
+                    <span class="filter-count">34</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Training Records</span>
+                    <span class="filter-count">156</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="filter-section">
+                <div class="filter-title">Framework</div>
+                <div class="filter-group">
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">ISO 27001</span>
+                    <span class="filter-count">142</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">GDPR</span>
+                    <span class="filter-count">98</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">SOC 2</span>
+                    <span class="filter-count">76</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">EU AI Act</span>
+                    <span class="filter-count">45</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">PCI DSS</span>
+                    <span class="filter-count">31</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="filter-section">
+                <div class="filter-title">Status</div>
+                <div class="filter-group">
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Active</span>
+                    <span class="filter-count">312</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Draft</span>
+                    <span class="filter-count">67</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Under Review</span>
+                    <span class="filter-count">24</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" />
+                    <span class="filter-label">Archived</span>
+                    <span class="filter-count">89</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="filter-section">
+                <div class="filter-title">Date Range</div>
+                <div class="filter-group">
+                  <div class="date-range">
+                    <input type="date" class="date-input" placeholder="From" />
+                    <input type="date" class="date-input" placeholder="To" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="search-tips">
+                <div class="tips-title">Search Tips</div>
+                <ul class="tips-list">
+                  <li>Use quotes for exact phrases</li>
+                  <li>Use * for wildcard searches</li>
+                  <li>Use AND/OR for boolean queries</li>
+                  <li>Use field:value to search specific fields</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Search Results -->
+            <div class="search-results">
+              <!-- Main Search Bar -->
+              <div class="main-search-bar">
+                <div class="search-input-container">
+                  <input
+                    type="text"
+                    class="main-search-input"
+                    placeholder="Search policies, risks, AI systems, documents..."
+                    value="data protection"
+                  />
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="search-suggestions">
+                  <span class="suggestion-tag">GDPR compliance</span>
+                  <span class="suggestion-tag">risk assessment</span>
+                  <span class="suggestion-tag">AI governance</span>
+                  <span class="suggestion-tag">incident response</span>
+                  <span class="suggestion-tag">training records</span>
+                </div>
+              </div>
+
+              <!-- Results Header -->
+              <div class="results-header">
+                <div class="results-info">
+                  <div class="results-count">247 results found</div>
+                  <div class="search-time">in 0.23 seconds</div>
+                </div>
+                <div class="sort-controls">
+                  <select class="sort-select">
+                    <option>Relevance</option>
+                    <option>Date Modified</option>
+                    <option>Date Created</option>
+                    <option>Title A-Z</option>
+                  </select>
+                  <div class="view-toggle">
+                    <button class="view-btn active">
+                      <i class="fas fa-list"></i>
+                    </button>
+                    <button class="view-btn">
+                      <i class="fas fa-th"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Results Content -->
+              <div class="results-content">
+                <!-- Result Item 1 -->
+                <div class="result-item" onclick="openResult('gdpr-policy')">
+                  <div class="result-header">
+                    <div class="result-icon policy">
+                      <i class="fas fa-file-contract"></i>
+                    </div>
+                    <div class="result-meta">
+                      <div class="result-title">
+                        GDPR Data Protection Policy v3.2
+                      </div>
+                      <div class="result-type">Policy Document • Active</div>
+                    </div>
+                    <div class="result-actions">
+                      <button class="result-action">View</button>
+                      <button class="result-action">Edit</button>
+                      <button class="result-action">Share</button>
+                    </div>
+                  </div>
+                  <div class="result-content">
+                    <div class="result-snippet">
+                      This policy establishes the framework for
+                      <span class="highlight">data protection</span> and privacy
+                      compliance in accordance with the General Data Protection
+                      Regulation (GDPR). It covers data processing principles,
+                      lawful bases, and individual rights.
+                    </div>
+                    <div class="result-tags">
+                      <span class="result-tag">GDPR</span>
+                      <span class="result-tag">Privacy</span>
+                      <span class="result-tag">Data Protection</span>
+                      <span class="result-tag">Policy</span>
+                    </div>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-path">
+                      <i class="fas fa-folder"></i>
+                      <span>Policies > Privacy > GDPR</span>
+                    </div>
+                    <div class="result-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Modified 2 days ago</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Result Item 2 -->
+                <div class="result-item" onclick="openResult('ai-dpia')">
+                  <div class="result-header">
+                    <div class="result-icon ai">
+                      <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="result-meta">
+                      <div class="result-title">AI Customer Analytics DPIA</div>
+                      <div class="result-type">
+                        Privacy Impact Assessment • Under Review
+                      </div>
+                    </div>
+                    <div class="result-actions">
+                      <button class="result-action">View</button>
+                      <button class="result-action">Review</button>
+                      <button class="result-action">Comment</button>
+                    </div>
+                  </div>
+                  <div class="result-content">
+                    <div class="result-snippet">
+                      Data Protection Impact Assessment for the Customer
+                      Analytics AI system. Evaluates privacy risks associated
+                      with automated decision-making and profiling activities
+                      related to customer behavior analysis.
+                    </div>
+                    <div class="result-tags">
+                      <span class="result-tag">DPIA</span>
+                      <span class="result-tag">AI System</span>
+                      <span class="result-tag">Privacy Risk</span>
+                      <span class="result-tag">Assessment</span>
+                    </div>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-path">
+                      <i class="fas fa-folder"></i>
+                      <span>Assessments > Privacy > AI Systems</span>
+                    </div>
+                    <div class="result-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Modified 1 week ago</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Result Item 3 -->
+                <div
+                  class="result-item"
+                  onclick="openResult('data-breach-procedure')"
+                >
+                  <div class="result-header">
+                    <div class="result-icon document">
+                      <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="result-meta">
+                      <div class="result-title">
+                        Data Breach Response Procedure
+                      </div>
+                      <div class="result-type">Procedure Document • Active</div>
+                    </div>
+                    <div class="result-actions">
+                      <button class="result-action">View</button>
+                      <button class="result-action">Print</button>
+                      <button class="result-action">Download</button>
+                    </div>
+                  </div>
+                  <div class="result-content">
+                    <div class="result-snippet">
+                      Step-by-step procedure for responding to
+                      <span class="highlight">data protection</span> incidents
+                      and breaches. Includes notification requirements,
+                      stakeholder communications, and remediation steps in
+                      compliance with GDPR Article 33.
+                    </div>
+                    <div class="result-tags">
+                      <span class="result-tag">Incident Response</span>
+                      <span class="result-tag">Data Breach</span>
+                      <span class="result-tag">GDPR</span>
+                      <span class="result-tag">Procedure</span>
+                    </div>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-path">
+                      <i class="fas fa-folder"></i>
+                      <span>Procedures > Incident Response</span>
+                    </div>
+                    <div class="result-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Modified 3 weeks ago</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Result Item 4 -->
+                <div
+                  class="result-item"
+                  onclick="openResult('privacy-training')"
+                >
+                  <div class="result-header">
+                    <div class="result-icon audit">
+                      <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="result-meta">
+                      <div class="result-title">
+                        Privacy Awareness Training Module
+                      </div>
+                      <div class="result-type">Training Material • Active</div>
+                    </div>
+                    <div class="result-actions">
+                      <button class="result-action">Launch</button>
+                      <button class="result-action">Assign</button>
+                      <button class="result-action">Track</button>
+                    </div>
+                  </div>
+                  <div class="result-content">
+                    <div class="result-snippet">
+                      Comprehensive training module covering
+                      <span class="highlight">data protection</span> principles,
+                      employee responsibilities, and best practices for handling
+                      personal data in compliance with privacy regulations.
+                    </div>
+                    <div class="result-tags">
+                      <span class="result-tag">Training</span>
+                      <span class="result-tag">Privacy</span>
+                      <span class="result-tag">Awareness</span>
+                      <span class="result-tag">Employee</span>
+                    </div>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-path">
+                      <i class="fas fa-folder"></i>
+                      <span>Training > Privacy > Modules</span>
+                    </div>
+                    <div class="result-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Modified 1 month ago</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Result Item 5 -->
+                <div
+                  class="result-item"
+                  onclick="openResult('risk-assessment')"
+                >
+                  <div class="result-header">
+                    <div class="result-icon risk">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="result-meta">
+                      <div class="result-title">
+                        Data Processing Risk Assessment Q4 2024
+                      </div>
+                      <div class="result-type">Risk Assessment • Draft</div>
+                    </div>
+                    <div class="result-actions">
+                      <button class="result-action">Review</button>
+                      <button class="result-action">Complete</button>
+                      <button class="result-action">Assign</button>
+                    </div>
+                  </div>
+                  <div class="result-content">
+                    <div class="result-snippet">
+                      Quarterly risk assessment focusing on
+                      <span class="highlight">data protection</span> and
+                      processing activities. Identifies potential privacy risks
+                      and recommends mitigation strategies for all business
+                      units.
+                    </div>
+                    <div class="result-tags">
+                      <span class="result-tag">Risk Assessment</span>
+                      <span class="result-tag">Data Processing</span>
+                      <span class="result-tag">Quarterly</span>
+                      <span class="result-tag">2024</span>
+                    </div>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-path">
+                      <i class="fas fa-folder"></i>
+                      <span>Assessments > Risk > 2024</span>
+                    </div>
+                    <div class="result-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Modified 5 days ago</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pagination -->
+              <div class="pagination">
+                <div class="pagination-info">Showing 1-5 of 247 results</div>
+                <div class="pagination-controls">
+                  <button class="page-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button class="page-btn active">1</button>
+                  <button class="page-btn">2</button>
+                  <button class="page-btn">3</button>
+                  <button class="page-btn">...</button>
+                  <button class="page-btn">50</button>
+                  <button class="page-btn">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Global%20Search&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      let currentPage = 1;
+      let resultsPerPage = 5;
+      let totalResults = 247;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("searchInterface.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Global Search");
+
+        // Add search functionality
+        initializeSearch();
+      });
+
+      function initializeSearch() {
+        const searchInput = document.querySelector(".main-search-input");
+        const suggestionTags = document.querySelectorAll(".suggestion-tag");
+
+        // Search input handler
+        searchInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            performSearch(this.value);
+          }
+        });
+
+        // Suggestion tag handlers
+        suggestionTags.forEach((tag) => {
+          tag.addEventListener("click", function () {
+            searchInput.value = this.textContent;
+            performSearch(this.textContent);
+          });
+        });
+
+        // Filter checkbox handlers
+        document.querySelectorAll(".filter-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            updateSearchResults();
+          });
+        });
+      }
+
+      function performSearch(query) {
+        if (!query.trim()) return;
+
+        showNotification(`Searching for: "${query}"`, "info");
+
+        // Simulate search delay
+        const resultItems = document.querySelectorAll(".result-item");
+        resultItems.forEach((item) => {
+          item.style.opacity = "0.5";
+        });
+
+        setTimeout(() => {
+          resultItems.forEach((item) => {
+            item.style.opacity = "1";
+          });
+          showNotification(`Found ${totalResults} results`, "success");
+        }, 800);
+      }
+
+      function updateSearchResults() {
+        const checkedFilters = document.querySelectorAll(
+          ".filter-checkbox:checked",
+        );
+        showNotification(`Applied ${checkedFilters.length} filters`, "info");
+      }
+
+      function openResult(resultId) {
+        const resultTitles = {
+          "gdpr-policy": "GDPR Data Protection Policy",
+          "ai-dpia": "AI Customer Analytics DPIA",
+          "data-breach-procedure": "Data Breach Response Procedure",
+          "privacy-training": "Privacy Awareness Training Module",
+          "risk-assessment": "Data Processing Risk Assessment",
+        };
+
+        const title = resultTitles[resultId] || "Document";
+        showNotification(`Opening: ${title}`, "info");
+      }
+
+      function saveSearch() {
+        showNotification("Search saved to your favorites", "success");
+      }
+
+      function exportResults() {
+        showNotification("Exporting search results...", "info");
+      }
+
+      function advancedSearch() {
+        showNotification("Opening advanced search interface...", "info");
+      }
+
+      // Pagination handlers
+      document.querySelectorAll(".page-btn").forEach((btn) => {
+        if (!btn.disabled && btn.textContent.match(/^\d+$/)) {
+          btn.addEventListener("click", function () {
+            if (!this.classList.contains("active")) {
+              document
+                .querySelectorAll(".page-btn")
+                .forEach((b) => b.classList.remove("active"));
+              this.classList.add("active");
+
+              const page = parseInt(this.textContent);
+              currentPage = page;
+
+              showNotification(`Loading page ${page}`, "info");
+
+              // Simulate page loading
+              document.querySelector(".results-content").style.opacity = "0.5";
+              setTimeout(() => {
+                document.querySelector(".results-content").style.opacity = "1";
+              }, 500);
+            }
+          });
+        }
+      });
+
+      // View toggle handlers
+      document.querySelectorAll(".view-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document
+            .querySelectorAll(".view-btn")
+            .forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+
+          const view = this.querySelector("i").classList.contains("fa-list")
+            ? "list"
+            : "grid";
+          showNotification(`Switched to ${view} view`, "info");
+        });
+      });
+
+      // Sort handler
+      document
+        .querySelector(".sort-select")
+        .addEventListener("change", function () {
+          showNotification(`Sorted by: ${this.value}`, "info");
+
+          // Simulate sorting animation
+          const resultsContent = document.querySelector(".results-content");
+          resultsContent.style.opacity = "0.5";
+          setTimeout(() => {
+            resultsContent.style.opacity = "1";
+          }, 300);
+        });
+
+      // Result action handlers
+      document.querySelectorAll(".result-action").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const action = this.textContent;
+          showNotification(`${action} action triggered`, "info");
+        });
+      });
+
+      // Highlight search terms in results
+      function highlightSearchTerms(query) {
+        const results = document.querySelectorAll(".result-snippet");
+        const terms = query.toLowerCase().split(" ");
+
+        results.forEach((result) => {
+          let content = result.textContent;
+          terms.forEach((term) => {
+            if (term.length > 2) {
+              const regex = new RegExp(`(${term})`, "gi");
+              content = content.replace(
+                regex,
+                '<span class="highlight">$1</span>',
+              );
+            }
+          });
+          result.innerHTML = content;
+        });
+      }
+
+      // Auto-complete functionality
+      const searchTerms = [
+        "data protection",
+        "privacy policy",
+        "GDPR compliance",
+        "risk assessment",
+        "AI governance",
+        "incident response",
+        "training records",
+        "audit findings",
+        "policy review",
+        "compliance score",
+        "security controls",
+        "data breach",
+      ];
+
+      function setupAutoComplete() {
+        const searchInput = document.querySelector(".main-search-input");
+
+        searchInput.addEventListener("input", function () {
+          const value = this.value.toLowerCase();
+          if (value.length > 2) {
+            const matches = searchTerms.filter((term) =>
+              term.toLowerCase().includes(value),
+            );
+
+            if (matches.length > 0) {
+              // In a real app, show autocomplete dropdown
+              console.log("Autocomplete suggestions:", matches);
+            }
+          }
+        });
+      }
+
+      setupAutoComplete();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Calendar View</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .calendar-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .calendar-sidebar {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .calendar-main {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .mini-calendar {
+        margin-bottom: 2rem;
+      }
+
+      .mini-calendar h4 {
+        text-align: center;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+      }
+
+      .mini-cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        text-align: center;
+        font-size: 0.75rem;
+      }
+
+      .mini-cal-header {
+        font-weight: 600;
+        color: var(--text-gray);
+        padding: 0.25rem;
+      }
+
+      .mini-cal-day {
+        padding: 0.25rem;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 0.15s ease;
+      }
+
+      .mini-cal-day:hover {
+        background: var(--bg-light);
+      }
+
+      .mini-cal-day.today {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .mini-cal-day.has-events {
+        background: var(--bg-gray);
+        font-weight: 600;
+      }
+
+      .calendar-filters {
+        margin-bottom: 2rem;
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .filter-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-dark);
+      }
+
+      .filter-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+      }
+
+      .filter-checkbox {
+        margin-right: 0.5rem;
+      }
+
+      .filter-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+
+      .upcoming-events {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+      }
+
+      .upcoming-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .upcoming-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: var(--bg-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .upcoming-item:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .upcoming-date {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .upcoming-title-text {
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+
+      .calendar-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-btn {
+        background: none;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .nav-btn:hover {
+        background: var(--bg-light);
+        border-color: var(--primary-blue);
+      }
+
+      .current-date {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .view-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .view-btn {
+        padding: 0.5rem 1rem;
+        background: var(--bg-gray);
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-size: 0.875rem;
+      }
+
+      .view-btn.active {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .calendar-content {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+      }
+
+      .calendar-day-header {
+        background: var(--bg-gray);
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-gray);
+        font-size: 0.875rem;
+      }
+
+      .calendar-day {
+        background: var(--bg-white);
+        min-height: 120px;
+        padding: 0.75rem;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+
+      .calendar-day:hover {
+        background: var(--bg-light);
+      }
+
+      .calendar-day.other-month {
+        background: var(--bg-gray);
+        color: var(--text-gray);
+      }
+
+      .calendar-day.today {
+        background: rgba(37, 99, 235, 0.1);
+        border: 2px solid var(--primary-blue);
+      }
+
+      .day-number {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .day-events {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .calendar-event {
+        background: var(--primary-blue);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .calendar-event:hover {
+        transform: scale(1.02);
+      }
+
+      .calendar-event.audit {
+        background: var(--danger-red);
+      }
+
+      .calendar-event.review {
+        background: var(--warning-amber);
+      }
+
+      .calendar-event.training {
+        background: var(--success-green);
+      }
+
+      .calendar-event.assessment {
+        background: var(--ai-purple);
+      }
+
+      .event-more {
+        font-size: 0.75rem;
+        color: var(--primary-blue);
+        cursor: pointer;
+        margin-top: 2px;
+      }
+
+      .event-popup {
+        position: absolute;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        z-index: 1000;
+        min-width: 250px;
+        display: none;
+      }
+
+      .event-popup.show {
+        display: block;
+      }
+
+      .popup-header {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .popup-time {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .popup-description {
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+      }
+
+      .popup-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .agenda-view {
+        display: none;
+      }
+
+      .agenda-view.active {
+        display: block;
+      }
+
+      .agenda-date {
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-dark);
+      }
+
+      .agenda-event {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .agenda-event:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .agenda-time {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-right: 1rem;
+        min-width: 60px;
+      }
+
+      .agenda-details {
+        flex: 1;
+      }
+
+      .agenda-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .agenda-meta {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Calendar Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Compliance Calendar</h1>
+              <p class="page-subtitle">
+                Audit Schedule & Compliance Timeline Management
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="syncCalendar()">
+                <i class="fas fa-sync"></i>
+                Sync
+              </button>
+              <button class="btn btn-secondary" onclick="exportCalendar()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="addEvent()">
+                <i class="fas fa-plus"></i>
+                New Event
+              </button>
+            </div>
+          </div>
+
+          <div class="calendar-container">
+            <!-- Calendar Sidebar -->
+            <div class="calendar-sidebar">
+              <!-- Mini Calendar -->
+              <div class="mini-calendar">
+                <h4>December 2024</h4>
+                <div class="mini-cal-grid">
+                  <div class="mini-cal-header">Sun</div>
+                  <div class="mini-cal-header">Mon</div>
+                  <div class="mini-cal-header">Tue</div>
+                  <div class="mini-cal-header">Wed</div>
+                  <div class="mini-cal-header">Thu</div>
+                  <div class="mini-cal-header">Fri</div>
+                  <div class="mini-cal-header">Sat</div>
+
+                  <div class="mini-cal-day">1</div>
+                  <div class="mini-cal-day">2</div>
+                  <div class="mini-cal-day">3</div>
+                  <div class="mini-cal-day">4</div>
+                  <div class="mini-cal-day">5</div>
+                  <div class="mini-cal-day">6</div>
+                  <div class="mini-cal-day">7</div>
+                  <div class="mini-cal-day">8</div>
+                  <div class="mini-cal-day">9</div>
+                  <div class="mini-cal-day">10</div>
+                  <div class="mini-cal-day">11</div>
+                  <div class="mini-cal-day">12</div>
+                  <div class="mini-cal-day">13</div>
+                  <div class="mini-cal-day">14</div>
+                  <div class="mini-cal-day has-events">15</div>
+                  <div class="mini-cal-day">16</div>
+                  <div class="mini-cal-day">17</div>
+                  <div class="mini-cal-day has-events">18</div>
+                  <div class="mini-cal-day">19</div>
+                  <div class="mini-cal-day">20</div>
+                  <div class="mini-cal-day">21</div>
+                  <div class="mini-cal-day today">22</div>
+                  <div class="mini-cal-day">23</div>
+                  <div class="mini-cal-day">24</div>
+                  <div class="mini-cal-day">25</div>
+                  <div class="mini-cal-day">26</div>
+                  <div class="mini-cal-day has-events">27</div>
+                  <div class="mini-cal-day">28</div>
+                  <div class="mini-cal-day">29</div>
+                  <div class="mini-cal-day">30</div>
+                  <div class="mini-cal-day">31</div>
+                </div>
+              </div>
+
+              <!-- Calendar Filters -->
+              <div class="calendar-filters">
+                <div class="filter-group">
+                  <div class="filter-title">Event Types</div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <div
+                      class="filter-color"
+                      style="background: var(--danger-red)"
+                    ></div>
+                    <span>Audits</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <div
+                      class="filter-color"
+                      style="background: var(--warning-amber)"
+                    ></div>
+                    <span>Policy Reviews</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <div
+                      class="filter-color"
+                      style="background: var(--success-green)"
+                    ></div>
+                    <span>Training</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <div
+                      class="filter-color"
+                      style="background: var(--ai-purple)"
+                    ></div>
+                    <span>Assessments</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <div
+                      class="filter-color"
+                      style="background: var(--primary-blue)"
+                    ></div>
+                    <span>Meetings</span>
+                  </div>
+                </div>
+
+                <div class="filter-group">
+                  <div class="filter-title">Frameworks</div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span>ISO 27001</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span>GDPR</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span>SOC 2</span>
+                  </div>
+                  <div class="filter-item">
+                    <input type="checkbox" class="filter-checkbox" checked />
+                    <span>EU AI Act</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upcoming Events -->
+              <div class="upcoming-events">
+                <div class="upcoming-title">Upcoming Events</div>
+                <div
+                  class="upcoming-item"
+                  onclick="showEventDetails('iso-audit')"
+                >
+                  <div>
+                    <div class="upcoming-date">Dec 23, 2024</div>
+                    <div class="upcoming-title-text">ISO 27001 Audit</div>
+                  </div>
+                </div>
+                <div
+                  class="upcoming-item"
+                  onclick="showEventDetails('ai-review')"
+                >
+                  <div>
+                    <div class="upcoming-date">Dec 27, 2024</div>
+                    <div class="upcoming-title-text">AI Risk Assessment</div>
+                  </div>
+                </div>
+                <div
+                  class="upcoming-item"
+                  onclick="showEventDetails('training')"
+                >
+                  <div>
+                    <div class="upcoming-date">Jan 3, 2025</div>
+                    <div class="upcoming-title-text">Security Training</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calendar Main -->
+            <div class="calendar-main">
+              <!-- Calendar Header -->
+              <div class="calendar-header">
+                <div class="calendar-nav">
+                  <button
+                    class="nav-btn"
+                    onclick="previousMonth()"
+                    title="Previous Month"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <div class="current-date">December 2024</div>
+                  <button
+                    class="nav-btn"
+                    onclick="nextMonth()"
+                    title="Next Month"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+
+                <div class="view-controls">
+                  <button class="view-btn active" onclick="switchView('month')">
+                    Month
+                  </button>
+                  <button class="view-btn" onclick="switchView('week')">
+                    Week
+                  </button>
+                  <button class="view-btn" onclick="switchView('agenda')">
+                    Agenda
+                  </button>
+                </div>
+              </div>
+
+              <!-- Calendar Content -->
+              <div class="calendar-content">
+                <!-- Month View -->
+                <div class="month-view" id="month-view">
+                  <div class="calendar-grid">
+                    <div class="calendar-day-header">Sunday</div>
+                    <div class="calendar-day-header">Monday</div>
+                    <div class="calendar-day-header">Tuesday</div>
+                    <div class="calendar-day-header">Wednesday</div>
+                    <div class="calendar-day-header">Thursday</div>
+                    <div class="calendar-day-header">Friday</div>
+                    <div class="calendar-day-header">Saturday</div>
+
+                    <!-- Week 1 -->
+                    <div class="calendar-day">
+                      <div class="day-number">1</div>
+                      <div class="day-events">
+                        <div class="calendar-event review">Policy Review</div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">2</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">3</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">4</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">5</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">6</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">7</div>
+                    </div>
+
+                    <!-- Week 2 -->
+                    <div class="calendar-day">
+                      <div class="day-number">8</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">9</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">10</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">11</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">12</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">13</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">14</div>
+                    </div>
+
+                    <!-- Week 3 -->
+                    <div class="calendar-day">
+                      <div class="day-number">15</div>
+                      <div class="day-events">
+                        <div class="calendar-event">Team Meeting</div>
+                        <div class="calendar-event assessment">DPIA Review</div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">16</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">17</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">18</div>
+                      <div class="day-events">
+                        <div class="calendar-event training">
+                          Security Training
+                        </div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">19</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">20</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">21</div>
+                    </div>
+
+                    <!-- Week 4 -->
+                    <div class="calendar-day today">
+                      <div class="day-number">22</div>
+                      <div class="day-events">
+                        <div class="calendar-event">Board Meeting</div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">23</div>
+                      <div class="day-events">
+                        <div class="calendar-event audit">ISO 27001 Audit</div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">24</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">25</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">26</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">27</div>
+                      <div class="day-events">
+                        <div class="calendar-event assessment">
+                          AI Risk Assessment
+                        </div>
+                        <div class="calendar-event review">
+                          Quarterly Review
+                        </div>
+                        <div class="event-more">+1 more</div>
+                      </div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">28</div>
+                    </div>
+
+                    <!-- Week 5 -->
+                    <div class="calendar-day">
+                      <div class="day-number">29</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">30</div>
+                    </div>
+                    <div class="calendar-day">
+                      <div class="day-number">31</div>
+                    </div>
+                    <div class="calendar-day other-month">
+                      <div class="day-number">1</div>
+                    </div>
+                    <div class="calendar-day other-month">
+                      <div class="day-number">2</div>
+                    </div>
+                    <div class="calendar-day other-month">
+                      <div class="day-number">3</div>
+                      <div class="day-events">
+                        <div class="calendar-event training">
+                          Security Training
+                        </div>
+                      </div>
+                    </div>
+                    <div class="calendar-day other-month">
+                      <div class="day-number">4</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Agenda View -->
+                <div class="agenda-view" id="agenda-view">
+                  <div class="agenda-date">
+                    Today - Sunday, December 22, 2024
+                  </div>
+                  <div class="agenda-event">
+                    <div class="agenda-time">2:00 PM</div>
+                    <div class="agenda-details">
+                      <div class="agenda-title">Board Meeting</div>
+                      <div class="agenda-meta">
+                        Conference Room A • 60 minutes
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="agenda-date">
+                    Tomorrow - Monday, December 23, 2024
+                  </div>
+                  <div class="agenda-event">
+                    <div class="agenda-time">9:00 AM</div>
+                    <div class="agenda-details">
+                      <div class="agenda-title">ISO 27001 External Audit</div>
+                      <div class="agenda-meta">
+                        Full Day • External Auditor Visit
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="agenda-date">Friday, December 27, 2024</div>
+                  <div class="agenda-event">
+                    <div class="agenda-time">10:00 AM</div>
+                    <div class="agenda-details">
+                      <div class="agenda-title">AI Risk Assessment Review</div>
+                      <div class="agenda-meta">
+                        AI Governance Team • 90 minutes
+                      </div>
+                    </div>
+                  </div>
+                  <div class="agenda-event">
+                    <div class="agenda-time">2:00 PM</div>
+                    <div class="agenda-details">
+                      <div class="agenda-title">
+                        Quarterly Compliance Review
+                      </div>
+                      <div class="agenda-meta">
+                        Leadership Team • 120 minutes
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="agenda-date">Friday, January 3, 2025</div>
+                  <div class="agenda-event">
+                    <div class="agenda-time">1:00 PM</div>
+                    <div class="agenda-details">
+                      <div class="agenda-title">
+                        Security Awareness Training
+                      </div>
+                      <div class="agenda-meta">All Staff • Training Room B</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Event Popup -->
+      <div class="event-popup" id="event-popup">
+        <div class="popup-header" id="popup-title">Event Details</div>
+        <div class="popup-time" id="popup-time">
+          December 23, 2024 • 9:00 AM - 5:00 PM
+        </div>
+        <div class="popup-description" id="popup-description">
+          External audit for ISO 27001 certification. Full day assessment of
+          information security management system.
+        </div>
+        <div class="popup-actions">
+          <button class="btn btn-secondary" onclick="editEvent()">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="btn btn-primary" onclick="viewDetails()">
+            <i class="fas fa-eye"></i>
+            View Details
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Calendar%20Management&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Load the new modular system -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+
+    <script>
+     // =============================================================================
+// CALENDAR VIEW WITH SEED DATA INTEGRATION
+// =============================================================================
+
+let currentView = "month";
+let currentDate = new Date(2024, 11, 22); // December 22, 2024
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize layout - this will inject header and sidebar automatically
+  LayoutManager.initializePage("calendarView.html");
+  
+  // Initialize calendar with seed data
+  loadCalendarEvents();
+  loadUpcomingEvents();
+  
+  // Page-specific initialization
+  updateChatContext("Calendar Management");
+  
+  // Set up refresh interval to check for seed data updates
+  setInterval(() => {
+    loadCalendarEvents();
+    loadUpcomingEvents();
+  }, 30000); // Refresh every 30 seconds
+});
+
+// =============================================================================
+// SEED DATA INTEGRATION FUNCTIONS
+// =============================================================================
+
+function loadCalendarEvents() {
+  console.log("Loading calendar events from seed data...");
+  
+  // Get events from localStorage (seeded by seedData.js)
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  
+  if (events.length === 0) {
+    console.warn("No calendar events found in seed data");
+    return;
+  }
+  
+  // Clear existing events from calendar
+  document.querySelectorAll('.calendar-event').forEach(event => {
+    event.remove();
+  });
+  
+  // Render each event on the calendar
+  events.forEach(event => {
+    renderCalendarEvent(event);
+  });
+  
+  console.log(`✅ Loaded ${events.length} calendar events from seed data`);
+}
+
+function renderCalendarEvent(event) {
+  const eventDate = new Date(event.date);
+  const day = eventDate.getDate();
+  
+  // Find the calendar day element
+  const calendarDays = document.querySelectorAll('.calendar-day');
+  let targetDay = null;
+  
+  calendarDays.forEach(dayEl => {
+    if (dayEl.textContent.trim() === day.toString() && !dayEl.classList.contains('other-month')) {
+      targetDay = dayEl;
+    }
+  });
+  
+  if (targetDay) {
+    // Create event element
+    const eventElement = document.createElement('div');
+    eventElement.className = `calendar-event ${event.type}`;
+    eventElement.textContent = event.title;
+    eventElement.onclick = () => showEventDetails(event.id);
+    
+    // Add to calendar day
+    targetDay.appendChild(eventElement);
+  }
+}
+
+function loadUpcomingEvents() {
+  console.log("Loading upcoming events from seed data...");
+  
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  const upcomingContainer = document.querySelector('.upcoming-events');
+  
+  if (!upcomingContainer) {
+    console.warn("Upcoming events container not found");
+    return;
+  }
+  
+  // Clear existing upcoming events (but keep the title)
+  const existingEvents = upcomingContainer.querySelectorAll('.upcoming-item');
+  existingEvents.forEach(item => item.remove());
+  
+  // Sort events by date and take the next 3
+  const sortedEvents = events
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
+  
+  // Create upcoming event items
+  sortedEvents.forEach(event => {
+    const eventItem = document.createElement('div');
+    eventItem.className = 'upcoming-item';
+    eventItem.onclick = () => showEventDetails(event.id);
+    
+    const eventDate = new Date(event.date);
+    const formattedDate = eventDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    eventItem.innerHTML = `
+      <div>
+        <div class="upcoming-date">${formattedDate}</div>
+        <div class="upcoming-title-text">${event.title}</div>
+      </div>
+    `;
+    
+    upcomingContainer.appendChild(eventItem);
+  });
+  
+  console.log(`✅ Loaded ${sortedEvents.length} upcoming events`);
+}
+
+// =============================================================================
+// ENHANCED EVENT FUNCTIONS WITH SEED DATA
+// =============================================================================
+
+function showEventDetails(eventId) {
+  console.log(`Showing details for event: ${eventId}`);
+  
+  // Get event from seed data
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  const event = events.find(e => e.id === eventId);
+  
+  if (!event) {
+    console.error(`Event ${eventId} not found in seed data`);
+    return;
+  }
+  
+  // Map event data to detailed display
+  const eventDetails = {
+    title: event.title,
+    time: formatEventTime(event.date, event.type),
+    description: generateEventDescription(event)
+  };
+  
+  const popup = document.getElementById("event-popup");
+  document.getElementById("popup-title").textContent = eventDetails.title;
+  document.getElementById("popup-time").textContent = eventDetails.time;
+  document.getElementById("popup-description").textContent = eventDetails.description;
+  
+  // Position popup
+  popup.style.left = "50%";
+  popup.style.top = "50%";
+  popup.style.transform = "translate(-50%, -50%)";
+  popup.classList.add("show");
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    popup.classList.remove("show");
+  }, 5000);
+}
+
+function formatEventTime(dateString, eventType) {
+  const date = new Date(dateString);
+  const options = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  
+  let timeString = date.toLocaleDateString('en-US', options);
+  
+  // Add typical times based on event type
+  switch(eventType) {
+    case 'audit':
+      timeString += ' • 9:00 AM - 5:00 PM';
+      break;
+    case 'review':
+      timeString += ' • 2:00 PM - 4:00 PM';
+      break;
+    case 'training':
+      timeString += ' • 1:00 PM - 3:00 PM';
+      break;
+    default:
+      timeString += ' • All Day';
+  }
+  
+  return timeString;
+}
+
+function generateEventDescription(event) {
+  const descriptions = {
+    audit: `External audit for ${event.title}. Prepare all documentation and ensure compliance controls are documented and accessible.`,
+    review: `Scheduled review meeting for ${event.title}. Review findings, update risk assessments, and validate control effectiveness.`,
+    training: `Mandatory training session: ${event.title}. All relevant staff must attend. Materials will be provided in advance.`
+  };
+  
+  return descriptions[event.type] || `Scheduled event: ${event.title}`;
+}
+
+function addEvent() {
+  console.log("Opening add event dialog...");
+  
+  // Create a simple dialog (in a real app, this would be a proper modal)
+  const title = prompt("Enter event title:");
+  if (!title) return;
+  
+  const dateInput = prompt("Enter event date (YYYY-MM-DD):");
+  if (!dateInput) return;
+  
+  const typeInput = prompt("Enter event type (audit/review/training):");
+  if (!typeInput) return;
+  
+  // Create new event object
+  const newEvent = {
+    id: `event-${Date.now()}`,
+    title: title,
+    date: dateInput,
+    type: typeInput.toLowerCase()
+  };
+  
+  // Add to seed data
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  events.push(newEvent);
+  localStorage.setItem("calendarEvents", JSON.stringify(events));
+  
+  // Refresh calendar display
+  loadCalendarEvents();
+  loadUpcomingEvents();
+  
+  showNotification(`Event "${title}" added successfully!`, "success");
+  console.log("✅ Event added to seed data and calendar refreshed");
+}
+
+function syncCalendar() {
+  console.log("Syncing calendar with seed data...");
+  
+  // Validate seed data integrity
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  
+  let validEvents = 0;
+  let invalidEvents = 0;
+  
+  events.forEach(event => {
+    if (event.id && event.title && event.date && event.type) {
+      validEvents++;
+    } else {
+      invalidEvents++;
+      console.warn("Invalid event found:", event);
+    }
+  });
+  
+  console.log(`Sync complete: ${validEvents} valid events, ${invalidEvents} invalid events`);
+  showNotification(`Calendar synced: ${validEvents} events validated`, "success");
+}
+
+function exportCalendar() {
+  console.log("Exporting calendar data...");
+  
+  const events = JSON.parse(localStorage.getItem("calendarEvents") || "[]");
+  
+  if (events.length === 0) {
+    showNotification("No calendar events to export", "warning");
+    return;
+  }
+  
+  // Create CSV content
+  const csvContent = "data:text/csv;charset=utf-8," + 
+    "ID,Title,Date,Type\n" +
+    events.map(event => `${event.id},${event.title},${event.date},${event.type}`).join("\n");
+  
+  // Create download link
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "arioncomply_calendar_export.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  console.log(`✅ Exported ${events.length} calendar events`);
+  showNotification(`Exported ${events.length} calendar events to CSV`, "success");
+}
+
+// =============================================================================
+// EXISTING CALENDAR FUNCTIONS (KEEP THESE)
+// =============================================================================
+
+function switchView(view) {
+  // Update view buttons
+  document.querySelectorAll(".view-btn").forEach((btn) => btn.classList.remove("active"));
+  event.target.classList.add("active");
+
+  // Show/hide views
+  document.getElementById("month-view").style.display = view === "month" ? "block" : "none";
+  document.getElementById("agenda-view").style.display = view === "agenda" ? "block" : "none";
+
+  currentView = view;
+  showNotification(`Switched to ${view} view`, "info");
+}
+
+function previousMonth() {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  updateCalendarDisplay();
+  showNotification("Previous month", "info");
+}
+
+function nextMonth() {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+  updateCalendarDisplay();
+  showNotification("Next month", "info");
+}
+
+function updateCalendarDisplay() {
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  const displayText = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  document.querySelector(".current-date").textContent = displayText;
+
+  // Update mini calendar title
+  document.querySelector(".mini-calendar h4").textContent = displayText;
+}
+
+function editEvent() {
+  document.getElementById("event-popup").classList.remove("show");
+  showNotification("Opening event editor...", "info");
+}
+
+function viewDetails() {
+  document.getElementById("event-popup").classList.remove("show");
+  showNotification("Opening detailed event view...", "info");
+}
+
+// Hide popup when clicking outside
+document.addEventListener("click", function (event) {
+  const popup = document.getElementById("event-popup");
+  if (
+    !popup.contains(event.target) &&
+    !event.target.closest(".calendar-event, .upcoming-item")
+  ) {
+    popup.classList.remove("show");
+  }
+});
+
+// Calendar event click handlers
+document.querySelectorAll(".calendar-event").forEach((event) => {
+  event.addEventListener("click", function (e) {
+    e.stopPropagation();
+    const eventType = this.textContent.trim();
+    let eventId = "iso-audit"; // default
+
+    if (eventType.includes("AI Risk")) eventId = "ai-review";
+    else if (eventType.includes("Training")) eventId = "training";
+
+    showEventDetails(eventId);
+  });
+});
+
+// Calendar day click handlers
+document.querySelectorAll(".calendar-day").forEach((day) => {
+  day.addEventListener("click", function () {
+    if (!this.querySelector(".calendar-event")) {
+      showNotification('No events on this day. Click "New Event" to add one.', "info");
+    }
+  });
+}); 
+    </script>
+  </body>
+</html>

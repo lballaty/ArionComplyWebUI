@@ -1,0 +1,450 @@
+# Metrics and Analytics System - Database Schema
+
+## Overview
+
+This document defines the database schema for a comprehensive metrics and analytics system that supports cross-entity reporting, dashboards, KPIs, and compliance metrics across the ArionComply platform. The design follows established database principles while providing flexibility for various metric types, calculation methods, and visualization requirements.
+
+## Metrics and Analytics Workflow
+
+### 1. Core Metrics Management
+
+#### Metric Definition and Configuration
+- **Status**: Core Feature
+- **Triggers**:
+  - Compliance program setup
+  - KPI definition requirements
+  - Management reporting needs
+  - Board-level metrics
+  - Regulatory reporting requirements
+- **Approval Requirements**:
+  - Metric owner approval
+  - Data quality validation
+  - Management sign-off for KPIs
+  - Compliance officer review for compliance metrics
+- **Data Model Requirements**:
+  - `metric_definitions` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_name`: TEXT NOT NULL
+    - `description`: TEXT
+    - `metric_type`: ENUM('compliance', 'operational', 'risk', 'security', 'privacy', 'financial', 'custom')
+    - `category`: TEXT
+    - `calculation_method`: ENUM('count', 'sum', 'average', 'percentage', 'ratio', 'custom')
+    - `calculation_formula`: TEXT -- SQL or expression for custom calculations
+    - `data_source`: TEXT -- Table or query source
+    - `refresh_frequency`: ENUM('realtime', 'daily', 'weekly', 'monthly', 'quarterly', 'annual', 'manual')
+    - `unit_of_measure`: TEXT
+    - `is_active`: BOOLEAN DEFAULT true
+    - `is_public`: BOOLEAN DEFAULT false -- Whether visible in public dashboards
+    - `is_compliance_related`: BOOLEAN DEFAULT false
+    - `thresholds`: JSONB -- Warning and critical thresholds
+    - `trend_direction`: ENUM('increasing_good', 'decreasing_good', 'target_range', 'informational')
+    - `owner_id`: UUID REFERENCES users(id)
+    - `reviewer_id`: UUID REFERENCES users(id)
+    - `tags`: TEXT[] -- For categorization and searching
+    - `last_reviewed_date`: DATE
+    - `review_frequency_months`: INTEGER DEFAULT 12
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - `deleted_at`, `deleted_by`: Soft delete support
+    - `custom_fields`: JSONB DEFAULT '{}'
+    - CONSTRAINT valid_custom_fields CHECK (jsonb_typeof(custom_fields) = 'object')
+    - CONSTRAINT valid_thresholds CHECK (jsonb_typeof(thresholds) = 'object')
+    - UNIQUE(metric_name, organization_id)
+  
+  - `metric_target_values` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_id`: UUID REFERENCES metric_definitions(id) ON DELETE CASCADE
+    - `target_value`: DECIMAL(16,4)
+    - `target_type`: ENUM('goal', 'minimum', 'maximum', 'range_min', 'range_max')
+    - `effective_from`: DATE NOT NULL
+    - `effective_to`: DATE
+    - `approval_status`: ENUM('proposed', 'approved', 'active', 'superseded')
+    - `approved_by`: UUID REFERENCES users(id)
+    - `approval_date`: DATE
+    - `justification`: TEXT
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - INDEX idx_metric_targets_active (metric_id, effective_from, effective_to)
+    - CONSTRAINT valid_effective_dates CHECK (effective_from < effective_to OR effective_to IS NULL)
+  
+  - `metric_data_points` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_id`: UUID REFERENCES metric_definitions(id) ON DELETE CASCADE
+    - `measurement_date`: TIMESTAMPTZ DEFAULT NOW()
+    - `value`: DECIMAL(16,4)
+    - `dimension_values`: JSONB -- Key-value pairs for dimensional analysis
+    - `calculation_metadata`: JSONB -- Details about the calculation
+    - `raw_data_snapshot`: JSONB -- Snapshot of raw data used (optional)
+    - `source_query`: TEXT -- Query used to calculate (for auditing)
+    - `confidence_score`: DECIMAL(5,2) -- 0-100 confidence in accuracy
+    - `is_estimated`: BOOLEAN DEFAULT false
+    - `is_forecasted`: BOOLEAN DEFAULT false
+    - `is_anomaly`: BOOLEAN DEFAULT false -- Flagged as potential anomaly
+    - `is_manually_adjusted`: BOOLEAN DEFAULT false
+    - `adjustment_reason`: TEXT
+    - `adjusted_by`: UUID REFERENCES users(id)
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_at`: TIMESTAMPTZ DEFAULT NOW()
+    - CONSTRAINT valid_dimension_values CHECK (jsonb_typeof(dimension_values) = 'object')
+    - CONSTRAINT valid_calculation_metadata CHECK (jsonb_typeof(calculation_metadata) = 'object')
+    - CONSTRAINT valid_raw_data_snapshot CHECK (jsonb_typeof(raw_data_snapshot) = 'object')
+    - INDEX idx_metric_datapoints_date (metric_id, measurement_date DESC)
+    - INDEX idx_metric_datapoints_anomaly (is_anomaly) WHERE is_anomaly = true
+
+#### Dashboard and Visualization Management
+- **Status**: Core Feature
+- **Triggers**:
+  - Reporting requirements
+  - Management dashboards
+  - Compliance dashboards
+  - Custom reporting needs
+- **Data Model Requirements**:
+  - `dashboards` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `dashboard_name`: TEXT NOT NULL
+    - `description`: TEXT
+    - `dashboard_type`: ENUM('executive', 'operational', 'compliance', 'risk', 'security', 'custom')
+    - `is_public`: BOOLEAN DEFAULT false
+    - `is_template`: BOOLEAN DEFAULT false
+    - `layout_configuration`: JSONB -- Dashboard layout and configuration
+    - `refresh_interval_minutes`: INTEGER DEFAULT 60
+    - `auto_refresh_enabled`: BOOLEAN DEFAULT true
+    - `owner_id`: UUID REFERENCES users(id)
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - `deleted_at`, `deleted_by`: Soft delete support
+    - CONSTRAINT valid_layout_configuration CHECK (jsonb_typeof(layout_configuration) = 'object')
+    - UNIQUE(dashboard_name, organization_id)
+  
+  - `dashboard_widgets` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `dashboard_id`: UUID REFERENCES dashboards(id) ON DELETE CASCADE
+    - `widget_name`: TEXT NOT NULL
+    - `widget_type`: ENUM('chart', 'metric', 'table', 'heatmap', 'gauge', 'status', 'text', 'custom')
+    - `position_x`: INTEGER NOT NULL -- Grid position X
+    - `position_y`: INTEGER NOT NULL -- Grid position Y
+    - `width`: INTEGER NOT NULL -- Grid width
+    - `height`: INTEGER NOT NULL -- Grid height
+    - `widget_configuration`: JSONB NOT NULL -- Widget-specific configuration
+    - `data_source_type`: ENUM('metric', 'query', 'api', 'static')
+    - `data_source_configuration`: JSONB -- Data source details
+    - `visualization_options`: JSONB -- Chart options, colors, etc.
+    - `auto_refresh`: BOOLEAN DEFAULT true
+    - `refresh_interval_minutes`: INTEGER
+    - `drill_down_config`: JSONB -- Configuration for drill-down behavior
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - CONSTRAINT valid_widget_configuration CHECK (jsonb_typeof(widget_configuration) = 'object')
+    - CONSTRAINT valid_data_source_configuration CHECK (jsonb_typeof(data_source_configuration) = 'object')
+    - CONSTRAINT valid_visualization_options CHECK (jsonb_typeof(visualization_options) = 'object')
+    - CONSTRAINT valid_drill_down_config CHECK (jsonb_typeof(drill_down_config) = 'object')
+    - UNIQUE(dashboard_id, position_x, position_y)
+  
+  - `dashboard_access_permissions` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `dashboard_id`: UUID REFERENCES dashboards(id) ON DELETE CASCADE
+    - `permission_type`: ENUM('view', 'edit', 'share', 'export')
+    - `grantee_type`: ENUM('user', 'role', 'group', 'organization')
+    - `grantee_id`: UUID -- ID of user, role, or group
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`: Audit fields
+    - UNIQUE(dashboard_id, permission_type, grantee_type, grantee_id)
+
+#### Reporting and Export
+- **Status**: Core Feature
+- **Triggers**:
+  - Scheduled reports
+  - On-demand reports
+  - Compliance reporting
+  - Management requests
+- **Data Model Requirements**:
+  - `report_templates` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `template_name`: TEXT NOT NULL
+    - `description`: TEXT
+    - `report_type`: ENUM('compliance', 'operational', 'executive', 'regulatory', 'custom')
+    - `is_active`: BOOLEAN DEFAULT true
+    - `content_template`: TEXT -- Template for report content
+    - `header_template`: TEXT -- Template for report header
+    - `footer_template`: TEXT -- Template for report footer
+    - `formatting_options`: JSONB -- Styling and formatting
+    - `required_metrics`: UUID[] -- Array of required metric IDs
+    - `required_parameters`: JSONB -- Parameters needed for generation
+    - `output_formats`: TEXT[] -- Supported formats (pdf, excel, html, etc.)
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - CONSTRAINT valid_formatting_options CHECK (jsonb_typeof(formatting_options) = 'object')
+    - CONSTRAINT valid_required_parameters CHECK (jsonb_typeof(required_parameters) = 'object')
+    - UNIQUE(template_name, organization_id)
+  
+  - `scheduled_reports` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `report_name`: TEXT NOT NULL
+    - `description`: TEXT
+    - `template_id`: UUID REFERENCES report_templates(id)
+    - `schedule_type`: ENUM('daily', 'weekly', 'monthly', 'quarterly', 'annual', 'custom')
+    - `schedule_configuration`: JSONB -- Cron expression or schedule details
+    - `parameter_values`: JSONB -- Parameter values for the report
+    - `output_format`: TEXT DEFAULT 'pdf'
+    - `is_active`: BOOLEAN DEFAULT true
+    - `last_run_at`: TIMESTAMPTZ
+    - `next_run_at`: TIMESTAMPTZ
+    - `distribution_list`: JSONB -- Recipients configuration
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - CONSTRAINT valid_schedule_configuration CHECK (jsonb_typeof(schedule_configuration) = 'object')
+    - CONSTRAINT valid_parameter_values CHECK (jsonb_typeof(parameter_values) = 'object')
+    - CONSTRAINT valid_distribution_list CHECK (jsonb_typeof(distribution_list) = 'object')
+  
+  - `generated_reports` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `scheduled_report_id`: UUID REFERENCES scheduled_reports(id)
+    - `report_name`: TEXT NOT NULL
+    - `generation_date`: TIMESTAMPTZ DEFAULT NOW()
+    - `status`: ENUM('pending', 'generating', 'completed', 'failed')
+    - `file_path`: TEXT -- Path to generated report file
+    - `file_size`: BIGINT
+    - `generation_parameters`: JSONB -- Parameters used during generation
+    - `generation_time_seconds`: INTEGER
+    - `metrics_included`: UUID[] -- Array of metric IDs included
+    - `date_range_start`: DATE
+    - `date_range_end`: DATE
+    - `distribution_status`: ENUM('pending', 'sent', 'failed')
+    - `distribution_details`: JSONB -- Details about distribution
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`: UUID REFERENCES users(id)
+    - CONSTRAINT valid_generation_parameters CHECK (jsonb_typeof(generation_parameters) = 'object')
+    - CONSTRAINT valid_distribution_details CHECK (jsonb_typeof(distribution_details) = 'object')
+
+### 2. Compliance Metrics Management
+
+#### Compliance KPI Tracking
+- **Status**: Core Feature
+- **Triggers**:
+  - Compliance program requirements
+  - Regulatory reporting
+  - Management oversight
+  - Audit preparation
+- **Data Model Requirements**:
+  - `compliance_kpis` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `kpi_name`: TEXT NOT NULL
+    - `description`: TEXT
+    - `compliance_domain`: ENUM('security', 'privacy', 'operational', 'financial', 'regulatory', 'contractual')
+    - `related_frameworks`: TEXT[] -- Frameworks this KPI supports
+    - `calculation_method`: TEXT NOT NULL -- How the KPI is calculated
+    - `data_sources`: JSONB -- Sources for calculation
+    - `review_frequency`: ENUM('monthly', 'quarterly', 'semi_annual', 'annual')
+    - `target_value`: DECIMAL(16,4)
+    - `acceptable_range_min`: DECIMAL(16,4)
+    - `acceptable_range_max`: DECIMAL(16,4)
+    - `criticality`: risk_level_enum DEFAULT 'medium'
+    - `owner_id`: UUID REFERENCES users(id)
+    - `reviewer_id`: UUID REFERENCES users(id)
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`, `updated_by`, `updated_at`: Audit fields
+    - CONSTRAINT valid_data_sources CHECK (jsonb_typeof(data_sources) = 'object')
+    - UNIQUE(kpi_name, organization_id)
+  
+  - `compliance_kpi_measurements` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `kpi_id`: UUID REFERENCES compliance_kpis(id) ON DELETE CASCADE
+    - `measurement_date`: DATE DEFAULT CURRENT_DATE
+    - `measurement_period`: TEXT -- e.g., "Q1 2025", "Jan 2025"
+    - `value`: DECIMAL(16,4) NOT NULL
+    - `status`: ENUM('on_target', 'warning', 'critical', 'improving', 'declining')
+    - `previous_value`: DECIMAL(16,4) -- For trend calculation
+    - `trend_percentage`: DECIMAL(6,2) -- Change percentage
+    - `supporting_evidence`: JSONB -- Evidence supporting the measurement
+    - `notes`: TEXT
+    - `reviewed_by`: UUID REFERENCES users(id)
+    - `review_date`: DATE
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`: Audit fields
+    - CONSTRAINT valid_supporting_evidence CHECK (jsonb_typeof(supporting_evidence) = 'object')
+    - UNIQUE(kpi_id, measurement_date)
+  
+  - `framework_compliance_scores` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `framework_id`: UUID REFERENCES frameworks(id)
+    - `framework_version_id`: UUID REFERENCES framework_versions(id)
+    - `measurement_date`: DATE DEFAULT CURRENT_DATE
+    - `overall_score`: DECIMAL(5,2) -- 0-100 percentage
+    - `control_compliance_counts`: JSONB -- Counts by compliance status
+    - `section_scores`: JSONB -- Scores by framework section
+    - `previous_overall_score`: DECIMAL(5,2)
+    - `trend_percentage`: DECIMAL(6,2)
+    - `significant_changes`: TEXT[] -- Notable changes since last measurement
+    - `assessment_method`: ENUM('self_assessment', 'internal_audit', 'external_audit', 'automated')
+    - `evidence_snapshot`: JSONB -- Snapshot of key evidence
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_by`, `created_at`: Audit fields
+    - CONSTRAINT valid_control_compliance_counts CHECK (jsonb_typeof(control_compliance_counts) = 'object')
+    - CONSTRAINT valid_section_scores CHECK (jsonb_typeof(section_scores) = 'object')
+    - CONSTRAINT valid_evidence_snapshot CHECK (jsonb_typeof(evidence_snapshot) = 'object')
+    - UNIQUE(framework_id, framework_version_id, measurement_date, organization_id)
+
+#### Risk and Control Metrics
+- **Status**: Core Feature
+- **Triggers**:
+  - Risk assessment cycles
+  - Control effectiveness reviews
+  - Management reporting
+  - Regulatory requirements
+- **Data Model Requirements**:
+  - `risk_metrics` table (materialized view refreshed regularly):
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_date`: DATE NOT NULL
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `total_risks`: INTEGER DEFAULT 0
+    - `risks_by_level`: JSONB -- Breakdown by risk level
+    - `risks_by_status`: JSONB -- Breakdown by status
+    - `risks_by_category`: JSONB -- Breakdown by category
+    - `risks_with_treatment`: INTEGER DEFAULT 0
+    - `risks_without_treatment`: INTEGER DEFAULT 0
+    - `avg_residual_risk_score`: DECIMAL(5,2)
+    - `risk_acceptance_count`: INTEGER DEFAULT 0
+    - `past_due_treatments`: INTEGER DEFAULT 0
+    - `created_at`, `updated_at`: Timestamp fields
+    - CONSTRAINT valid_risks_by_level CHECK (jsonb_typeof(risks_by_level) = 'object')
+    - CONSTRAINT valid_risks_by_status CHECK (jsonb_typeof(risks_by_status) = 'object')
+    - CONSTRAINT valid_risks_by_category CHECK (jsonb_typeof(risks_by_category) = 'object')
+    - UNIQUE(metric_date, organization_id)
+  
+  - `control_metrics` table (materialized view refreshed regularly):
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_date`: DATE NOT NULL
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `total_controls`: INTEGER DEFAULT 0
+    - `controls_by_status`: JSONB -- Breakdown by implementation status
+    - `controls_by_type`: JSONB -- Breakdown by control type
+    - `controls_by_framework`: JSONB -- Breakdown by framework
+    - `control_test_results`: JSONB -- Breakdown by test results
+    - `control_effectiveness`: DECIMAL(5,2) -- Overall effectiveness percentage
+    - `controls_needing_review`: INTEGER DEFAULT 0
+    - `controls_recently_tested`: INTEGER DEFAULT 0
+    - `controls_failed_tests`: INTEGER DEFAULT 0
+    - `created_at`, `updated_at`: Timestamp fields
+    - CONSTRAINT valid_controls_by_status CHECK (jsonb_typeof(controls_by_status) = 'object')
+    - CONSTRAINT valid_controls_by_type CHECK (jsonb_typeof(controls_by_type) = 'object')
+    - CONSTRAINT valid_controls_by_framework CHECK (jsonb_typeof(controls_by_framework) = 'object')
+    - CONSTRAINT valid_control_test_results CHECK (jsonb_typeof(control_test_results) = 'object')
+    - UNIQUE(metric_date, organization_id)
+
+### 3. Operational Metrics
+
+#### Operational Performance Tracking
+- **Status**: Core Feature
+- **Triggers**:
+  - Regular operational reviews
+  - Performance management
+  - Process improvement
+  - Service level tracking
+- **Data Model Requirements**:
+  - `operational_metrics` table (materialized view refreshed regularly):
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_date`: DATE NOT NULL
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `task_metrics`: JSONB -- Task completion, overdue tasks, etc.
+    - `incident_metrics`: JSONB -- Incident response times, counts, etc.
+    - `training_metrics`: JSONB -- Training completion, scores, etc.
+    - `document_metrics`: JSONB -- Document statuses, reviews, etc.
+    - `user_activity_metrics`: JSONB -- Login counts, active users, etc.
+    - `system_performance_metrics`: JSONB -- Response times, availability, etc.
+    - `created_at`, `updated_at`: Timestamp fields
+    - CONSTRAINT valid_task_metrics CHECK (jsonb_typeof(task_metrics) = 'object')
+    - CONSTRAINT valid_incident_metrics CHECK (jsonb_typeof(incident_metrics) = 'object')
+    - CONSTRAINT valid_training_metrics CHECK (jsonb_typeof(training_metrics) = 'object')
+    - CONSTRAINT valid_document_metrics CHECK (jsonb_typeof(document_metrics) = 'object')
+    - CONSTRAINT valid_user_activity_metrics CHECK (jsonb_typeof(user_activity_metrics) = 'object')
+    - CONSTRAINT valid_system_performance_metrics CHECK (jsonb_typeof(system_performance_metrics) = 'object')
+    - UNIQUE(metric_date, organization_id)
+  
+  - `sla_performance_metrics` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_date`: DATE DEFAULT CURRENT_DATE
+    - `sla_category`: ENUM('incident_response', 'task_completion', 'request_fulfillment', 'system_availability')
+    - `total_measured`: INTEGER NOT NULL
+    - `met_target`: INTEGER NOT NULL
+    - `compliance_percentage`: DECIMAL(5,2) -- Percentage meeting SLA
+    - `average_response_time`: DECIMAL(10,2) -- In minutes or appropriate unit
+    - `average_resolution_time`: DECIMAL(10,2) -- In minutes or appropriate unit
+    - `breakdown_by_priority`: JSONB -- Performance by priority level
+    - `breakdown_by_type`: JSONB -- Performance by type
+    - `trend_vs_previous`: DECIMAL(5,2) -- Percentage change vs previous period
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_at`: TIMESTAMPTZ DEFAULT NOW()
+    - CONSTRAINT valid_breakdown_by_priority CHECK (jsonb_typeof(breakdown_by_priority) = 'object')
+    - CONSTRAINT valid_breakdown_by_type CHECK (jsonb_typeof(breakdown_by_type) = 'object')
+    - UNIQUE(metric_date, sla_category, organization_id)
+
+#### User and System Activity Metrics
+- **Status**: Core Feature
+- **Triggers**:
+  - Usage monitoring
+  - License management
+  - Performance optimization
+  - User engagement tracking
+- **Data Model Requirements**:
+  - `user_activity_metrics` table (materialized view refreshed daily):
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_date`: DATE NOT NULL
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `total_users`: INTEGER DEFAULT 0
+    - `active_users`: INTEGER DEFAULT 0 -- Users who logged in
+    - `very_active_users`: INTEGER DEFAULT 0 -- Users with significant activity
+    - `inactive_users`: INTEGER DEFAULT 0 -- No login in 30 days
+    - `new_users`: INTEGER DEFAULT 0
+    - `activity_by_module`: JSONB -- Usage breakdown by module
+    - `activity_by_role`: JSONB -- Usage breakdown by role
+    - `peak_activity_time`: TIME -- Time of day with most activity
+    - `average_session_duration`: INTEGER -- In minutes
+    - `login_count`: INTEGER DEFAULT 0
+    - `created_at`, `updated_at`: Timestamp fields
+    - CONSTRAINT valid_activity_by_module CHECK (jsonb_typeof(activity_by_module) = 'object')
+    - CONSTRAINT valid_activity_by_role CHECK (jsonb_typeof(activity_by_role) = 'object')
+    - UNIQUE(metric_date, organization_id)
+  
+  - `system_performance_metrics` table:
+    - `id`: UUID PRIMARY KEY DEFAULT uuid_generate_v4()
+    - `metric_timestamp`: TIMESTAMPTZ DEFAULT NOW()
+    - `api_response_time_ms`: INTEGER
+    - `database_query_time_ms`: INTEGER
+    - `page_load_time_ms`: INTEGER
+    - `error_count`: INTEGER DEFAULT 0
+    - `request_count`: INTEGER DEFAULT 0
+    - `concurrent_users`: INTEGER
+    - `resource_utilization`: JSONB -- CPU, memory, etc.
+    - `availability_percentage`: DECIMAL(5,2)
+    - `component_status`: JSONB -- Status by system component
+    - `organization_id`: UUID REFERENCES organizations(id)
+    - `created_at`: TIMESTAMPTZ DEFAULT NOW()
+    - CONSTRAINT valid_resource_utilization CHECK (jsonb_typeof(resource_utilization) = 'object')
+    - CONSTRAINT valid_component_status CHECK (jsonb_typeof(component_status) = 'object')
+    - INDEX idx_system_metrics_timestamp (metric_timestamp DESC)
+
+## Indexes and Performance Optimization
+
+```sql
+-- Performance indexes for common queries
+CREATE INDEX idx_metric_definitions_active ON metric_definitions (organization_id, is_active) 
+    WHERE deleted_at IS NULL;
+CREATE INDEX idx_metric_datapoints_recent ON metric_data_points (metric_id, measurement_date DESC) 
+    LIMIT 100;
+CREATE INDEX idx_dashboard_widgets_dashboard ON dashboard_widgets (dashboard_id);
+CREATE INDEX idx_dashboards_public ON dashboards (is_public) 
+    WHERE is_public = true;
+CREATE INDEX idx_scheduled_reports_next_run ON scheduled_reports (next_run_at) 
+    WHERE is_active = true;
+CREATE INDEX idx_compliance_kpi_measurements_recent ON compliance_kpi_measurements (kpi_id, measurement_date DESC);
+CREATE INDEX idx_framework_compliance_recent ON framework_compliance_scores (framework_id, measurement_date DESC);
+CREATE INDEX idx_system_performance_recent ON system_performance_metrics (metric_timestamp DESC) 
+    LIMIT 1000;
+
+-- GIN indexes for JSONB fields
+CREATE INDEX idx_metric_definitions_thresholds ON metric_definitions USING GIN (thresholds);
+CREATE INDEX idx_metric_datapoints_dimensions ON metric_data_points USING GIN (dimension_values);
+CREATE INDEX idx_dashboards_layout ON dashboards USING GIN (layout_configuration);
+CREATE INDEX idx_dashboard_widgets_config ON dashboard_widgets USING GIN (widget_configuration);
+CREATE INDEX idx_risk_metrics_by_level ON risk_metrics USING GIN (risks_by_level);
+CREATE INDEX idx_control_metrics_by_status ON control_metrics USING GIN (controls_by_status);

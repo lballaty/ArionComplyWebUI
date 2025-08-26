@@ -1,0 +1,31 @@
+{
+  "_description": "Service endpoint configuration for LLM testing infrastructure",
+  "_file_path": "testing/llm-comparison/config/endpoints.json",
+  "version": "1.0",
+  "services": {
+    "arioncomply_retrieval": {
+      "enabled": false,
+      "endpoint": "https://zjhfgskhizkjilbsetiq.supabase.co/functions/v1/assistant",
+      "auth_header": "Bearer ${SUPABASE_ANON_KEY}",
+      "timeout_ms": 30000,
+      "description": "ArionComply platform retrieval pipeline"
+    }
+  },
+  "models": {
+    "edge_function": {
+      "enabled": true,
+      "endpoint": "https://zjhfgskhizkjilbsetiq.supabase.co/functions/v1/compliance-proxy",
+      "auth_header": "Bearer ${SUPABASE_ANON_KEY}",
+      "description": "Existing compliance-proxy edge function"
+    }
+  },
+  "database": {
+    "primary": {
+      "type": "supabase",
+      "endpoint": "https://zjhfgskhizkjilbsetiq.supabase.co",
+      "auth_header": "Bearer ${SUPABASE_ANON_KEY}",
+      "table": "compliance_tests",
+      "description": "Existing compliance_tests table"
+    }
+  }
+}

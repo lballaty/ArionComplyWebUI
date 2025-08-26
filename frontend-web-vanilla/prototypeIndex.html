@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prototype Index</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected by LayoutManager -->
+        <div class="content">
+          <h1 class="page-title">Prototype Screens</h1>
+          <p class="page-subtitle">Links to standalone mockup pages</p>
+          <ul class="prototype-list">
+            <li><a href="chatInterface.html">Chat Interface</a></li>
+            <li><a href="../../index.html">Splash &amp; Settings</a></li>
+            <li>
+              <a href="timelineEnhancedFeatures.html"
+                >Timeline Enhanced Features</a
+              >
+            </li>
+            <li>
+              <a href="timelineViewEnhacements.html"
+                >Timeline View Enhancements</a
+              >
+            </li>
+            <li><a href="workflowEngine.html">Workflow Engine</a></li>
+            <li><a href="workflowList.html">Workflow List</a></li>
+            <li><a href="workflowPreview.html">Workflow Preview</a></li>
+            <li><a href="workflowStepEdit.html">Workflow Step Edit</a></li>
+            <li><a href="searchInterface.html">Search Interface</a></li>
+            <li><a href="treeView.html">Tree View</a></li>
+            <li><a href="relationshipMapper.html">Relationship Mapper</a></li>
+            <li><a href="timelineView.html">Timeline View</a></li>
+            <li><a href="notificationCenter.html">Notification Center</a></li>
+            <li><a href="formBuilder.html">Form Builder</a></li>
+            <li><a href="kanbanBoard.html">Kanban Board</a></li>
+            <li><a href="fileManager.html">File Manager</a></li>
+
+            <li><a href="wizzard.html">Privacy Wizard</a></li>
+
+            <li>
+              <a href="query-response-test-module.html">Query Test Module</a>
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        LayoutManager.initializePage("prototypeIndex.html");
+      });
+    </script>
+  </body>
+</html>

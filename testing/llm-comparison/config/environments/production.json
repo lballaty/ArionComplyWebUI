@@ -1,0 +1,17 @@
+{
+  "_description": "Production environment configuration",
+  "_file_path": "testing/llm-comparison/config/environments/production.json",
+  "name": "Production",
+  "version": "1.0",
+  "endpoints": {
+    "supabase_url": "https://zjhfgskhizkjilbsetiq.supabase.co",
+    "edge_function_url": "https://zjhfgskhizkjilbsetiq.supabase.co/functions/v1/compliance-proxy"
+  },
+  "database": {
+    "use_supabase": true
+  },
+  "api_keys": {
+    "use_environment_variables": true,
+    "required_variables": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SUPABASE_ANON_KEY"]
+  }
+}

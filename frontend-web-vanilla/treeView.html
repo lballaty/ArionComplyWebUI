@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Tree View</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .tree-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .tree-main {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .tree-sidebar {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .tree-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .tree-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+      }
+
+      .tree-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .tree-toolbar {
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .search-tree {
+        flex: 1;
+        position: relative;
+      }
+
+      .search-tree input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+      }
+
+      .search-tree i {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-gray);
+      }
+
+      .view-options {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .view-btn {
+        padding: 0.5rem;
+        border: 1px solid var(--border-light);
+        background: var(--bg-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .view-btn.active {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+      }
+
+      .tree-content {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .tree-structure {
+        font-family: "Courier New", monospace;
+      }
+
+      .tree-node {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin-bottom: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+
+      .tree-node:hover {
+        background: var(--bg-light);
+      }
+
+      .tree-node.selected {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .tree-node.highlighted {
+        background: rgba(255, 235, 59, 0.3);
+      }
+
+      .tree-indent {
+        display: inline-block;
+        width: 24px;
+        text-align: center;
+        color: var(--text-gray);
+        font-size: 0.75rem;
+      }
+
+      .tree-toggle {
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        transition: transform 0.15s ease;
+      }
+
+      .tree-toggle.expanded {
+        transform: rotate(90deg);
+      }
+
+      .tree-icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+      }
+
+      .tree-icon.framework {
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .tree-icon.domain {
+        background: var(--success-green);
+        color: white;
+      }
+
+      .tree-icon.control {
+        background: var(--warning-amber);
+        color: white;
+      }
+
+      .tree-icon.requirement {
+        background: var(--text-gray);
+        color: white;
+      }
+
+      .tree-icon.folder {
+        background: var(--bg-gray);
+        color: var(--text-gray);
+      }
+
+      .tree-icon.document {
+        background: var(--ai-purple);
+        color: white;
+      }
+
+      .tree-label {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .tree-meta {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-left: auto;
+      }
+
+      .tree-badge {
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.625rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .tree-badge.implemented {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-green);
+      }
+
+      .tree-badge.partial {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-amber);
+      }
+
+      .tree-badge.missing {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-red);
+      }
+
+      .tree-badge.na {
+        background: rgba(107, 114, 128, 0.1);
+        color: var(--text-gray);
+      }
+
+      .tree-count {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        background: var(--bg-gray);
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+      }
+
+      .tree-actions {
+        display: flex;
+        gap: 0.25rem;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+      }
+
+      .tree-node:hover .tree-actions {
+        opacity: 1;
+      }
+
+      .tree-action {
+        width: 20px;
+        height: 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        transition: all 0.15s ease;
+      }
+
+      .tree-action:hover {
+        background: var(--bg-gray);
+      }
+
+      .tree-children {
+        margin-left: 1rem;
+        display: none;
+      }
+
+      .tree-children.expanded {
+        display: block;
+      }
+
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .filter-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+
+      .filter-checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .filter-checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .node-details {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .details-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 0.875rem;
+      }
+
+      .detail-item:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        color: var(--text-gray);
+      }
+
+      .detail-value {
+        color: var(--text-dark);
+        font-weight: 500;
+      }
+
+      .compliance-matrix {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 0.25rem;
+        margin-top: 1rem;
+      }
+
+      .matrix-cell {
+        aspect-ratio: 1;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .matrix-cell:hover {
+        transform: scale(1.1);
+      }
+
+      .matrix-cell.implemented {
+        background: var(--success-green);
+        color: white;
+      }
+
+      .matrix-cell.partial {
+        background: var(--warning-amber);
+        color: white;
+      }
+
+      .matrix-cell.missing {
+        background: var(--danger-red);
+        color: white;
+      }
+
+      .matrix-cell.na {
+        background: var(--bg-gray);
+        color: var(--text-gray);
+      }
+
+      .breadcrumb-trail {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .breadcrumb-item {
+        cursor: pointer;
+        transition: color 0.15s ease;
+      }
+
+      .breadcrumb-item:hover {
+        color: var(--primary-blue);
+      }
+
+      .breadcrumb-separator {
+        margin: 0 0.5rem;
+      }
+
+      .tree-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .export-options {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+      }
+
+      .export-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .export-btn {
+        width: 100%;
+        padding: 0.5rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.15s ease;
+      }
+
+      .export-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--primary-blue);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Tree View Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Compliance Framework Tree</h1>
+              <p class="page-subtitle">
+                Hierarchical View of Standards & Requirements
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="expandAll()">
+                <i class="fas fa-expand-alt"></i>
+                Expand All
+              </button>
+              <button class="btn btn-secondary" onclick="collapseAll()">
+                <i class="fas fa-compress-alt"></i>
+                Collapse All
+              </button>
+              <button class="btn btn-primary" onclick="exportTree()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div class="tree-container">
+            <!-- Tree Main -->
+            <div class="tree-main">
+              <!-- Tree Header -->
+              <div class="tree-header">
+                <div class="tree-title">
+                  <i class="fas fa-sitemap"></i>
+                  <span>ISO 27001:2022 Framework</span>
+                </div>
+                <div class="tree-controls">
+                  <button class="btn btn-secondary" onclick="refreshTree()">
+                    <i class="fas fa-sync"></i>
+                  </button>
+                  <button class="btn btn-secondary" onclick="treeSettings()">
+                    <i class="fas fa-cog"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tree Toolbar -->
+              <div class="tree-toolbar">
+                <div class="search-tree">
+                  <i class="fas fa-search"></i>
+                  <input
+                    type="text"
+                    placeholder="Search controls, requirements..."
+                    oninput="searchTree(this.value)"
+                  />
+                </div>
+                <div class="view-options">
+                  <button
+                    class="view-btn active"
+                    onclick="switchView('tree')"
+                    title="Tree View"
+                  >
+                    <i class="fas fa-sitemap"></i>
+                  </button>
+                  <button
+                    class="view-btn"
+                    onclick="switchView('list')"
+                    title="List View"
+                  >
+                    <i class="fas fa-list"></i>
+                  </button>
+                  <button
+                    class="view-btn"
+                    onclick="switchView('matrix')"
+                    title="Matrix View"
+                  >
+                    <i class="fas fa-th"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tree Content -->
+              <div class="tree-content">
+                <div class="breadcrumb-trail">
+                  <span class="breadcrumb-item" onclick="navigateToRoot()"
+                    >ISO 27001:2022</span
+                  >
+                  <span class="breadcrumb-separator">></span>
+                  <span class="breadcrumb-item" onclick="navigateToNode('A')"
+                    >Annex A</span
+                  >
+                  <span class="breadcrumb-separator">></span>
+                  <span class="breadcrumb-item"
+                    >A.5 Information Security Policies</span
+                  >
+                </div>
+
+                <div class="tree-structure">
+                  <!-- Framework Root -->
+                  <div
+                    class="tree-node"
+                    onclick="selectNode(this)"
+                    data-node-id="iso27001"
+                  >
+                    <div
+                      class="tree-toggle expanded"
+                      onclick="toggleNode(this, event)"
+                    >
+                      <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="tree-icon framework">
+                      <i class="fas fa-certificate"></i>
+                    </div>
+                    <div class="tree-label">
+                      ISO 27001:2022 - Information Security Management
+                    </div>
+                    <div class="tree-meta">
+                      <div class="tree-count">114 controls</div>
+                      <div class="tree-actions">
+                        <button
+                          class="tree-action"
+                          onclick="editNode(event, 'iso27001')"
+                          title="Edit"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button
+                          class="tree-action"
+                          onclick="exportNode(event, 'iso27001')"
+                          title="Export"
+                        >
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="tree-children expanded">
+                    <!-- Annex A -->
+                    <div
+                      class="tree-node"
+                      onclick="selectNode(this)"
+                      data-node-id="annex-a"
+                    >
+                      <div
+                        class="tree-toggle expanded"
+                        onclick="toggleNode(this, event)"
+                      >
+                        <i class="fas fa-chevron-right"></i>
+                      </div>
+                      <div class="tree-icon domain">
+                        <i class="fas fa-folder-open"></i>
+                      </div>
+                      <div class="tree-label">
+                        Annex A - Information Security Controls
+                      </div>
+                      <div class="tree-meta">
+                        <div class="tree-badge implemented">93 controls</div>
+                        <div class="tree-actions">
+                          <button
+                            class="tree-action"
+                            onclick="viewDetails(event, 'annex-a')"
+                            title="Details"
+                          >
+                            <i class="fas fa-info"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tree-children expanded">
+                      <!-- A.5 Information Security Policies -->
+                      <div
+                        class="tree-node selected"
+                        onclick="selectNode(this)"
+                        data-node-id="a5"
+                      >
+                        <div
+                          class="tree-toggle expanded"
+                          onclick="toggleNode(this, event)"
+                        >
+                          <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="tree-icon control">
+                          <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="tree-label">
+                          A.5 Information Security Policies
+                        </div>
+                        <div class="tree-meta">
+                          <div class="tree-badge implemented">Implemented</div>
+                        </div>
+                      </div>
+
+                      <div class="tree-children expanded">
+                        <div
+                          class="tree-node"
+                          onclick="selectNode(this)"
+                          data-node-id="a5-1"
+                        >
+                          <div class="tree-indent">└</div>
+                          <div class="tree-icon requirement">
+                            <i class="fas fa-file-alt"></i>
+                          </div>
+                          <div class="tree-label">
+                            A.5.1 Policies for information security
+                          </div>
+                          <div class="tree-meta">
+                            <div class="tree-badge implemented">✓</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Additional controls would continue here... -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tree Sidebar -->
+            <div class="tree-sidebar">
+              <div class="sidebar-section">
+                <div class="section-title">Overview</div>
+                <div class="tree-stats">
+                  <div class="stat-card">
+                    <div class="stat-value">87%</div>
+                    <div class="stat-label">Compliance</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">93</div>
+                    <div class="stat-label">Controls</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">81</div>
+                    <div class="stat-label">Implemented</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">In Progress</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="section-title">Filters</div>
+                <div class="filter-group">
+                  <label class="filter-label">Implementation Status</label>
+                  <div class="filter-checkbox-group">
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Implemented</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>In Progress</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Not Implemented</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" />
+                      <span>Not Applicable</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Control Categories</label>
+                  <div class="filter-checkbox-group">
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Organizational</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>People</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Physical</span>
+                    </div>
+                    <div class="filter-checkbox-item">
+                      <input type="checkbox" checked />
+                      <span>Technological</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="node-details">
+                  <div class="details-title">Selected Control</div>
+                  <div class="detail-item">
+                    <span class="detail-label">Control ID</span>
+                    <span class="detail-value">A.5.1</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">Implemented</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Owner</span>
+                    <span class="detail-value">CISO</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Last Review</span>
+                    <span class="detail-value">Dec 15, 2024</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Evidence</span>
+                    <span class="detail-value">3 documents</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Risk Level</span>
+                    <span class="detail-value">Low</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="section-title">Compliance Matrix</div>
+                <div class="compliance-matrix">
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.5.1 - Implemented"
+                  >
+                    5.1
+                  </div>
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.6.1 - Implemented"
+                  >
+                    6.1
+                  </div>
+                  <div class="matrix-cell missing" title="A.6.2 - Missing">
+                    6.2
+                  </div>
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.7.1 - Implemented"
+                  >
+                    7.1
+                  </div>
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.7.2 - Implemented"
+                  >
+                    7.2
+                  </div>
+                  <div class="matrix-cell partial" title="A.8.1 - Partial">
+                    8.1
+                  </div>
+                  <div class="matrix-cell partial" title="A.8.2 - Partial">
+                    8.2
+                  </div>
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.9.1 - Implemented"
+                  >
+                    9.1
+                  </div>
+                  <div
+                    class="matrix-cell implemented"
+                    title="A.9.2 - Implemented"
+                  >
+                    9.2
+                  </div>
+                  <div class="matrix-cell na" title="A.10.1 - N/A">10.1</div>
+                </div>
+              </div>
+
+              <div class="sidebar-section">
+                <div class="export-options">
+                  <div class="export-title">Export Options</div>
+                  <button class="export-btn" onclick="exportTree('pdf')">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                  </button>
+                  <button class="export-btn" onclick="exportTree('excel')">
+                    <i class="fas fa-file-excel"></i> Export as Excel
+                  </button>
+                  <button class="export-btn" onclick="exportTree('csv')">
+                    <i class="fas fa-file-csv"></i> Export as CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Framework%20Navigation&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- ADD BEFORE existing scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <!-- THEN existing scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      let selectedNode = null;
+      let currentView = "tree";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // NEW: Initialize layout system
+        LayoutManager.initializePage("treeView.html");
+
+        // KEEP: Existing page-specific code
+        updateChatContext("Framework Navigation");
+      });
+
+      function toggleNode(toggleElement, event) {
+        event.stopPropagation();
+
+        const node = toggleElement.closest(".tree-node");
+        const children = node.nextElementSibling;
+
+        if (children && children.classList.contains("tree-children")) {
+          if (children.classList.contains("expanded")) {
+            children.classList.remove("expanded");
+            toggleElement.classList.remove("expanded");
+          } else {
+            children.classList.add("expanded");
+            toggleElement.classList.add("expanded");
+          }
+        }
+      }
+
+      function selectNode(node) {
+        // Remove selection from all nodes
+        document
+          .querySelectorAll(".tree-node")
+          .forEach((n) => n.classList.remove("selected"));
+
+        // Select current node
+        node.classList.add("selected");
+        selectedNode = node;
+
+        const nodeId = node.dataset.nodeId;
+        const nodeLabel = node.querySelector(".tree-label").textContent;
+
+        updateNodeDetails(nodeId, nodeLabel);
+        showNotification(`Selected: ${nodeLabel}`, "info");
+      }
+
+      function updateNodeDetails(nodeId, nodeLabel) {
+        // Update breadcrumb based on selection
+        updateBreadcrumbTrail(nodeId);
+
+        // Update sidebar details (in real app, this would fetch from backend)
+        console.log("Updating details for node:", nodeId);
+      }
+
+      function updateBreadcrumbTrail(nodeId) {
+        const breadcrumb = document.querySelector(".breadcrumb-trail");
+
+        const breadcrumbs = {
+          iso27001: "ISO 27001:2022",
+          "annex-a": "ISO 27001:2022 > Annex A",
+          a5: "ISO 27001:2022 > Annex A > A.5 Information Security Policies",
+          "a5-1":
+            "ISO 27001:2022 > Annex A > A.5 > A.5.1 Policies for information security",
+        };
+
+        if (breadcrumbs[nodeId]) {
+          breadcrumb.innerHTML = breadcrumbs[nodeId]
+            .split(" > ")
+            .map((item, index, array) => {
+              const isLast = index === array.length - 1;
+              return isLast
+                ? `<span class="breadcrumb-item">${item}</span>`
+                : `<span class="breadcrumb-item" onclick="navigateToNode('${item}')">${item}</span><span class="breadcrumb-separator">></span>`;
+            })
+            .join("");
+        }
+      }
+
+      function searchTree(query) {
+        const nodes = document.querySelectorAll(".tree-node");
+
+        if (!query.trim()) {
+          // Clear all highlights
+          nodes.forEach((node) => {
+            node.classList.remove("highlighted");
+            node.style.display = "";
+          });
+          return;
+        }
+
+        nodes.forEach((node) => {
+          const label = node
+            .querySelector(".tree-label")
+            .textContent.toLowerCase();
+          const matches = label.includes(query.toLowerCase());
+
+          if (matches) {
+            node.classList.add("highlighted");
+            node.style.display = "";
+
+            // Expand parent nodes to show matches
+            expandParents(node);
+          } else {
+            node.classList.remove("highlighted");
+            node.style.display = "none";
+          }
+        });
+
+        showNotification(
+          `Found ${document.querySelectorAll(".tree-node.highlighted").length} matches`,
+          "info",
+        );
+      }
+
+      function expandParents(node) {
+        let parent = node.parentElement;
+        while (parent) {
+          if (parent.classList.contains("tree-children")) {
+            parent.classList.add("expanded");
+
+            const parentNode = parent.previousElementSibling;
+            if (parentNode) {
+              const toggle = parentNode.querySelector(".tree-toggle");
+              if (toggle) {
+                toggle.classList.add("expanded");
+              }
+            }
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+      function expandAll() {
+        document.querySelectorAll(".tree-children").forEach((children) => {
+          children.classList.add("expanded");
+        });
+
+        document.querySelectorAll(".tree-toggle").forEach((toggle) => {
+          toggle.classList.add("expanded");
+        });
+
+        showNotification("All nodes expanded", "info");
+      }
+
+      function collapseAll() {
+        document.querySelectorAll(".tree-children").forEach((children) => {
+          children.classList.remove("expanded");
+        });
+
+        document.querySelectorAll(".tree-toggle").forEach((toggle) => {
+          toggle.classList.remove("expanded");
+        });
+
+        showNotification("All nodes collapsed", "info");
+      }
+
+      function switchView(view) {
+        // Update button states
+        document
+          .querySelectorAll(".view-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+
+        currentView = view;
+        showNotification(`Switched to ${view} view`, "info");
+
+        // In a real app, this would change the tree display format
+      }
+
+      function refreshTree() {
+        showNotification("Refreshing tree structure...", "info");
+      }
+
+      function treeSettings() {
+        showNotification("Opening tree settings...", "info");
+      }
+
+      function exportTree(format) {
+        if (format) {
+          showNotification(
+            `Exporting tree as ${format.toUpperCase()}...`,
+            "info",
+          );
+        } else {
+          showNotification("Exporting compliance tree...", "info");
+        }
+      }
+
+      function editNode(event, nodeId) {
+        event.stopPropagation();
+        showNotification(`Editing node: ${nodeId}`, "info");
+      }
+
+      function exportNode(event, nodeId) {
+        event.stopPropagation();
+        showNotification(`Exporting node: ${nodeId}`, "info");
+      }
+
+      function viewDetails(event, nodeId) {
+        event.stopPropagation();
+        showNotification(`Viewing details for: ${nodeId}`, "info");
+      }
+
+      function navigateToRoot() {
+        showNotification("Navigating to root", "info");
+      }
+
+      function navigateToNode(nodeId) {
+        showNotification(`Navigating to: ${nodeId}`, "info");
+      }
+
+      // Filter change handlers
+      document
+        .querySelectorAll('.filter-checkbox-group input[type="checkbox"]')
+        .forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const label = this.nextElementSibling.textContent;
+            const action = this.checked ? "shown" : "hidden";
+            showNotification(`${label} controls ${action}`, "info");
+
+            // In a real app, this would filter the tree
+            applyFilters();
+          });
+        });
+
+      function applyFilters() {
+        // Get all checked filters
+        const checkedFilters = Array.from(
+          document.querySelectorAll(
+            '.filter-checkbox-group input[type="checkbox"]:checked',
+          ),
+        ).map((cb) => cb.nextElementSibling.textContent);
+
+        console.log("Applied filters:", checkedFilters);
+      }
+
+      // Matrix cell click handlers
+      document.querySelectorAll(".matrix-cell").forEach((cell) => {
+        cell.addEventListener("click", function () {
+          const title = this.getAttribute("title");
+          showNotification(`Viewing control: ${title}`, "info");
+        });
+      });
+
+      // Breadcrumb navigation
+      document.querySelectorAll(".breadcrumb-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          if (this.onclick) return; // Skip if has onclick handler
+
+          const text = this.textContent;
+          showNotification(`Navigating to: ${text}`, "info");
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - List View</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- 
+    ========================================================================
+    ARIONCOMPLY LISTVIEW.HTML - DYNAMIC LIST DISPLAY PAGE
+    ========================================================================
+    
+    OVERVIEW:
+    This page provides a dynamic, configurable list view that can display
+    different types of content based on URL parameters. It supports table
+    and grid views, filtering, bulk actions, and export functionality.
+    
+    URL PARAMETERS:
+    - ?type=risks           → Risk Register
+    - ?type=assets          → Asset Inventory  
+    - ?type=ai_systems      → AI System Inventory
+    - ?type=policies        → Policy Library
+    - ?type=vendors         → Vendor Register
+    - ?type=incidents       → Incident Register
+    - ?type=training        → Training Catalog
+    - ?type=findings        → Audit Findings
+    - ?type=campaigns       → Awareness Campaigns
+    - ?type=breaches        → Breach Notifications
+    - ?type=response_plans  → Response Plans
+    - ?type=approvals       → Approval Workflow
+    - ?type=contracts       → Contracts & DPAs
+    - ?type=controls        → Security Controls
+    - ?type=training_records → Training Records
+    - ?type=vendor_assessments → Vendor Assessments
+    
+    FEATURES:
+    - Dynamic content loading based on URL parameter
+    - Configurable filters specific to each content type
+    - Table and grid view modes
+    - Bulk actions (select multiple items for operations)
+    - Export functionality (CSV format)
+    - Responsive design for mobile and desktop
+    - Integrated AI chat assistant
+    - Search and filter capabilities
+    
+    DEPENDENCIES:
+    Required JavaScript files (loaded in specific order):
+    1. navigation-config.js     → Navigation and framework configurations
+    2. sidebar-component.js     → Sidebar component functionality
+    3. layout-manager.js        → Page layout management
+    4. seedData.js             → Data generation utilities
+    5. scripts.js              → Common utility functions
+    6. listView-content-config.js → Content type configurations
+    7. listView-logic.js       → Page logic and interactions
+    
+    CUSTOMIZATION:
+    - Add new content types: Edit listView-content-config.js
+    - Modify page behavior: Edit listView-logic.js
+    - Change styling: Edit mystyles.css
+    - Add new interactions: Edit listView-logic.js
+    
+    ERROR HANDLING:
+    - Unknown content types show error message
+    - Missing dependencies are caught and reported
+    - JavaScript errors are handled gracefully
+    - Fallback functionality maintains basic usability
+    
+    BROWSER SUPPORT:
+    - Modern browsers (ES6+ support required)
+    - Responsive design for mobile devices
+    - Fallback handling for older browsers
+    
+    ========================================================================
+    -->
+    
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <div class="content">
+          <!-- 
+          PAGE HEADER SECTION
+          Contains page title, subtitle, and primary action buttons
+          Content is dynamically updated based on URL parameter
+          -->
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Loading...</h1>
+              <p class="page-subtitle">Please wait while content loads</p>
+            </div>
+            <div class="page-actions">
+              <button
+                class="btn btn-secondary"
+                onclick="toggleFilter('list-filter')"
+              >
+                <i class="fas fa-filter"></i>
+                Filter
+              </button>
+              <button class="btn btn-primary" id="add-button" onclick="handleAddAction()">
+                <i class="fas fa-plus"></i>
+                <span id="add-button-text">Add Item</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 
+          FILTER PANEL
+          Dynamically populated based on content type configuration
+          Filters are specific to each content type (e.g., risk level, status)
+          -->
+          <div id="list-filter" class="filter-panel">
+            <div class="filter-grid" id="filter-grid">
+              <!-- Filters will be dynamically populated based on content type -->
+            </div>
+            <div style="margin-top: 1rem">
+              <button class="btn btn-primary" onclick="applyFilters()">
+                Apply Filters
+              </button>
+              <button class="btn btn-secondary" onclick="clearFilters()">
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <!-- 
+          LIST CONTAINER
+          Contains both table and grid views
+          Only one view is visible at a time based on user selection
+          -->
+          <div class="table-container">
+            <div class="table-header">
+              <h3 id="list-title">Loading Content...</h3>
+              <div style="display: flex; gap: 1rem">
+                <button class="btn btn-secondary" onclick="exportData()">
+                  <i class="fas fa-download"></i>
+                  Export
+                </button>
+                <button class="btn btn-secondary" onclick="toggleView()">
+                  <i class="fas fa-th"></i>
+                  <span id="view-toggle-text">Grid View</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 
+            TABLE VIEW
+            Default view mode showing data in traditional table format
+            Headers and content are dynamically generated
+            -->
+            <div id="table-view">
+              <table class="table">
+                <thead id="list-head">
+                  <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        id="selectAll"
+                        onchange="toggleSelectAll()"
+                      />
+                    </th>
+                    <th>Loading...</th>
+                    <th>Please Wait...</th>
+                    <th>Content Loading...</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="list-tbody">
+                  <!-- Content will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 
+            GRID VIEW
+            Alternative view mode showing data in card format
+            Better for mobile devices and visual browsing
+            -->
+            <div id="grid-view" style="display: none">
+              <div class="grid-container" id="grid-container">
+                <!-- Cards will be populated dynamically -->
+              </div>
+            </div>
+
+            <!-- 
+            PAGINATION
+            Shows item count and navigation controls
+            Currently displays static pagination (future enhancement)
+            -->
+            <div
+              style="
+                padding: 1rem 1.5rem;
+                border-top: 1px solid var(--border-light);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <div style="color: var(--text-gray); font-size: 0.875rem">
+                Showing <span id="item-count">0</span> items
+              </div>
+              <div style="display: flex; gap: 0.5rem">
+                <button class="btn btn-secondary" disabled>
+                  <i class="fas fa-chevron-left"></i>
+                  Previous
+                </button>
+                <button class="btn btn-secondary" disabled>
+                  Next
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 
+          BULK ACTIONS BAR
+          Appears when user selects one or more items
+          Actions are specific to each content type
+          -->
+          <div id="bulk-actions" style="display: none; margin-top: 1rem">
+            <div class="card" style="padding: 1rem">
+              <div style="display: flex; align-items: center; gap: 1rem">
+                <span id="selected-count">0 items selected</span>
+                <button class="btn btn-primary" id="bulk-primary-action" onclick="handleBulkPrimaryAction()">
+                  <i class="fas fa-cog"></i>
+                  <span id="bulk-primary-text">Process Selected</span>
+                </button>
+                <button class="btn btn-secondary" onclick="bulkExport()">
+                  <i class="fas fa-download"></i>
+                  Export Selected
+                </button>
+                <button class="btn btn-secondary" onclick="bulkDelete()">
+                  <i class="fas fa-trash"></i>
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 
+      AI CHAT INTEGRATION
+      Floating chat button and popup interface
+      Context is set based on current content type
+      -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Loading&embed=1"
+          class="chat-iframe"
+          id="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- 
+    ========================================================================
+    JAVASCRIPT DEPENDENCIES
+    ========================================================================
+    
+    LOADING ORDER IS CRITICAL:
+    Scripts must be loaded in this specific order due to dependencies
+    
+    1. CORE FRAMEWORK SCRIPTS:
+       - navigation-config.js: Navigation structure and framework configs
+       - sidebar-component.js: Sidebar functionality
+       - layout-manager.js: Page layout management
+    
+    2. UTILITY SCRIPTS:
+       - seedData.js: Data generation utilities
+       - scripts.js: Common functions (showNotification, toggleChat, etc.)
+    
+    3. PAGE-SPECIFIC SCRIPTS:
+       - listView-content-config.js: Content type configurations
+       - listView-logic.js: Page logic and interactions
+    
+    TROUBLESHOOTING:
+    If page doesn't load properly, check browser console for:
+    - Missing script files (404 errors)
+    - JavaScript errors during initialization
+    - Network connectivity issues
+    
+    ========================================================================
+    -->
+    
+    <!-- Core Framework Scripts -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    
+    <!-- Utility Scripts -->
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+    
+    <!-- Page-Specific Scripts -->
+    <script src="listView-content-config.js"></script>
+    <script src="listView-logic.js"></script>
+  </body>
+</html>

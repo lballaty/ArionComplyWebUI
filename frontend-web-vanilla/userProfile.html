@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - User Profile</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 2rem;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-gray);
+        margin-bottom: 0.5rem;
+      }
+      .form-input,
+      .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+        background: var(--bg-white);
+      }
+      .form-input:focus,
+      .form-select:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <main class="main-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">User Profile</h1>
+            <p class="page-subtitle">Update your account settings</p>
+          </div>
+        </div>
+        <div class="profile-container">
+          <form id="profileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Name</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="profileName"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  id="profileEmail"
+                  required
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-select" id="profileRole">
+                  <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
+                  <option value="auditor">Auditor</option>
+                  <option value="user">User</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Company</label>
+                <select class="form-select" id="profileCompany"></select>
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+          </form>
+        </div>
+      </main>
+    </div>
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+      function loadProfile() {
+        const params = new URLSearchParams(window.location.search);
+        const requestedId = params.get("id");
+        const current = JSON.parse(
+          localStorage.getItem("arioncomply_user") || "{}",
+        );
+        const users = getStoredData("arioncomply_users");
+
+        const isAdmin = current.role === "admin";
+
+        let user = null;
+        if (isAdmin && requestedId) {
+          user = users.find((u) => u.id === requestedId);
+        }
+
+        if (!user) {
+          user = users.find(
+            (u) => u.id === current.id || u.email === current.email,
+          );
+        }
+
+        if (!user) {
+          alert("User not found");
+          window.location.href = "routing.html";
+          return null;
+        }
+
+        if (!isAdmin && user.email !== current.email) {
+          alert("Access denied");
+          window.location.href = "routing.html";
+          return null;
+        }
+
+        document.getElementById("profileName").value = user.name || "";
+        document.getElementById("profileEmail").value = user.email || "";
+        document.getElementById("profileRole").value = user.role || "user";
+
+        const companySelect = document.getElementById("profileCompany");
+        const companies = getStoredData("arioncomply_companies");
+        companySelect.innerHTML = "";
+        companies.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          companySelect.appendChild(opt);
+        });
+        companySelect.value = user.company || "";
+
+        return user;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        LayoutManager.initializePage("userProfile.html");
+        const loadedUser = loadProfile();
+        const current = JSON.parse(
+          localStorage.getItem("arioncomply_user") || "{}",
+        );
+        const isAdmin = current.role === "admin";
+        const editingSelf = loadedUser && current.email === loadedUser.email;
+
+        if (!loadedUser) return;
+
+        if (!isAdmin) {
+          if (!editingSelf) {
+            document
+              .querySelectorAll("#profileForm input, #profileForm select")
+              .forEach((el) => (el.disabled = true));
+          } else {
+            document
+              .getElementById("profileRole")
+              .setAttribute("disabled", "disabled");
+          }
+        }
+
+        document
+          .getElementById("profileForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            loadedUser.name = document
+              .getElementById("profileName")
+              .value.trim();
+            loadedUser.email = document
+              .getElementById("profileEmail")
+              .value.trim();
+            loadedUser.role = document.getElementById("profileRole").value;
+            loadedUser.company =
+              document.getElementById("profileCompany").value;
+            saveUser(loadedUser);
+            if (editingSelf) {
+              localStorage.setItem(
+                "arioncomply_user",
+                JSON.stringify(loadedUser),
+              );
+            }
+            showNotification("Profile saved", "success");
+          });
+      });
+    </script>
+  </body>
+</html>

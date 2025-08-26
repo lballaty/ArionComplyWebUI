@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArionComply - Analytics Dashboard</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+    <style>
+      .charts-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+        height: calc(100vh - 200px);
+      }
+
+      .chart-controls {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 1.5rem;
+        overflow-y: auto;
+      }
+
+      .charts-main {
+        background: var(--bg-white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-subtle);
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .control-section {
+        margin-bottom: 2rem;
+      }
+
+      .control-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: var(--text-dark);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .chart-type-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .chart-type-btn {
+        padding: 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: center;
+        font-size: 0.875rem;
+      }
+
+      .chart-type-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .chart-type-btn.active {
+        border-color: var(--primary-blue);
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .chart-type-btn i {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .metric-list {
+        list-style: none;
+      }
+
+      .metric-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin-bottom: 0.25rem;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .metric-item:hover {
+        background: var(--bg-light);
+      }
+
+      .metric-checkbox {
+        margin-right: 0.75rem;
+      }
+
+      .metric-label {
+        flex: 1;
+        font-size: 0.875rem;
+      }
+
+      .metric-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+      }
+
+      .timeframe-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .timeframe-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-size: 0.875rem;
+      }
+
+      .timeframe-btn:hover {
+        border-color: var(--primary-blue);
+      }
+
+      .timeframe-btn.active {
+        border-color: var(--primary-blue);
+        background: var(--primary-blue);
+        color: white;
+      }
+
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+      }
+
+      .chart-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-subtle);
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      .chart-title {
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .chart-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .chart-action-btn {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        background: var(--bg-white);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        font-size: 0.75rem;
+      }
+
+      .chart-action-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--bg-light);
+      }
+
+      .chart-content {
+        height: 300px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        border: 2px dashed var(--border-light);
+      }
+
+      .chart-placeholder {
+        text-align: center;
+        color: var(--text-gray);
+      }
+
+      .chart-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+      }
+
+      .risk-donut {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+      }
+
+      .donut-chart {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+
+      .donut-segment {
+        fill: none;
+        stroke-width: 30;
+        cursor: pointer;
+        transition: stroke-width 0.3s ease;
+      }
+
+      .donut-segment:hover {
+        stroke-width: 35;
+      }
+
+      .donut-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+
+      .donut-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-dark);
+      }
+
+      .donut-label {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+      }
+
+      .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+        justify-content: center;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .bar-chart {
+        height: 100%;
+        display: flex;
+        align-items: end;
+        justify-content: space-around;
+        padding: 1rem;
+        gap: 0.5rem;
+      }
+
+      .bar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        max-width: 60px;
+      }
+
+      .bar-value {
+        background: var(--primary-blue);
+        width: 100%;
+        border-radius: 4px 4px 0 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        min-height: 20px;
+      }
+
+      .bar-value:hover {
+        background: #1d4ed8;
+      }
+
+      .bar-value.high {
+        background: var(--danger-red);
+      }
+
+      .bar-value.medium {
+        background: var(--warning-amber);
+      }
+
+      .bar-value.low {
+        background: var(--success-green);
+      }
+
+      .bar-label {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        margin-top: 0.5rem;
+        text-align: center;
+        line-height: 1.2;
+      }
+
+      .trend-line {
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .trend-svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .trend-path {
+        fill: none;
+        stroke: var(--primary-blue);
+        stroke-width: 3;
+        stroke-linecap: round;
+      }
+
+      .trend-area {
+        fill: rgba(37, 99, 235, 0.1);
+      }
+
+      .trend-points {
+        fill: var(--primary-blue);
+        r: 4;
+        cursor: pointer;
+      }
+
+      .trend-points:hover {
+        r: 6;
+        fill: #1d4ed8;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .export-panel {
+        background: var(--bg-light);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .export-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .export-options {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .export-btn {
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.15s ease;
+      }
+
+      .export-btn:hover {
+        border-color: var(--primary-blue);
+        background: var(--primary-blue);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar and Header will be injected here by LayoutManager -->
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Header will be injected here if needed -->
+
+        <!-- Content Area - Chart Widget -->
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Analytics Dashboard</h1>
+              <p class="page-subtitle">
+                Data Visualization & Compliance Metrics
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="refreshData()">
+                <i class="fas fa-sync"></i>
+                Refresh
+              </button>
+              <button class="btn btn-secondary" onclick="exportDashboard()">
+                <i class="fas fa-download"></i>
+                Export
+              </button>
+              <button class="btn btn-primary" onclick="createChart()">
+                <i class="fas fa-plus"></i>
+                New Chart
+              </button>
+            </div>
+          </div>
+
+          <div class="charts-container">
+            <!-- Chart Controls -->
+            <div class="chart-controls">
+              <div class="control-section">
+                <div class="control-title">Chart Types</div>
+                <div class="chart-type-grid">
+                  <div
+                    class="chart-type-btn active"
+                    onclick="selectChartType('donut')"
+                  >
+                    <i class="fas fa-chart-pie"></i>
+                    Donut
+                  </div>
+                  <div class="chart-type-btn" onclick="selectChartType('bar')">
+                    <i class="fas fa-chart-bar"></i>
+                    Bar
+                  </div>
+                  <div class="chart-type-btn" onclick="selectChartType('line')">
+                    <i class="fas fa-chart-line"></i>
+                    Line
+                  </div>
+                  <div class="chart-type-btn" onclick="selectChartType('area')">
+                    <i class="fas fa-chart-area"></i>
+                    Area
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <div class="control-title">Metrics</div>
+                <ul class="metric-list">
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" checked />
+                    <span class="metric-label">Risk Levels</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--danger-red)"
+                    ></div>
+                  </li>
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" checked />
+                    <span class="metric-label">Compliance Score</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--success-green)"
+                    ></div>
+                  </li>
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" />
+                    <span class="metric-label">AI Systems</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--ai-purple)"
+                    ></div>
+                  </li>
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" />
+                    <span class="metric-label">Audit Findings</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--warning-amber)"
+                    ></div>
+                  </li>
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" />
+                    <span class="metric-label">Training Progress</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--primary-blue)"
+                    ></div>
+                  </li>
+                  <li class="metric-item">
+                    <input type="checkbox" class="metric-checkbox" />
+                    <span class="metric-label">Policy Updates</span>
+                    <div
+                      class="metric-color"
+                      style="background: var(--text-gray)"
+                    ></div>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="control-section">
+                <div class="control-title">Time Frame</div>
+                <div class="timeframe-selector">
+                  <button class="timeframe-btn" onclick="selectTimeframe('7d')">
+                    Last 7 Days
+                  </button>
+                  <button
+                    class="timeframe-btn active"
+                    onclick="selectTimeframe('30d')"
+                  >
+                    Last 30 Days
+                  </button>
+                  <button
+                    class="timeframe-btn"
+                    onclick="selectTimeframe('90d')"
+                  >
+                    Last 90 Days
+                  </button>
+                  <button class="timeframe-btn" onclick="selectTimeframe('1y')">
+                    Last Year
+                  </button>
+                  <button
+                    class="timeframe-btn"
+                    onclick="selectTimeframe('custom')"
+                  >
+                    Custom Range
+                  </button>
+                </div>
+              </div>
+
+              <div class="export-panel">
+                <div class="export-title">Export Options</div>
+                <div class="export-options">
+                  <button class="export-btn" onclick="exportChart('png')">
+                    PNG
+                  </button>
+                  <button class="export-btn" onclick="exportChart('svg')">
+                    SVG
+                  </button>
+                  <button class="export-btn" onclick="exportChart('pdf')">
+                    PDF
+                  </button>
+                  <button class="export-btn" onclick="exportChart('excel')">
+                    Excel
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Main -->
+            <div class="charts-main">
+              <div class="chart-grid">
+                <!-- Risk Distribution Chart -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <div class="chart-title">Risk Distribution</div>
+                    <div class="chart-actions">
+                      <button
+                        class="chart-action-btn"
+                        onclick="fullscreenChart(this)"
+                        title="Fullscreen"
+                      >
+                        <i class="fas fa-expand"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="configureChart(this)"
+                        title="Configure"
+                      >
+                        <i class="fas fa-cog"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="downloadChart(this)"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="chart-content">
+                    <div class="risk-donut">
+                      <svg class="donut-chart" viewBox="0 0 200 200">
+                        <!-- High Risk: 25% -->
+                        <circle
+                          class="donut-segment"
+                          cx="100"
+                          cy="100"
+                          r="85"
+                          stroke="var(--danger-red)"
+                          stroke-dasharray="133.5 400"
+                          stroke-dashoffset="0"
+                        ></circle>
+                        <!-- Medium Risk: 35% -->
+                        <circle
+                          class="donut-segment"
+                          cx="100"
+                          cy="100"
+                          r="85"
+                          stroke="var(--warning-amber)"
+                          stroke-dasharray="186.9 400"
+                          stroke-dashoffset="-133.5"
+                        ></circle>
+                        <!-- Low Risk: 40% -->
+                        <circle
+                          class="donut-segment"
+                          cx="100"
+                          cy="100"
+                          r="85"
+                          stroke="var(--success-green)"
+                          stroke-dasharray="213.6 400"
+                          stroke-dashoffset="-320.4"
+                        ></circle>
+                      </svg>
+                      <div class="donut-center">
+                        <div class="donut-value">127</div>
+                        <div class="donut-label">Total Risks</div>
+                      </div>
+                    </div>
+                    <div class="chart-legend">
+                      <div class="legend-item">
+                        <div
+                          class="legend-color"
+                          style="background: var(--danger-red)"
+                        ></div>
+                        <span>High Risk (32)</span>
+                      </div>
+                      <div class="legend-item">
+                        <div
+                          class="legend-color"
+                          style="background: var(--warning-amber)"
+                        ></div>
+                        <span>Medium Risk (44)</span>
+                      </div>
+                      <div class="legend-item">
+                        <div
+                          class="legend-color"
+                          style="background: var(--success-green)"
+                        ></div>
+                        <span>Low Risk (51)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Compliance Scores -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <div class="chart-title">Framework Compliance</div>
+                    <div class="chart-actions">
+                      <button
+                        class="chart-action-btn"
+                        onclick="fullscreenChart(this)"
+                        title="Fullscreen"
+                      >
+                        <i class="fas fa-expand"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="configureChart(this)"
+                        title="Configure"
+                      >
+                        <i class="fas fa-cog"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="downloadChart(this)"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="chart-content">
+                    <div class="bar-chart">
+                      <div class="bar">
+                        <div
+                          class="bar-value"
+                          style="height: 92%; background: var(--success-green)"
+                        ></div>
+                        <div class="bar-label">ISO 27001<br />92%</div>
+                      </div>
+                      <div class="bar">
+                        <div
+                          class="bar-value"
+                          style="height: 88%; background: var(--success-green)"
+                        ></div>
+                        <div class="bar-label">GDPR<br />88%</div>
+                      </div>
+                      <div class="bar">
+                        <div
+                          class="bar-value"
+                          style="height: 76%; background: var(--warning-amber)"
+                        ></div>
+                        <div class="bar-label">SOC 2<br />76%</div>
+                      </div>
+                      <div class="bar">
+                        <div
+                          class="bar-value"
+                          style="height: 68%; background: var(--warning-amber)"
+                        ></div>
+                        <div class="bar-label">EU AI Act<br />68%</div>
+                      </div>
+                      <div class="bar">
+                        <div
+                          class="bar-value"
+                          style="height: 94%; background: var(--success-green)"
+                        ></div>
+                        <div class="bar-label">PCI DSS<br />94%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Trend Analysis -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <div class="chart-title">Compliance Trend (30 Days)</div>
+                    <div class="chart-actions">
+                      <button
+                        class="chart-action-btn"
+                        onclick="fullscreenChart(this)"
+                        title="Fullscreen"
+                      >
+                        <i class="fas fa-expand"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="configureChart(this)"
+                        title="Configure"
+                      >
+                        <i class="fas fa-cog"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="downloadChart(this)"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="chart-content">
+                    <div class="trend-line">
+                      <svg class="trend-svg" viewBox="0 0 400 250">
+                        <!-- Grid lines -->
+                        <defs>
+                          <pattern
+                            id="grid"
+                            width="40"
+                            height="25"
+                            patternUnits="userSpaceOnUse"
+                          >
+                            <path
+                              d="M 40 0 L 0 0 0 25"
+                              fill="none"
+                              stroke="var(--border-light)"
+                              stroke-width="1"
+                            />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+
+                        <!-- Trend area -->
+                        <path
+                          class="trend-area"
+                          d="M 20 200 L 60 180 L 100 160 L 140 140 L 180 120 L 220 110 L 260 100 L 300 90 L 340 80 L 380 70 L 380 250 L 20 250 Z"
+                        />
+
+                        <!-- Trend line -->
+                        <path
+                          class="trend-path"
+                          d="M 20 200 L 60 180 L 100 160 L 140 140 L 180 120 L 220 110 L 260 100 L 300 90 L 340 80 L 380 70"
+                        />
+
+                        <!-- Data points -->
+                        <circle class="trend-points" cx="20" cy="200" />
+                        <circle class="trend-points" cx="60" cy="180" />
+                        <circle class="trend-points" cx="100" cy="160" />
+                        <circle class="trend-points" cx="140" cy="140" />
+                        <circle class="trend-points" cx="180" cy="120" />
+                        <circle class="trend-points" cx="220" cy="110" />
+                        <circle class="trend-points" cx="260" cy="100" />
+                        <circle class="trend-points" cx="300" cy="90" />
+                        <circle class="trend-points" cx="340" cy="80" />
+                        <circle class="trend-points" cx="380" cy="70" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Key Statistics -->
+                <div class="chart-card">
+                  <div class="chart-header">
+                    <div class="chart-title">Key Performance Indicators</div>
+                    <div class="chart-actions">
+                      <button
+                        class="chart-action-btn"
+                        onclick="fullscreenChart(this)"
+                        title="Fullscreen"
+                      >
+                        <i class="fas fa-expand"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="configureChart(this)"
+                        title="Configure"
+                      >
+                        <i class="fas fa-cog"></i>
+                      </button>
+                      <button
+                        class="chart-action-btn"
+                        onclick="downloadChart(this)"
+                        title="Download"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="chart-content">
+                    <div class="stats-grid">
+                      <div class="stat-item">
+                        <div
+                          class="stat-value"
+                          style="color: var(--success-green)"
+                        >
+                          87%
+                        </div>
+                        <div class="stat-label">Overall Score</div>
+                      </div>
+                      <div class="stat-item">
+                        <div
+                          class="stat-value"
+                          style="color: var(--primary-blue)"
+                        >
+                          23
+                        </div>
+                        <div class="stat-label">AI Systems</div>
+                      </div>
+                      <div class="stat-item">
+                        <div
+                          class="stat-value"
+                          style="color: var(--warning-amber)"
+                        >
+                          8
+                        </div>
+                        <div class="stat-label">Open Findings</div>
+                      </div>
+                      <div class="stat-item">
+                        <div
+                          class="stat-value"
+                          style="color: var(--danger-red)"
+                        >
+                          3
+                        </div>
+                        <div class="stat-label">Critical Risks</div>
+                      </div>
+                      <div class="stat-item">
+                        <div class="stat-value" style="color: var(--text-dark)">
+                          142
+                        </div>
+                        <div class="stat-label">Total Assets</div>
+                      </div>
+                      <div class="stat-item">
+                        <div
+                          class="stat-value"
+                          style="color: var(--success-green)"
+                        >
+                          95%
+                        </div>
+                        <div class="stat-label">Training Rate</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- AI Chat Popup -->
+      <button class="chat-trigger" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <div class="chat-popup" id="chatPopup">
+        <div class="chat-header">
+          <div class="chat-title">ArionComply AI Assistant</div>
+          <button class="chat-close" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <iframe
+          src="chatInterface.html?context=Data%20Analytics&embed=1"
+          class="chat-iframe"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Load the new modular system -->
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="seedData.js"></script>
+    <script src="scripts.js"></script>
+
+    <script>
+      let selectedChartType = "donut";
+      let selectedTimeframe = "30d";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize layout - this will inject header and sidebar automatically
+        LayoutManager.initializePage("chartView.html");
+
+        // Page-specific initialization
+        updateChatContext("Data Analytics");
+      });
+
+      function selectChartType(type) {
+        // Update button states
+        document
+          .querySelectorAll(".chart-type-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.closest(".chart-type-btn").classList.add("active");
+
+        selectedChartType = type;
+        showNotification(`Selected ${type} chart type`, "info");
+      }
+
+      function selectTimeframe(timeframe) {
+        // Update button states
+        document
+          .querySelectorAll(".timeframe-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+
+        selectedTimeframe = timeframe;
+
+        if (timeframe === "custom") {
+          showNotification("Opening custom date range picker...", "info");
+        } else {
+          showNotification(`Updated timeframe to ${timeframe}`, "info");
+          // In a real app, this would update all charts
+          updateChartData(timeframe);
+        }
+      }
+
+      function updateChartData(timeframe) {
+        // Simulate data updates based on timeframe
+        console.log("Updating chart data for timeframe:", timeframe);
+
+        // Add visual feedback
+        document.querySelectorAll(".chart-content").forEach((chart) => {
+          chart.style.opacity = "0.7";
+          setTimeout(() => {
+            chart.style.opacity = "1";
+          }, 500);
+        });
+      }
+
+      function fullscreenChart(button) {
+        const chartCard = button.closest(".chart-card");
+        const chartTitle = chartCard.querySelector(".chart-title").textContent;
+        showNotification(`Opening ${chartTitle} in fullscreen`, "info");
+      }
+
+      function configureChart(button) {
+        const chartCard = button.closest(".chart-card");
+        const chartTitle = chartCard.querySelector(".chart-title").textContent;
+        showNotification(`Configuring ${chartTitle}`, "info");
+      }
+
+      function downloadChart(button) {
+        const chartCard = button.closest(".chart-card");
+        const chartTitle = chartCard.querySelector(".chart-title").textContent;
+        showNotification(`Downloading ${chartTitle}`, "success");
+      }
+
+      function exportChart(format) {
+        showNotification(`Exporting chart as ${format.toUpperCase()}`, "info");
+      }
+
+      function createChart() {
+        showNotification("Opening chart creation wizard...", "info");
+      }
+
+      function refreshData() {
+        showNotification("Refreshing all data...", "info");
+
+        // Visual feedback for data refresh
+        document.querySelectorAll(".chart-content").forEach((chart) => {
+          chart.style.opacity = "0.5";
+        });
+
+        setTimeout(() => {
+          document.querySelectorAll(".chart-content").forEach((chart) => {
+            chart.style.opacity = "1";
+          });
+          showNotification("Data refreshed successfully", "success");
+        }, 2000);
+      }
+
+      function exportDashboard() {
+        showNotification("Exporting dashboard to PDF...", "info");
+      }
+
+      // Interactive chart elements
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add hover effects to donut segments
+        document.querySelectorAll(".donut-segment").forEach((segment) => {
+          segment.addEventListener("mouseenter", function () {
+            this.style.strokeWidth = "35";
+          });
+
+          segment.addEventListener("mouseleave", function () {
+            this.style.strokeWidth = "30";
+          });
+
+          segment.addEventListener("click", function () {
+            const color = this.getAttribute("stroke");
+            let riskType = "Unknown";
+
+            if (color === "var(--danger-red)") riskType = "High Risk";
+            else if (color === "var(--warning-amber)") riskType = "Medium Risk";
+            else if (color === "var(--success-green)") riskType = "Low Risk";
+
+            showNotification(`Clicked on ${riskType} segment`, "info");
+          });
+        });
+
+        // Add hover effects to bar chart
+        document.querySelectorAll(".bar-value").forEach((bar) => {
+          bar.addEventListener("click", function () {
+            const label = this.nextElementSibling.textContent;
+            showNotification(`Viewing details for ${label}`, "info");
+          });
+        });
+
+        // Add hover effects to trend points
+        document.querySelectorAll(".trend-points").forEach((point) => {
+          point.addEventListener("click", function () {
+            const x = this.getAttribute("cx");
+            const y = this.getAttribute("cy");
+            showNotification(`Data point: X=${x}, Y=${y}`, "info");
+          });
+        });
+
+        // Metric checkbox handlers
+        document.querySelectorAll(".metric-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("change", function () {
+            const metricLabel = this.nextElementSibling.textContent;
+            const action = this.checked ? "enabled" : "disabled";
+            showNotification(`${metricLabel} ${action}`, "info");
+          });
+        });
+      });
+
+      // Simulate real-time data updates
+      function simulateRealTimeUpdates() {
+        setInterval(() => {
+          // Randomly update some stats
+          const statValues = document.querySelectorAll(".stat-value");
+          if (statValues.length > 0 && Math.random() < 0.1) {
+            // 10% chance every interval
+            const randomStat =
+              statValues[Math.floor(Math.random() * statValues.length)];
+            const currentValue = parseInt(randomStat.textContent);
+            const change = Math.random() < 0.5 ? -1 : 1;
+
+            if (!isNaN(currentValue)) {
+              randomStat.textContent = Math.max(0, currentValue + change);
+              randomStat.style.transform = "scale(1.1)";
+              setTimeout(() => {
+                randomStat.style.transform = "scale(1)";
+              }, 300);
+            }
+          }
+        }, 5000); // Check every 5 seconds
+      }
+
+      // Start real-time updates
+      simulateRealTimeUpdates();
+    </script>
+  </body>
+</html>

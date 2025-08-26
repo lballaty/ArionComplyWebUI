@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow List</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="mystyles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="app-container">
+      <main class="main-content">
+        <div class="content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workflows</h1>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-ai" id="create-workflow">
+                Create Workflow
+              </button>
+            </div>
+          </div>
+          <div id="workflow-list" class="workflow-list"></div>
+        </div>
+      </main>
+    </div>
+    <script src="navigation-config.js"></script>
+    <script src="sidebar-component.js"></script>
+    <script src="layout-manager.js"></script>
+    <script src="workflowModel.js"></script>
+    <script src="workflowEditor.js"></script>
+    <script>
+      function renderList() {
+        const container = document.getElementById("workflow-list");
+        container.innerHTML = "";
+        const workflows = WorkflowModel.loadAll();
+        workflows.forEach((wf) => {
+          const item = document.createElement("div");
+          item.className = "workflow-item";
+          item.innerHTML = `<span>${wf.name}</span> <a href="workflowEngine.html?id=${wf.id}" class="btn btn-secondary btn-sm">Edit</a>`;
+          container.appendChild(item);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        LayoutManager.initializePage("workflowList.html");
+        renderList();
+        document
+          .getElementById("create-workflow")
+          .addEventListener("click", () => {
+            const name = prompt("Workflow name");
+            if (name !== null) {
+              WorkflowEditor.createNewWorkflow(name);
+              WorkflowEditor.saveCurrentWorkflow();
+              renderList();
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
